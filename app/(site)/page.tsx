@@ -10,7 +10,7 @@ import Services from "@/components/OurServices";
 import ClientsInfo from "@/components/OurClientsInfo";
 
 export const metadata: Metadata = {
-  title: "PT Brilian Eka Saetama",
+  title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
   description:
     "PT. Brilian Eka Saetama (BES) telah lama berkomitmen menjadi mitra utama dalam keselamatan dengan menyediakan solusi keamanan dari bahaya kebakaran. Kami berkomitmen untuk memberikan layanan pemasangan sistem perangkat pendukung dengan standar kualitas terbaik, membantu masyarakat dan perusahaan menjaga aset mereka dari risiko kebakaran, serta menciptakan lingkungan yang aman dan terlindungi.",
   keywords: [
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     "mitra penyedia jasa keamanan kebakaran",
   ],
   openGraph: {
-    title: "PT Brilian Eka Saetama",
+    title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
     description:
       "PT. Brilian Eka Saetama (BES) telah lama berkomitmen menjadi mitra utama dalam keselamatan dengan menyediakan solusi keamanan dari bahaya kebakaran. Kami berkomitmen untuk memberikan layanan pemasangan sistem perangkat pendukung dengan standar kualitas terbaik, membantu masyarakat dan perusahaan menjaga aset mereka dari risiko kebakaran, serta menciptakan lingkungan yang aman dan terlindungi.",
     images: [
