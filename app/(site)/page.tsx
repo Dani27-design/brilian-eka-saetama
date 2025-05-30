@@ -61,6 +61,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
+        secureUrl:
+          "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
         width: 1200,
         height: 630,
         alt: "PT Brilian Eka Saetama",
