@@ -3,10 +3,21 @@ import React from "react";
 export default function SchemaMarkup() {
   const schema = {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": "LocalBusiness",
+    "@id": "https://brilian-eka-saetama.vercel.app/#organization",
     name: "PT Brilian Eka Saetama",
+    alternateName: "PT BES",
     url: "https://brilian-eka-saetama.vercel.app",
-    logo: "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
+      width: "180",
+      height: "180",
+    },
+    image: [
+      "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
+    ],
+    email: "ptbrilianekasaetama@gmail.com",
     description:
       "PT. Brilian Eka Saetama (BES) menyediakan solusi keamanan dari bahaya kebakaran dengan standar kualitas terbaik.",
     address: {
@@ -15,11 +26,20 @@ export default function SchemaMarkup() {
       addressRegion: "Kabupaten Sidoarjo",
       addressCountry: "ID",
     },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "09:00",
+      closes: "17:00",
+    },
     contactPoint: {
       "@type": "ContactPoint",
       telephone: "+62-857-9042-8078",
       contactType: "customer service",
     },
+    sameAs: ["https://www.instagram.com/pt_brilian"],
+    areaServed: ["Jawa Timur", "Indonesia"],
+    slogan: "Solusi Keamanan Kebakaran Terpercaya",
   };
 
   return (
