@@ -34,14 +34,14 @@ export default function AdminLogin() {
       <div className="w-full max-w-md rounded-lg border border-stroke bg-white p-8 shadow-md dark:border-strokedark dark:bg-black">
         <div className="mb-8 flex justify-center">
           <Image
-            src="/images/logo/logo-light.svg"
+            src="/images/logo/logo-light.png"
             alt="Logo"
             width={150}
             height={50}
             className="dark:hidden"
           />
           <Image
-            src="/images/logo/logo-dark.svg"
+            src="/images/logo/logo-dark.png"
             alt="Logo"
             width={150}
             height={50}
