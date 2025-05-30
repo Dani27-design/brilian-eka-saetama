@@ -157,9 +157,18 @@ const Contact = () => {
     try {
       setIsSubmitting(true);
 
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+      const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+      // Validate EmailJS credentials exist
+      if (!serviceId || !templateId || !publicKey) {
+        throw new Error("EmailJS credentials are not properly configured");
+      }
+
       // Prepare template parameters for EmailJS
       const templateParams = {
-        to_email: "daniansyahchusyaidin@gmail.com",
+        to_email: "ptbrilianekasaetama@gmail.com",
         from_name: formData.name,
         from_email: formData.email,
         subject: formData.subject || "Contact Form Submission",
@@ -167,14 +176,8 @@ const Contact = () => {
         message: formData.message,
       };
 
-      // Send email using EmailJS
-      // You need to replace these with your actual EmailJS credentials
-      await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID, // Replace with your EmailJS service ID
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID, // Replace with your EmailJS template ID
-        templateParams,
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY, // Replace with your EmailJS public key
-      );
+      // Send email using EmailJS with validated credentials
+      await emailjs.send(serviceId, templateId, templateParams, publicKey);
 
       // Reset form after successful submission
       setFormData({
