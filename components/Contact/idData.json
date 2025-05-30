@@ -1,0 +1,33 @@
+{
+  "language": "id",
+  "collection": "contact",
+  "data": {
+    "find_us": {
+      "title": "Temukan kami",
+      "location": {
+        "title": "Lokasi Kami",
+        "text": "Jl. Sudirman No. 123, Jakarta Pusat, Indonesia"
+      },
+      "email": {
+        "title": "Alamat Email",
+        "text": "info@safefire.com"
+      },
+      "phone": {
+        "title": "Nomor Telepon",
+        "text": "+62 812 3456 7890"
+      }
+    },
+    "send_message": {
+      "title": "Kirim pesan",
+      "form": {
+        "name": { "placeholder": "Nama lengkap" },
+        "email": { "placeholder": "Alamat email" },
+        "subject": { "placeholder": "Subjek" },
+        "phone": { "placeholder": "Nomor telepon" },
+        "message": { "placeholder": "Pesan" }
+      },
+      "consent_text": "Dengan mengklik Kotak centang, Anda menyetujui penggunaan \"Formulir\" kami dan menyetujui penggunaan cookie di browser.",
+      "submit_button": "Kirim Pesan"
+    }
+  }
+}

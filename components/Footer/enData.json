@@ -1,0 +1,52 @@
+{
+  "language": "en",
+  "collection": "footer",
+  "data": {
+    "main": {
+      "logo": {
+        "description": "Your trusted partner for innovative software solutions and digital transformation.",
+        "contact_label": "contact",
+        "contact_email": "ptbrilianekasaetama@gmail.com",
+        "light_logo": "/images/logo/logo-light.png",
+        "dark_logo": "/images/logo/logo-dark.png"
+      },
+      "quick_links": {
+        "title": "Quick Links",
+        "links": [
+          { "name": "Home", "url": "/" },
+          { "name": "Product", "url": "/product" },
+          { "name": "Careers", "url": "/careers" },
+          { "name": "Pricing", "url": "/pricing" }
+        ]
+      },
+      "support": {
+        "title": "Support",
+        "links": [
+          { "name": "Company", "url": "/company" },
+          { "name": "Press media", "url": "/press" },
+          { "name": "Our Blog", "url": "/blog" },
+          { "name": "Contact Us", "url": "#contactus" }
+        ]
+      },
+      "newsletter": {
+        "title": "Newsletter",
+        "description": "Subscribe to receive future updates",
+        "placeholder": "Email address"
+      },
+      "bottom": {
+        "language_selector": "English",
+        "links": [
+          { "name": "Privacy Policy", "url": "/privacy" },
+          { "name": "Support", "url": "/support" }
+        ],
+        "copyright": "© 2025 Brilian Eka Saetama Company. All rights reserved",
+        "social_media": [
+          { "name": "Facebook", "url": "https://facebook.com" },
+          { "name": "Twitter", "url": "https://twitter.com" },
+          { "name": "LinkedIn", "url": "https://linkedin.com" },
+          { "name": "Behance", "url": "https://behance.net" }
+        ]
+      }
+    }
+  }
+}

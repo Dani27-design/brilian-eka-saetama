@@ -1,0 +1,64 @@
+{
+  "language": "en",
+  "collection": "about",
+  "data": {
+    "about_title": "Your Trusted Fire Safety Partner Since 2010",
+    "about_subtitle": "We are committed to providing comprehensive fire safety solutions with high-quality products and professional installation services.",
+    "about_sections": [
+      {
+        "id": 1,
+        "title": "Who We Are",
+        "subtitle": "Fire Safety Experts Since 2010",
+        "description": "PT SafeFire Indonesia provides comprehensive fire safety solutions for commercial and residential buildings. With extensive experience in the industry, we deliver reliable protection systems that comply with all safety regulations.",
+        "lightImage": "https://firebasestorage.googleapis.com/v0/b/brilian-eka-saetama.appspot.com/o/services%2FLayanan_1.png?alt=media&token=576ead06-08f7-48c9-b0bc-ceadace37da6",
+        "darkImage": "https://firebasestorage.googleapis.com/v0/b/brilian-eka-saetama.appspot.com/o/services%2FLayanan_1.png?alt=media&token=576ead06-08f7-48c9-b0bc-ceadace37da6",
+        "points": [
+          {
+            "id": 1,
+            "number": "01",
+            "title": "Certified Technicians",
+            "description": "Our installation teams are fully certified and regularly trained on the latest fire safety standards."
+          },
+          {
+            "id": 2,
+            "number": "02",
+            "title": "Quality Equipment",
+            "description": "We use only high-quality, certified fire safety equipment to ensure maximum protection."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Our Approach",
+        "subtitle": "Comprehensive Safety Solutions",
+        "description": "We take a holistic approach to fire safety, assessing your entire property to create an integrated protection system. Our solutions are tailored to your specific needs while ensuring compliance with all local regulations.",
+        "lightImage": "/images/about/approach-light.png",
+        "darkImage": "/images/about/approach-dark.png",
+        "ctaText": "View Our Process",
+        "ctaLink": "#process"
+      },
+      {
+        "id": 3,
+        "title": "Client Commitment",
+        "subtitle": "Your Safety Is Our Priority",
+        "description": "We stand behind our work with comprehensive warranties and ongoing support. Our maintenance programs ensure your fire safety systems remain effective for years to come with regular inspections and updates.",
+        "lightImage": "/images/about/clients-light.png",
+        "darkImage": "/images/about/clients-dark.png",
+        "points": [
+          {
+            "id": 1,
+            "number": "01",
+            "title": "24/7 Support",
+            "description": "Our technical team is available around the clock to assist with any emergency situations."
+          },
+          {
+            "id": 2,
+            "number": "02",
+            "title": "Regular Maintenance",
+            "description": "We provide scheduled maintenance services to ensure your systems remain in optimal condition."
+          }
+        ]
+      }
+    ]
+  }
+}

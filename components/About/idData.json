@@ -1,0 +1,64 @@
+{
+  "language": "id",
+  "collection": "about",
+  "data": {
+    "about_title": "Mitra Keamanan Kebakaran Tepercaya Sejak 2010",
+    "about_subtitle": "Kami berkomitmen menyediakan solusi keamanan kebakaran komprehensif dengan produk berkualitas tinggi dan layanan instalasi profesional.",
+    "about_sections": [
+      {
+        "id": 1,
+        "title": "Siapa Kami",
+        "subtitle": "Ahli Keamanan Kebakaran Sejak 2010",
+        "description": "PT SafeFire Indonesia menyediakan solusi keamanan kebakaran komprehensif untuk bangunan komersial dan residensial. Dengan pengalaman luas di industri ini, kami menyediakan sistem proteksi yang andal dan sesuai dengan semua regulasi keselamatan.",
+        "lightImage": "https://firebasestorage.googleapis.com/v0/b/brilian-eka-saetama.appspot.com/o/services%2FLayanan_1.png?alt=media&token=576ead06-08f7-48c9-b0bc-ceadace37da6",
+        "darkImage": "https://firebasestorage.googleapis.com/v0/b/brilian-eka-saetama.appspot.com/o/services%2FLayanan_1.png?alt=media&token=576ead06-08f7-48c9-b0bc-ceadace37da6",
+        "points": [
+          {
+            "id": 1,
+            "number": "01",
+            "title": "Teknisi Tersertifikasi",
+            "description": "Tim instalasi kami telah tersertifikasi penuh dan secara rutin dilatih dengan standar keselamatan kebakaran terbaru."
+          },
+          {
+            "id": 2,
+            "number": "02",
+            "title": "Peralatan Berkualitas",
+            "description": "Kami hanya menggunakan peralatan keselamatan kebakaran berkualitas tinggi dan tersertifikasi untuk memastikan perlindungan maksimal."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Pendekatan Kami",
+        "subtitle": "Solusi Keamanan Komprehensif",
+        "description": "Kami mengambil pendekatan holistik terhadap keselamatan kebakaran, menilai seluruh properti Anda untuk menciptakan sistem perlindungan terintegrasi. Solusi kami disesuaikan dengan kebutuhan spesifik Anda sambil memastikan kepatuhan dengan semua peraturan lokal.",
+        "lightImage": "https://firebasestorage.googleapis.com/v0/b/brilian-eka-saetama.appspot.com/o/services%2FLayanan_1.png?alt=media&token=576ead06-08f7-48c9-b0bc-ceadace37da6",
+        "darkImage": "https://firebasestorage.googleapis.com/v0/b/brilian-eka-saetama.appspot.com/o/services%2FLayanan_1.png?alt=media&token=576ead06-08f7-48c9-b0bc-ceadace37da6",
+        "ctaText": "Lihat Proses Kami",
+        "ctaLink": "#process"
+      },
+      {
+        "id": 3,
+        "title": "Komitmen Kepada Klien",
+        "subtitle": "Keamanan Anda Adalah Prioritas Kami",
+        "description": "Kami mendukung pekerjaan kami dengan garansi komprehensif dan dukungan berkelanjutan. Program pemeliharaan kami memastikan sistem keselamatan kebakaran Anda tetap efektif selama bertahun-tahun dengan inspeksi dan pembaruan rutin.",
+        "lightImage": "https://firebasestorage.googleapis.com/v0/b/brilian-eka-saetama.appspot.com/o/services%2FLayanan_1.png?alt=media&token=576ead06-08f7-48c9-b0bc-ceadace37da6",
+        "darkImage": "https://firebasestorage.googleapis.com/v0/b/brilian-eka-saetama.appspot.com/o/services%2FLayanan_1.png?alt=media&token=576ead06-08f7-48c9-b0bc-ceadace37da6",
+        "points": [
+          {
+            "id": 1,
+            "number": "01",
+            "title": "Dukungan 24/7",
+            "description": "Tim teknis kami tersedia sepanjang waktu untuk membantu dengan situasi darurat apa pun."
+          },
+          {
+            "id": 2,
+            "number": "02",
+            "title": "Pemeliharaan Rutin",
+            "description": "Kami menyediakan layanan pemeliharaan terjadwal untuk memastikan sistem Anda tetap dalam kondisi optimal."
+          }
+        ]
+      }
+    ]
+  }
+}

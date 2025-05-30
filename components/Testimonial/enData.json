@@ -1,0 +1,39 @@
+{
+  "language": "en",
+  "collection": "testimonial",
+  "data": {
+    "testimonial_title": "TESTIMONIALS",
+    "testimonial_subtitle": "Client's Testimonials",
+    "testimonial_description": "Read what our satisfied customers have to say about our fire safety solutions and exceptional service quality.",
+    "testimonials": [
+      {
+        "id": 1,
+        "name": "Robert Chen",
+        "designation": "Facility Manager, Pacific Tower",
+        "imageUrl": "/images/user/user-01.png",
+        "content": "SafeFire's team was professional from start to finish. They assessed our building thoroughly and implemented a comprehensive fire safety system that gives us peace of mind. Their ongoing maintenance service is prompt and reliable."
+      },
+      {
+        "id": 2,
+        "name": "Sarah Johnson",
+        "designation": "Operations Director, Horizon Hotels",
+        "imageUrl": "/images/user/user-02.png",
+        "content": "We've worked with several fire safety providers over the years, but none have matched SafeFire's expertise and customer service. Their technicians are knowledgeable, and they always ensure our systems are up to code and functioning perfectly."
+      },
+      {
+        "id": 3,
+        "name": "Michael Wong",
+        "designation": "Property Developer, Skyline Properties",
+        "imageUrl": "/images/user/user-01.png",
+        "content": "When developing our new commercial complex, we needed a reliable fire safety partner. SafeFire delivered beyond expectations, providing innovative solutions that integrated seamlessly with our building design while meeting all safety regulations."
+      },
+      {
+        "id": 4,
+        "name": "Amanda Rivera",
+        "designation": "School Principal, Brightwood Academy",
+        "imageUrl": "/images/user/user-02.png",
+        "content": "The safety of our students is our top priority. SafeFire helped us create a comprehensive evacuation plan and installed state-of-the-art fire detection systems throughout our campus. Their training sessions for our staff were incredibly informative."
+      }
+    ]
+  }
+}

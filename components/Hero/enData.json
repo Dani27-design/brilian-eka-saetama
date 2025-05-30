@@ -1,0 +1,13 @@
+{
+  "language": "en",
+  "collection": "hero",
+  "data": {
+    "hero_title": "Brilian Eka Saetama (BES Company)",
+    "hero_subtitle": "PT Brilian Eka Saetama is a reliable and trusted partner in providing strong, safe, and appropriate solutions to client needs. We are here 24 hours to protect your company and business from the risk of fire with safe and reliable procedures.",
+    "hero_slogan": "🔥 Strength, Trust, Safety - Our Commitment",
+    "media_type": "video",
+    "media_src": "/videos/hero/dummy.mp4",
+    "email_placeholder": "Enter email address",
+    "button_text": "Connect with us"
+  }
+}

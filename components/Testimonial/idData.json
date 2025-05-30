@@ -1,0 +1,39 @@
+{
+  "language": "id",
+  "collection": "testimonial",
+  "data": {
+    "testimonial_title": "TESTIMONI",
+    "testimonial_subtitle": "Testimoni Klien",
+    "testimonial_description": "Baca apa yang dikatakan pelanggan kami yang puas tentang solusi keselamatan kebakaran dan kualitas layanan luar biasa kami.",
+    "testimonials": [
+      {
+        "id": 1,
+        "name": "Robert Chen",
+        "designation": "Manajer Fasilitas, Pacific Tower",
+        "imageUrl": "/images/user/user-01.png",
+        "content": "Tim SafeFire profesional dari awal hingga akhir. Mereka menilai gedung kami secara menyeluruh dan mengimplementasikan sistem keselamatan kebakaran komprehensif yang memberi kami ketenangan pikiran. Layanan pemeliharaan berkelanjutan mereka cepat dan andal."
+      },
+      {
+        "id": 2,
+        "name": "Sarah Johnson",
+        "designation": "Direktur Operasional, Horizon Hotels",
+        "imageUrl": "/images/user/user-02.png",
+        "content": "Kami telah bekerja dengan beberapa penyedia keselamatan kebakaran selama bertahun-tahun, tetapi tidak ada yang menyamai keahlian dan layanan pelanggan SafeFire. Teknisi mereka berpengetahuan luas, dan mereka selalu memastikan sistem kami sesuai kode dan berfungsi sempurna."
+      },
+      {
+        "id": 3,
+        "name": "Michael Wong",
+        "designation": "Pengembang Properti, Skyline Properties",
+        "imageUrl": "/images/user/user-01.png",
+        "content": "Saat mengembangkan kompleks komersial baru kami, kami membutuhkan mitra keselamatan kebakaran yang andal. SafeFire memberikan hasil di luar ekspektasi, menyediakan solusi inovatif yang terintegrasi dengan mulus dengan desain bangunan kami sambil memenuhi semua peraturan keselamatan."
+      },
+      {
+        "id": 4,
+        "name": "Amanda Rivera",
+        "designation": "Kepala Sekolah, Brightwood Academy",
+        "imageUrl": "/images/user/user-02.png",
+        "content": "Keselamatan siswa kami adalah prioritas utama kami. SafeFire membantu kami membuat rencana evakuasi komprehensif dan memasang sistem deteksi kebakaran mutakhir di seluruh kampus kami. Sesi pelatihan mereka untuk staf kami sangat informatif."
+      }
+    ]
+  }
+}

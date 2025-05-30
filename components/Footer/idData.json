@@ -1,0 +1,52 @@
+{
+  "language": "id",
+  "collection": "footer",
+  "data": {
+    "main": {
+      "logo": {
+        "description": "Mitra tepercaya Anda untuk solusi perangkat lunak inovatif dan transformasi digital.",
+        "contact_label": "kontak",
+        "contact_email": "ptbrilianekasaetama@gmail.com",
+        "light_logo": "/images/logo/logo-light.png",
+        "dark_logo": "/images/logo/logo-dark.png"
+      },
+      "quick_links": {
+        "title": "Tautan Cepat",
+        "links": [
+          { "name": "Beranda", "url": "/" },
+          { "name": "Produk", "url": "/product" },
+          { "name": "Karir", "url": "/careers" },
+          { "name": "Harga", "url": "/pricing" }
+        ]
+      },
+      "support": {
+        "title": "Dukungan",
+        "links": [
+          { "name": "Perusahaan", "url": "/company" },
+          { "name": "Media Pers", "url": "/press" },
+          { "name": "Blog Kami", "url": "/blog" },
+          { "name": "Hubungi Kami", "url": "#contactus" }
+        ]
+      },
+      "newsletter": {
+        "title": "Buletin",
+        "description": "Berlangganan untuk menerima pembaruan terbaru",
+        "placeholder": "Alamat email"
+      },
+      "bottom": {
+        "language_selector": "Bahasa Indonesia",
+        "links": [
+          { "name": "Kebijakan Privasi", "url": "/privacy" },
+          { "name": "Dukungan", "url": "/support" }
+        ],
+        "copyright": "© 2025 PT Brilian Eka Saetama. Seluruh hak cipta dilindungi",
+        "social_media": [
+          { "name": "Facebook", "url": "https://facebook.com" },
+          { "name": "Twitter", "url": "https://twitter.com" },
+          { "name": "LinkedIn", "url": "https://linkedin.com" },
+          { "name": "Behance", "url": "https://behance.net" }
+        ]
+      }
+    }
+  }
+}
