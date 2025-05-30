@@ -13,6 +13,7 @@ interface DocumentFormProps {
   isSaving: boolean;
   language: string;
   isCreating?: boolean;
+  collectionType?: string;
 }
 
 export default function DocumentForm({
@@ -21,14 +22,25 @@ export default function DocumentForm({
   isSaving,
   language,
   isCreating = false,
+  collectionType = "",
 }: DocumentFormProps) {
   const [formData, setFormData] = useState<any>(initialData);
   const [documentId, setDocumentId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("en");
+  const [formMode, setFormMode] = useState<"simple" | "json">("simple");
   const router = useRouter();
 
   useEffect(() => {
     setFormData(initialData);
+
+    // Determine if data is complex enough to require JSON editor by default
+    if (
+      initialData &&
+      ((typeof initialData.en !== "string" && initialData.en !== undefined) ||
+        (typeof initialData.id !== "string" && initialData.id !== undefined))
+    ) {
+      setFormMode("json");
+    }
   }, [initialData]);
 
   const handleSimpleDataChange = (
@@ -62,10 +74,10 @@ export default function DocumentForm({
     await onSubmit(dataToSubmit);
   };
 
-  // Determine if we should show simple inputs or JSON editor
-  const isSimpleString =
-    (typeof formData.en === "string" && formData.en.length < 1000) ||
-    (typeof formData.id === "string" && formData.id.length < 1000);
+  // Determine if we should show simple inputs by default
+  const isSimple =
+    formMode === "simple" &&
+    (typeof formData.en === "string" || typeof formData.id === "string");
 
   return (
     <form onSubmit={handleSubmit}>
@@ -84,6 +96,34 @@ export default function DocumentForm({
             />
           </div>
         )}
+
+        {/* Editor Mode Toggle */}
+        <div className="mb-5 flex items-center justify-end">
+          <div className="flex overflow-hidden rounded-md">
+            <button
+              type="button"
+              onClick={() => setFormMode("simple")}
+              className={`px-3 py-1 text-xs ${
+                formMode === "simple"
+                  ? "bg-primary text-white"
+                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              }`}
+            >
+              Simple Mode
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormMode("json")}
+              className={`px-3 py-1 text-xs ${
+                formMode === "json"
+                  ? "bg-primary text-white"
+                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              }`}
+            >
+              JSON Mode
+            </button>
+          </div>
+        </div>
 
         {/* Language tabs */}
         <div className="mb-4 border-b border-stroke dark:border-strokedark">
@@ -113,9 +153,9 @@ export default function DocumentForm({
           </div>
         </div>
 
-        {/* Content based on active tab */}
+        {/* Content based on active tab and form mode */}
         <div className="mb-6">
-          {isSimpleString ? (
+          {isSimple ? (
             // Simple text input/textarea for string values
             <div>
               <label className="mb-2.5 block text-black dark:text-white">
@@ -125,7 +165,7 @@ export default function DocumentForm({
                 name={activeTab}
                 value={formData[activeTab] || ""}
                 onChange={handleSimpleDataChange}
-                rows={5}
+                rows={10}
                 className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white"
               />
             </div>

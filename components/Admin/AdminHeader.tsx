@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { auth } from "@/db/firebase/firebaseConfig";
 
-export default function AdminHeader() {
+export default function AdminHeader({ sidebarOpen = true }) {
   const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -39,10 +38,14 @@ export default function AdminHeader() {
   }, []);
 
   return (
-    <header className="ml-64 flex h-16 items-center justify-between border-b border-stroke px-6 dark:border-strokedark">
+    <header
+      className={`${
+        sidebarOpen ? "ml-64" : "ml-20"
+      } flex h-16 items-center justify-between border-b border-stroke px-6 transition-all duration-300 dark:border-strokedark`}
+    >
       <div className="flex items-center">
         <h1 className="text-lg font-medium text-black dark:text-white">
-          Admin Dashboard
+          CMS Dashboard
         </h1>
       </div>
 

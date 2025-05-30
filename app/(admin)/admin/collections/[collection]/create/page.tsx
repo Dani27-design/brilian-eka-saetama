@@ -19,6 +19,51 @@ export default function CreateDocumentPage({
   const router = useRouter();
   const { collection: collectionName } = params;
 
+  // Get template data based on collection type
+  const getTemplateData = () => {
+    // Default template with both languages
+    const defaultTemplate = {
+      en: "",
+      id: "",
+    };
+
+    // You can add more specific templates based on collection
+    switch (collectionName) {
+      case "hero":
+        return {
+          en: {
+            title: "Hero Title (English)",
+            subtitle: "Hero subtitle text goes here",
+            button: "Get Started",
+            image: "/path/to/image.jpg",
+          },
+          id: {
+            title: "Judul Hero (Indonesia)",
+            subtitle: "Teks subtitle hero di sini",
+            button: "Mulai",
+            image: "/path/to/image.jpg",
+          },
+        };
+      case "blog":
+        return {
+          en: {
+            title: "Blog Title (English)",
+            content: "Blog content goes here",
+            author: "Author Name",
+            date: "2023-05-01",
+          },
+          id: {
+            title: "Judul Blog (Indonesia)",
+            content: "Konten blog di sini",
+            author: "Nama Penulis",
+            date: "2023-05-01",
+          },
+        };
+      default:
+        return defaultTemplate;
+    }
+  };
+
   const handleCreate = async (data: any) => {
     try {
       setIsSaving(true);
@@ -44,12 +89,6 @@ export default function CreateDocumentPage({
     }
   };
 
-  // Initial empty document data with both languages
-  const emptyDocument = {
-    en: "",
-    id: "",
-  };
-
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
@@ -58,7 +97,7 @@ export default function CreateDocumentPage({
             Create New Document
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Collection: {collectionName}
+            Collection: <span className="capitalize">{collectionName}</span>
           </p>
         </div>
 
@@ -83,11 +122,12 @@ export default function CreateDocumentPage({
       )}
 
       <DocumentForm
-        initialData={emptyDocument}
+        initialData={getTemplateData()}
         onSubmit={handleCreate}
         isSaving={isSaving}
         language={language}
         isCreating={true}
+        collectionType={collectionName}
       />
     </div>
   );

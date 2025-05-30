@@ -1,75 +1,31 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { ThemeProvider } from "next-themes";
+// This is now a Server Component (no "use client" directive)
 import { Inter } from "next/font/google";
 import "../globals.css";
-import { auth } from "@/db/firebase/firebaseConfig";
+import AdminLayoutClient from "@/components/Admin/AdminLayoutClient";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const metadata = {
+  title: {
+    // template: "%s | Admin Dashboard",
+    default: "Admin Dashboard",
+  },
+  description: "Admin dashboard for managing website content",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const pathname = usePathname();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Skip auth check for login page
-    if (pathname === "/admin/login") {
-      setIsLoading(false);
-      return;
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        // Redirect to login if not authenticated
-        router.push("/admin/login");
-      } else {
-        // User is authenticated, allow access
-        setIsLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [pathname, router]);
-
-  // Special case for login page - render without admin components
-  if (pathname === "/admin/login") {
-    return (
-      <html lang="en">
-        <body className={inter.className}>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            {children}
-          </ThemeProvider>
-        </body>
-      </html>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <html lang="en">
-        <body className={inter.className}>
-          <div className="flex h-screen w-full items-center justify-center">
-            <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          </div>
-        </body>
-      </html>
-    );
-  }
-
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          {children}
-        </ThemeProvider>
+        <AdminLayoutClient>{children}</AdminLayoutClient>
       </body>
     </html>
   );

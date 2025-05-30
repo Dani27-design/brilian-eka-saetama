@@ -1,19 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
-
-// Import JSONEditor dynamically to prevent SSR issues
-const JSONEditor = dynamic(
-  () => import("jsoneditor-react").then((mod) => mod.JSONEditor),
-  { ssr: false },
-) as any;
-
-// And its styles
-// import "jsoneditor-react/es/index.css";
-
-// // Using light and dark theme
-// import "jsoneditor/dist/themes/jse-theme-dark.css";
 import { useTheme } from "next-themes";
 
 interface JsonEditorProps {
@@ -23,35 +10,41 @@ interface JsonEditorProps {
 
 export default function JsonEditor({ value, onChange }: JsonEditorProps) {
   const { theme } = useTheme();
-  const [jsonValue, setJsonValue] = useState(value);
+  const [jsonValue, setJsonValue] = useState(JSON.stringify(value, null, 2));
+  const [error, setError] = useState("");
 
   // Update local state when props change
   useEffect(() => {
-    setJsonValue(value);
+    setJsonValue(JSON.stringify(value, null, 2));
   }, [value]);
 
-  const handleChange = (newValue: any) => {
-    setJsonValue(newValue);
-    onChange(newValue);
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setJsonValue(e.target.value);
+    setError("");
+
+    try {
+      const newValue = JSON.parse(e.target.value);
+      onChange(newValue);
+    } catch (err) {
+      setError("Invalid JSON format");
+    }
   };
 
   return (
-    <div className="h-[500px] rounded-md border border-stroke dark:border-strokedark">
-      {typeof window !== "undefined" && (
-        <JSONEditor
-          value={jsonValue}
-          onChange={handleChange}
-          mode="tree"
-          theme={theme === "dark" ? "jse-theme-dark" : undefined}
-          allowedModes={["tree", "code", "form", "view"]}
-          htmlElementProps={{
-            style: {
-              height: "100%",
-              overflow: "auto",
-            },
-          }}
-        />
-      )}
+    <div className="relative">
+      <textarea
+        value={jsonValue}
+        onChange={handleChange}
+        className={`font-mono h-80 w-full rounded border border-stroke bg-white p-4 text-sm text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white ${
+          error ? "border-red-500 dark:border-red-500" : ""
+        }`}
+        style={{
+          resize: "vertical",
+          minHeight: "320px",
+        }}
+      />
+
+      {error && <div className="mt-2 text-sm text-red-500">{error}</div>}
     </div>
   );
 }

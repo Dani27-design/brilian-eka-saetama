@@ -71,7 +71,7 @@ export default function EditDocumentPage({
             Edit Document: {documentId}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Collection: {collectionName}
+            Collection: <span className="capitalize">{collectionName}</span>
           </p>
         </div>
 
@@ -105,6 +105,7 @@ export default function EditDocumentPage({
           onSubmit={handleSave}
           isSaving={isSaving}
           language={language}
+          collectionType={collectionName}
         />
       ) : (
         <div className="rounded-lg border border-stroke bg-white p-6 dark:border-strokedark dark:bg-black">

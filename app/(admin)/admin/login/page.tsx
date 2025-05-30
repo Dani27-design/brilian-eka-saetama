@@ -23,7 +23,7 @@ export default function AdminLogin() {
       router.push("/admin/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
-      setError("Invalid login credentials");
+      setError("Invalid login credentials. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +101,7 @@ export default function AdminLogin() {
             {isLoading ? (
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
             ) : (
-              "Log In"
+              "Sign In"
             )}
           </button>
         </form>
