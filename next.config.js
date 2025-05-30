@@ -13,6 +13,19 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    // Fix for the undici issue
+    config.module.rules.push({
+      test: /\.m?js$/,
+      type: "javascript/auto",
+      resolve: {
+        fullySpecified: false,
+      },
+    });
+
+    return config;
+  },
+  transpilePackages: ["@firebase/auth", "firebase", "undici"],
 };
 
 module.exports = nextConfig;

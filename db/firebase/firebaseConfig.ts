@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -18,21 +19,37 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore
-const firestore = getFirestore(app);
+// // Initialize Firestore
+// const firestore = getFirestore(app);
 
-// Dynamically import analytics (client-side only)
-let analytics;
+// // Initialize Firebase Authentication
+// const auth = getAuth(app);
+
+// // Dynamically import analytics (client-side only)
+// let analytics;
+// if (typeof window !== "undefined") {
+//   import("firebase/analytics")
+//     .then(({ getAnalytics }) => {
+//       analytics = getAnalytics(app);
+//     })
+//     .catch((error) => {
+//       console.error("Error loading Firebase analytics:", error);
+//     });
+// }
+
+let app, firestore, auth, analytics;
+
 if (typeof window !== "undefined") {
-  import("firebase/analytics")
-    .then(({ getAnalytics }) => {
-      analytics = getAnalytics(app);
-    })
-    .catch((error) => {
-      console.error("Error loading Firebase analytics:", error);
-    });
+  try {
+    app = initializeApp(firebaseConfig);
+    firestore = getFirestore(app);
+    auth = getAuth(app);
+    analytics = getAnalytics(app);
+  } catch (error) {
+    console.error("Firebase initialization error", error);
+  }
 }
 
-export { firestore, analytics };
+export { firestore, auth, analytics };
