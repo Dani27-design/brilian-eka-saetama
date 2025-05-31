@@ -212,7 +212,7 @@ const About = () => {
                         {section.subtitle}
                       </h2>
                       <p>{section.description}</p>
-                      {section.ctaText && (
+                      {/* {section.ctaText && (
                         <div>
                           <a
                             href={section.ctaLink || "#"}
@@ -231,7 +231,7 @@ const About = () => {
                             </svg>
                           </a>
                         </div>
-                      )}
+                      )} */}
                     </motion.div>
                     <motion.div
                       variants={{

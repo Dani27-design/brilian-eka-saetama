@@ -9,9 +9,9 @@ html {
 }
 
 @layer base {
-  body {
+  /* body {
     @apply relative z-1 whitespace-pre-wrap font-inter text-regular font-normal text-waterloo dark:text-manatee;
-  }
+  } */
 
   /* Apply to common text elements */
   p,

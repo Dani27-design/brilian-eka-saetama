@@ -69,7 +69,6 @@ const Blog = dynamic(() => import("@/components/Blog"), {
 
 // Keep your existing metadata
 export const metadata: Metadata = {
-  metadataBase: new URL("https://brilian-eka-saetama.vercel.app"),
   title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
   description:
     "PT. Brilian Eka Saetama (BES) telah lama berkomitmen menjadi mitra utama dalam keselamatan dengan menyediakan solusi keamanan dari bahaya kebakaran. Kami berkomitmen untuk memberikan layanan pemasangan sistem perangkat pendukung dengan standar kualitas terbaik, membantu masyarakat dan perusahaan menjaga aset mereka dari risiko kebakaran, serta menciptakan lingkungan yang aman dan terlindungi.",
@@ -180,6 +179,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  metadataBase: new URL("https://brilian-eka-saetama.vercel.app"),
 };
 
 export default function Home() {

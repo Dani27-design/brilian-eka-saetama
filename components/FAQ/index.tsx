@@ -42,12 +42,6 @@ const FAQ = () => {
   } = useFAQData(language, "faq", "faq_subtitle");
 
   const {
-    data: faqCtaData,
-    isLoading: isLoadingCta,
-    error: errorCta,
-  } = useFAQData(language, "faq", "faq_cta");
-
-  const {
     data: faqItemsData,
     isLoading: isLoadingItems,
     error: errorItems,
@@ -60,13 +54,10 @@ const FAQ = () => {
     if (errorSubtitle) {
       console.error("Error fetching FAQ subtitle data:", errorSubtitle);
     }
-    if (errorCta) {
-      console.error("Error fetching FAQ CTA data:", errorCta);
-    }
     if (errorItems) {
       console.error("Error fetching FAQ items data:", errorItems);
     }
-  }, [errorTitle, errorSubtitle, errorCta, errorItems]);
+  }, [errorTitle, errorSubtitle, errorItems]);
 
   let faqTitle = "OUR FAQS";
   let faqSubtitle = "Frequently Asked Questions";
@@ -79,10 +70,6 @@ const FAQ = () => {
 
   if (faqSubtitleData) {
     faqSubtitle = faqSubtitleData;
-  }
-
-  if (faqCtaData) {
-    faqCta = faqCtaData;
   }
 
   if (faqItemsData) {
@@ -146,24 +133,6 @@ const FAQ = () => {
                   {faqSubtitle}
                 </span>
               </h2>
-
-              <a
-                href="#"
-                className="group mt-7.5 inline-flex items-center gap-2.5 text-black hover:text-primary dark:text-white dark:hover:text-primary"
-              >
-                <span className="duration-300 group-hover:pr-2">{faqCta}</span>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M10.4767 6.16701L6.00668 1.69701L7.18501 0.518677L13.6667 7.00034L7.18501 13.482L6.00668 12.3037L10.4767 7.83368H0.333344V6.16701H10.4767Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </a>
             </motion.div>
 
             <motion.div
