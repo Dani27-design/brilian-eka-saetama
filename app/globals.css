@@ -8,6 +8,27 @@ html {
   scroll-behavior: smooth;
 }
 
+@layer base {
+  body {
+    @apply relative z-1 whitespace-pre-wrap font-inter text-regular font-normal text-waterloo dark:text-manatee;
+  }
+
+  /* Apply to common text elements */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  div,
+  li,
+  blockquote {
+    @apply whitespace-pre-wrap;
+  }
+}
+
 .testimonial-01 .swiper-pagination-bullet {
   @apply h-2.5 w-2.5 bg-stroke opacity-100;
 }
