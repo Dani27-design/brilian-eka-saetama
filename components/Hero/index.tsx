@@ -181,11 +181,12 @@ const HeroMedia = React.memo(
               src={mediaSrc}
               alt="hero image"
               fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover shadow-solid-l"
-              priority={true} // For above-the-fold images
-              quality={80} // Balance between quality and size
-              loading="eager" // For critical images
+              sizes="(max-width: 640px) 95vw, (max-width: 768px) 85vw, 50vw" // Specific breakpoints
+              className="object-cover"
+              priority={true} // Only for key hero image
+              quality={75} // Slightly lower quality for faster loading
+              placeholder="blur" // Optional: Add placeholder for better UX
+              blurDataURL="data:image/svg+xml;base64,..." // Generate a tiny blurDataURL
             />
           )}
         </div>

@@ -43,14 +43,14 @@ export default function RootLayout({
               <Lines />
               <Header />
               <ToasterContext />
+              <PerformanceOptimizer />
+              <LazyLoadScript />
               {children}
               <Footer />
               <ScrollToTop />
             </LanguageProvider>
           </ThemeProvider>
         </Providers>
-        <PerformanceOptimizer />
-        <LazyLoadScript />
       </body>
     </html>
   );
