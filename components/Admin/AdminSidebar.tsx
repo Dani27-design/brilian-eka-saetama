@@ -82,7 +82,7 @@ export default function AdminSidebar({ onToggle }) {
     <div
       className={`${
         isOpen ? "w-64" : "w-20"
-      } fixed left-0 top-0 z-40 h-screen border-r border-stroke bg-white transition-all duration-300 ease-in-out dark:border-strokedark dark:bg-black`}
+      } fixed left-0 top-0 z-40 h-screen overflow-y-scroll border-r border-stroke bg-white pb-5 transition-all duration-300 ease-in-out dark:border-strokedark dark:bg-black`}
     >
       <div className="flex h-16 items-center justify-between px-4">
         <Link href="/admin/dashboard" className="flex items-center">
@@ -163,7 +163,7 @@ export default function AdminSidebar({ onToggle }) {
         </button>
       </div>
 
-      <nav className="mt-8 px-4">
+      <nav className="mt-3 px-4">
         <ul className="space-y-2">
           {/* Dashboard Link */}
           <li>
