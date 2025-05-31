@@ -62,6 +62,9 @@ const CTA = () => {
                   src="/images/shape/shape-06.png"
                   alt="Saly"
                   className="hidden xl:block"
+                  priority={true} // For above-the-fold images
+                  quality={80} // Balance between quality and size
+                  loading="eager" // For critical images
                 />
                 <a
                   href="/auth/signup"
@@ -74,6 +77,9 @@ const CTA = () => {
                     src="/images/icon/icon-arrow-dark.svg"
                     alt="Arrow"
                     className="dark:hidden"
+                    priority={true} // For above-the-fold images
+                    quality={80} // Balance between quality and size
+                    loading="eager" // For critical images
                   />
                   <Image
                     width={20}
@@ -81,6 +87,9 @@ const CTA = () => {
                     src="/images/icon/icon-arrow-light.svg"
                     alt="Arrow"
                     className="hidden dark:block"
+                    priority={true} // For above-the-fold images
+                    quality={80} // Balance between quality and size
+                    loading="eager" // For critical images
                   />
                 </a>
               </div>

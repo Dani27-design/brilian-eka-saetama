@@ -357,6 +357,9 @@ const Header = () => {
                   className="hidden w-full dark:block"
                   onClick={scrollToTop}
                   style={{ cursor: "pointer" }}
+                  priority={true} // For above-the-fold images
+                  quality={80} // Balance between quality and size
+                  loading="eager" // For critical images
                 />
                 <Image
                   src={logoLight}
@@ -366,6 +369,9 @@ const Header = () => {
                   className="w-full dark:hidden"
                   onClick={scrollToTop}
                   style={{ cursor: "pointer" }}
+                  priority={true} // For above-the-fold images
+                  quality={80} // Balance between quality and size
+                  loading="eager" // For critical images
                 />
               </a>
 

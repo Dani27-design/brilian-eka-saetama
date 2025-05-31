@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -39,7 +40,7 @@ const firebaseConfig = {
 //     });
 // }
 
-let app, firestore, auth, analytics;
+let app, firestore, auth, analytics, storage;
 
 if (typeof window !== "undefined") {
   try {
@@ -47,9 +48,9 @@ if (typeof window !== "undefined") {
     firestore = getFirestore(app);
     auth = getAuth(app);
     analytics = getAnalytics(app);
+    storage = getStorage(app);
   } catch (error) {
     console.error("Firebase initialization error", error);
   }
 }
-
-export { firestore, auth, analytics };
+export { firestore, auth, analytics, storage };

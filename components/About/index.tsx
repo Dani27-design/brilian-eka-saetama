@@ -120,12 +120,18 @@ const About = () => {
                         alt="About"
                         className="dark:hidden"
                         fill
+                        priority={true} // For above-the-fold images
+                        quality={80} // Balance between quality and size
+                        loading="eager" // For critical images
                       />
                       <Image
                         src={section.darkImage}
                         alt="About"
                         className="hidden dark:block"
                         fill
+                        priority={true} // For above-the-fold images
+                        quality={80} // Balance between quality and size
+                        loading="eager" // For critical images
                       />
                     </motion.div>
                     <motion.div
@@ -249,12 +255,18 @@ const About = () => {
                         alt="About"
                         className="dark:hidden"
                         fill
+                        priority={true} // For above-the-fold images
+                        quality={80} // Balance between quality and size
+                        loading="eager" // For critical images
                       />
                       <Image
                         src={section.darkImage}
                         alt="About"
                         className="hidden dark:block"
                         fill
+                        priority={true} // For above-the-fold images
+                        quality={80} // Balance between quality and size
+                        loading="eager" // For critical images
                       />
                     </motion.div>
                   </div>

@@ -16,6 +16,9 @@ const ThemeToggler = () => {
         width={21}
         height={21}
         className="dark:hidden"
+        priority={true} // For above-the-fold images
+        quality={80} // Balance between quality and size
+        loading="eager" // For critical images
       />
 
       <Image
@@ -24,6 +27,9 @@ const ThemeToggler = () => {
         width={22}
         height={22}
         className="hidden dark:block"
+        priority={true} // For above-the-fold images
+        quality={80} // Balance between quality and size
+        loading="eager" // For critical images
       />
     </button>
   );

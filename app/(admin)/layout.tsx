@@ -7,10 +7,26 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: {
-    // template: "%s | Admin Dashboard",
-    default: "Admin Dashboard",
+    default: "Admin Dashboard | PT Brilian Eka Saetama",
   },
   description: "Admin dashboard for managing website content",
+  applicationName: "Admin Dashboard PT Brilian Eka Saetama",
+  icons: {
+    icon: "/images/favicon.ico",
+    apple: "/images/favicon.ico",
+    shortcut: "/images/favicon.ico",
+    other: [
+      {
+        rel: "apple-touch-icon",
+        url: "/images/favicon.ico",
+      },
+      {
+        rel: "mask-icon",
+        url: "/images/favicon.ico",
+        color: "#000000",
+      },
+    ],
+  },
   robots: {
     index: false,
     follow: false,

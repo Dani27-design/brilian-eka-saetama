@@ -20,12 +20,18 @@ const FeaturesTab = () => {
               className="dark:hidden"
               src="/images/shape/shape-dotted-light.svg"
               alt="Dotted Shape"
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
             <Image
               fill
               className="hidden dark:block"
               src="/images/shape/shape-dotted-dark.svg"
               alt="Dotted Shape"
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
           </div>
 

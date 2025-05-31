@@ -65,7 +65,14 @@ const RelatedPost = () => {
               >
                 <div className="max-w-45 relative h-18 w-45">
                   {post.mainImage ? (
-                    <Image fill src={post.mainImage} alt={post.title} />
+                    <Image
+                      fill
+                      src={post.mainImage}
+                      alt={post.title}
+                      priority={true} // For above-the-fold images
+                      quality={80} // Balance between quality and size
+                      loading="eager" // For critical images
+                    />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-800">
                       No image

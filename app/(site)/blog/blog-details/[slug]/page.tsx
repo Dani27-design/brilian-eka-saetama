@@ -137,6 +137,9 @@ const SingleBlogPage = () => {
                         alt={currentBlog.title}
                         fill
                         className="rounded-md object-cover object-center"
+                        priority={true} // For above-the-fold images
+                        quality={80} // Balance between quality and size
+                        loading="eager" // For critical images
                       />
                     </div>
                   </div>

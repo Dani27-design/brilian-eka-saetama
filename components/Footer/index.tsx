@@ -131,6 +131,9 @@ const Footer = () => {
                     src={footer.logo.light_logo}
                     alt="Logo"
                     className="dark:hidden"
+                    priority={true} // For above-the-fold images
+                    quality={80} // Balance between quality and size
+                    loading="eager" // For critical images
                   />
                   <Image
                     width={110}
@@ -138,6 +141,9 @@ const Footer = () => {
                     src={footer.logo.dark_logo}
                     alt="Logo"
                     className="hidden dark:block"
+                    priority={true} // For above-the-fold images
+                    quality={80} // Balance between quality and size
+                    loading="eager" // For critical images
                   />
                 </a>
 

@@ -230,12 +230,18 @@ const Contact = () => {
               alt="Dotted"
               className="dark:hidden"
               fill
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
             <Image
               src="./images/shape/shape-dotted-dark.svg"
               alt="Dotted"
               className="hidden dark:block"
               fill
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
           </div>
 

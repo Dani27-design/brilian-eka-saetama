@@ -135,6 +135,9 @@ const HeroMedia = React.memo(
           width={46}
           height={246}
           className="absolute -left-11.5 top-0"
+          priority={true} // For above-the-fold images
+          quality={80} // Balance between quality and size
+          loading="eager" // For critical images
         />
         <Image
           src="/images/shape/shape-02.svg"
@@ -142,6 +145,9 @@ const HeroMedia = React.memo(
           width={36.9}
           height={36.7}
           className="absolute bottom-0 right-0 z-10"
+          priority={true} // For above-the-fold images
+          quality={80} // Balance between quality and size
+          loading="eager" // For critical images
         />
         <Image
           src="/images/shape/shape-03.svg"
@@ -149,6 +155,9 @@ const HeroMedia = React.memo(
           width={21.64}
           height={21.66}
           className="absolute -right-6.5 bottom-0 z-1"
+          priority={true} // For above-the-fold images
+          quality={80} // Balance between quality and size
+          loading="eager" // For critical images
         />
         <div className="relative aspect-[700/444] w-full overflow-hidden rounded-xl">
           {isLoading ? (
@@ -172,9 +181,11 @@ const HeroMedia = React.memo(
               src={mediaSrc}
               alt="hero image"
               fill
-              priority
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover shadow-solid-l"
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
           )}
         </div>
@@ -282,7 +293,7 @@ const Hero = () => {
     let subtitle = "";
     let slogan = "";
     let mType = "video"; // Default to video
-    let mSrc = "/videos/hero/dummy.mp4"; // Default source
+    let mSrc = ""; // Default source
     let emailPlace =
       language === "id" ? "Masukkan alamat email" : "Enter email address"; // Default placeholder
     let btnText = language === "id" ? "Mari Terhubung" : "Connect with us"; // Default button text

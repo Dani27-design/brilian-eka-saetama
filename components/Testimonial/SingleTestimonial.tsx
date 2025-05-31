@@ -18,6 +18,9 @@ const SingleTestimonial = ({ review }: { review: Testimonial }) => {
             height={64}
             src={imageUrl}
             alt={name}
+            priority={true} // For above-the-fold images
+            quality={80} // Balance between quality and size
+            loading="eager" // For critical images
             className="h-full w-full object-cover"
           />
         </div>

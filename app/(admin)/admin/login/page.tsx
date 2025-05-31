@@ -39,6 +39,9 @@ export default function AdminLogin() {
             width={150}
             height={50}
             className="dark:hidden"
+            priority={true} // For above-the-fold images
+            quality={80} // Balance between quality and size
+            loading="eager" // For critical images
           />
           <Image
             src="/images/logo/logo-dark.png"
@@ -46,6 +49,9 @@ export default function AdminLogin() {
             width={150}
             height={50}
             className="hidden dark:block"
+            priority={true} // For above-the-fold images
+            quality={80} // Balance between quality and size
+            loading="eager" // For critical images
           />
         </div>
         <h1 className="mb-6 text-center text-2xl font-bold text-black dark:text-white">

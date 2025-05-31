@@ -30,12 +30,18 @@ const Integration = () => {
               alt="Dotted"
               className="dark:hidden"
               style={{ position: "static" }}
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
             <Image
               fill
               src="/images/shape/shape-dotted-dark.svg"
               alt="Dotted"
               className="hidden dark:block"
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
           </div>
           <div className="flex flex-wrap justify-around gap-y-10">
@@ -63,6 +69,9 @@ const Integration = () => {
                   height={50}
                   src="./images/brand/brand-07.svg"
                   alt="Brand"
+                  priority={true} // For above-the-fold images
+                  quality={80} // Balance between quality and size
+                  loading="eager" // For critical images
                 />
               </div>
             </motion.div>
@@ -110,6 +119,9 @@ const Integration = () => {
                   height={50}
                   src="./images/brand/brand-08.svg"
                   alt="Brand"
+                  priority={true} // For above-the-fold images
+                  quality={80} // Balance between quality and size
+                  loading="eager" // For critical images
                 />
               </div>
             </motion.div>
@@ -159,6 +171,9 @@ const Integration = () => {
                   height={50}
                   src="./images/brand/brand-09.svg"
                   alt="Brand"
+                  priority={true} // For above-the-fold images
+                  quality={80} // Balance between quality and size
+                  loading="eager" // For critical images
                 />
               </div>
             </motion.div>
@@ -227,6 +242,9 @@ const Integration = () => {
                   height={50}
                   src="./images/brand/brand-10.svg"
                   alt="Brand"
+                  priority={true} // For above-the-fold images
+                  quality={80} // Balance between quality and size
+                  loading="eager" // For critical images
                 />
               </div>
             </motion.div>
@@ -276,6 +294,9 @@ const Integration = () => {
                   height={50}
                   src="./images/brand/brand-11.svg"
                   alt="Brand"
+                  priority={true} // For above-the-fold images
+                  quality={80} // Balance between quality and size
+                  loading="eager" // For critical images
                 />
               </div>
             </motion.div>
@@ -325,6 +346,9 @@ const Integration = () => {
                   height={50}
                   src="./images/brand/brand-12.svg"
                   alt="Brand"
+                  priority={true} // For above-the-fold images
+                  quality={80} // Balance between quality and size
+                  loading="eager" // For critical images
                 />
               </div>
             </motion.div>

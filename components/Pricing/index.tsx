@@ -28,6 +28,9 @@ const Pricing = () => {
               src="./images/shape/shape-dotted-light.svg"
               alt="Dotted"
               className="dark:hidden"
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
           </div>
           <div className="flex flex-wrap justify-center gap-7.5 lg:flex-nowrap xl:gap-12.5">

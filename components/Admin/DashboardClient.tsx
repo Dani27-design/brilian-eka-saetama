@@ -23,16 +23,17 @@ export default function AdminDashboard() {
       setIsLoading(true);
       try {
         const knownCollections = [
+          "header",
           "hero",
-          "about",
           "services",
-          "testimonial",
-          "blog",
-          "faq",
-          "footer",
-          "contact",
+          "about",
           "clients",
           "clientsInfo",
+          "faq",
+          "testimonial",
+          "contact",
+          "blog",
+          "footer",
         ];
 
         const collectionsData: CollectionData[] = [];

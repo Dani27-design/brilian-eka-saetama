@@ -30,7 +30,14 @@ const BlogItem = ({ blog }: { blog: Blog }) => {
           href={`/blog/blog-details/${slug || ""}`}
           className="relative block aspect-[368/239]"
         >
-          <Image src={mainImage} alt={title} fill />
+          <Image
+            src={mainImage}
+            alt={title}
+            fill
+            priority={true} // For above-the-fold images
+            quality={80} // Balance between quality and size
+            loading="eager" // For critical images
+          />
         </Link>
 
         <div className="px-4">

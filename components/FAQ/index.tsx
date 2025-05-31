@@ -105,12 +105,18 @@ const FAQ = () => {
               src="/images/shape/shape-dotted-light.svg"
               alt="Dotted"
               className="dark:hidden"
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
             <Image
               fill
               src="/images/shape/shape-dotted-light.svg"
               alt="Dotted"
               className="hidden dark:block"
+              priority={true} // For above-the-fold images
+              quality={80} // Balance between quality and size
+              loading="eager" // For critical images
             />
           </div>
           <div className="flex flex-wrap gap-8 md:flex-nowrap md:items-center xl:gap-32.5">

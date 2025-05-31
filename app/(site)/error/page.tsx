@@ -17,6 +17,9 @@ const ErroPage = () => {
           className="mx-auto mb-7.5"
           width={400}
           height={400}
+          priority={true} // For above-the-fold images
+          quality={80} // Balance between quality and size
+          loading="eager" // For critical images
         />
 
         <h2 className="mb-5 text-2xl font-semibold text-black dark:text-white md:text-4xl">

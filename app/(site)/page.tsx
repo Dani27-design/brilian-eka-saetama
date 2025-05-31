@@ -1,14 +1,73 @@
 import { Metadata } from "next";
-import Hero from "@/components/Hero";
-import About from "@/components/About";
-import OurClients from "@/components/OurClients";
-import FAQ from "@/components/FAQ";
-import Contact from "@/components/Contact";
-import Blog from "@/components/Blog";
-import Testimonial from "@/components/Testimonial";
-import Services from "@/components/OurServices";
-import ClientsInfo from "@/components/OurClientsInfo";
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
 
+// Simple loading components
+const SectionLoader = () => (
+  <div className="w-full animate-pulse py-12">
+    <div className="container mx-auto">
+      <div className="mb-8 h-8 w-1/3 rounded bg-gray-200 dark:bg-gray-700"></div>
+      <div className="mb-4 h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-700"></div>
+      <div className="mb-12 h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700"></div>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="h-64 rounded bg-gray-200 dark:bg-gray-700"
+          ></div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// Lazy load below-fold components
+const Hero = dynamic(() => import("@/components/Hero"), {
+  loading: () => <SectionLoader />,
+  ssr: true,
+});
+
+const Services = dynamic(() => import("@/components/OurServices"), {
+  loading: () => <SectionLoader />,
+  ssr: true,
+});
+
+const About = dynamic(() => import("@/components/About"), {
+  loading: () => <SectionLoader />,
+  ssr: true,
+});
+
+const OurClients = dynamic(() => import("@/components/OurClients"), {
+  loading: () => <SectionLoader />,
+  ssr: false, // Not critical for initial SSR
+});
+
+const ClientsInfo = dynamic(() => import("@/components/OurClientsInfo"), {
+  loading: () => <SectionLoader />,
+  ssr: false,
+});
+
+const FAQ = dynamic(() => import("@/components/FAQ"), {
+  loading: () => <SectionLoader />,
+  ssr: false,
+});
+
+const Testimonial = dynamic(() => import("@/components/Testimonial"), {
+  loading: () => <SectionLoader />,
+  ssr: false,
+});
+
+const Contact = dynamic(() => import("@/components/Contact"), {
+  loading: () => <SectionLoader />,
+  ssr: true, // Important for SEO, so keep SSR
+});
+
+const Blog = dynamic(() => import("@/components/Blog"), {
+  loading: () => <SectionLoader />,
+  ssr: true, // Important for SEO, so keep SSR
+});
+
+// Keep your existing metadata
 export const metadata: Metadata = {
   metadataBase: new URL("https://brilian-eka-saetama.vercel.app"),
   title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
@@ -126,15 +185,60 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main className="min-h-screen w-full overflow-x-hidden">
-      <Hero />
-      <Services />
-      <About />
-      <OurClients />
-      <ClientsInfo />
-      <FAQ />
-      <Testimonial />
-      <Contact />
-      <Blog />
+      <Suspense fallback={<SectionLoader />}>
+        <section className="lazy-section" data-section-name="hero">
+          <Hero />
+        </section>
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <section className="lazy-section" data-section-name="services">
+          <Services />
+        </section>
+      </Suspense>
+
+      {/* Add intersection observer based lazy loading for below-fold content */}
+      <Suspense fallback={<SectionLoader />}>
+        <section className="lazy-section" data-section-name="about">
+          <About />
+        </section>
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <section className="lazy-section" data-section-name="clients">
+          <OurClients />
+        </section>
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <section className="lazy-section" data-section-name="clients-info">
+          <ClientsInfo />
+        </section>
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <section className="lazy-section" data-section-name="faq">
+          <FAQ />
+        </section>
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <section className="lazy-section" data-section-name="testimonial">
+          <Testimonial />
+        </section>
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <section className="lazy-section" data-section-name="contact">
+          <Contact />
+        </section>
+      </Suspense>
+
+      <Suspense fallback={<SectionLoader />}>
+        <section className="lazy-section" data-section-name="blog">
+          <Blog />
+        </section>
+      </Suspense>
     </main>
   );
 }

@@ -32,6 +32,9 @@ const SingleCard = ({ brand }: { brand: Brand }) => {
           src={image}
           alt={name}
           fill
+          priority={true} // For above-the-fold images
+          quality={80} // Balance between quality and size
+          loading="eager" // For critical images
         />
       </motion.a>
       <p className="pt-2">{name}</p>
