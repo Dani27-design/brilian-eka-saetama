@@ -72,7 +72,7 @@ const HeroContent = React.memo(
                 {highlight}
               </span>
             </h1>
-            <p>{heroSubtitle}</p>
+            <p className="whitespace-pre-wrap">{heroSubtitle}</p>
           </>
         )}
 
