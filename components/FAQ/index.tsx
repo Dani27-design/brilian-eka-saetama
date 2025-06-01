@@ -85,7 +85,7 @@ const FAQ = () => {
     <>
       {/* <!-- ===== FAQ Start ===== --> */}
       <section id="faq" className="py-10 lg:py-15 xl:py-20">
-        <div className="relative mx-auto max-w-c-1235 px-4 md:px-8 xl:px-0">
+        <div className="relative mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
           <div className="absolute -bottom-16 -z-1 h-full w-full">
             <Image
               fill

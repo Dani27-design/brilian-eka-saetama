@@ -13,7 +13,7 @@ const FeaturesTab = () => {
     <>
       {/* <!-- ===== Features Tab Start ===== --> */}
       <section className="relative pb-20 pt-18.5 lg:pb-22.5">
-        <div className="relative mx-auto max-w-c-1390 px-4 md:px-8 2xl:px-0">
+        <div className="relative mx-auto max-w-c-1280 px-4 md:px-8 2xl:px-0">
           <div className="absolute -top-16 -z-1 mx-auto h-[350px] w-[90%]">
             <Image
               fill
@@ -131,7 +131,7 @@ const FeaturesTab = () => {
             whileInView="visible"
             transition={{ duration: 0.5, delay: 0.5 }}
             viewport={{ once: true }}
-            className="animate_top mx-auto max-w-c-1154"
+            className="animate_top mx-auto max-w-c-1280"
           >
             {featuresTabData.map((feature, key) => (
               <div

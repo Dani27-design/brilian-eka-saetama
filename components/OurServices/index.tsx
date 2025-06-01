@@ -104,7 +104,7 @@ const Services = () => {
 
   return (
     <section id="services" className="py-10 lg:py-15 xl:py-20">
-      <div className="mx-auto max-w-c-1315 px-4 md:px-8 xl:px-0">
+      <div className="mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
         {/* Always render the skeletons immediately during any loading state */}
         {isLoading && (
           <>

@@ -80,7 +80,7 @@ const About = () => {
     <>
       {/* <!-- ===== About Start ===== --> */}
       <section id="aboutus" className="py-10 lg:py-15 xl:py-20">
-        <div className="mx-auto max-w-c-1235 px-4 md:px-8 xl:px-0">
+        <div className="mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
           <SectionHeader
             headerInfo={{
               title: language === "id" ? "Tentang Kami" : "About Us",

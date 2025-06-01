@@ -94,7 +94,7 @@ const Blog = () => {
 
   return (
     <section id="blogs" className="py-10 lg:py-15 xl:py-20">
-      <div className="mx-auto max-w-c-1315 px-4 md:px-8 xl:px-0">
+      <div className="mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
         {/* <!-- Section Title Start --> */}
         <div className="animate_top mx-auto text-center">
           <SectionHeader

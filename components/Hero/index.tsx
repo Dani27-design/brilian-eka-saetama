@@ -352,7 +352,7 @@ const Hero = () => {
 
   return (
     <section className="overflow-hidden pb-20 pt-30 md:pt-35 xl:pb-25 xl:pt-46">
-      <div className="mx-auto max-w-c-1390 px-4 md:px-8 2xl:px-0">
+      <div className="mx-auto max-w-c-1280 px-4 md:px-8 2xl:px-0">
         <div className="flex flex-col items-center gap-32.5 gap-y-8 lg:flex-row lg:gap-8 xl:flex-row">
           <HeroContent
             heroTitle={heroTitle}

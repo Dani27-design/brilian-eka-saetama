@@ -66,7 +66,7 @@ const OurClients = () => {
         id="clients"
         className="pb-5 pt-35 lg:pb-10 lg:pt-40 xl:pb-15 xl:pt-45"
       >
-        <div className="relative z-1 mx-auto max-w-c-1390 rounded-lg bg-gradient-to-t from-[#F8F9FF] to-[#DEE7FF] py-22.5 dark:bg-blacksection dark:bg-gradient-to-t dark:from-transparent dark:to-transparent dark:stroke-strokedark xl:py-27.5">
+        <div className="relative z-1 mx-auto max-w-c-1280 rounded-lg bg-gradient-to-t from-[#F8F9FF] to-[#DEE7FF] py-22.5 dark:bg-blacksection dark:bg-gradient-to-t dark:from-transparent dark:to-transparent dark:stroke-strokedark xl:py-27.5">
           <Image
             width={335}
             height={384}
