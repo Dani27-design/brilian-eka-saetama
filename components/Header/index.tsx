@@ -342,7 +342,7 @@ const Header = () => {
           : ""
       }`}
     >
-      <div className="relative mx-auto max-w-c-1280 items-center justify-between px-0 md:px-0 xl:flex 2xl:px-0">
+      <div className="relative mx-auto max-w-c-1280 items-center justify-between px-3 md:px-3 xl:flex 2xl:px-0">
         {isLoading ? (
           <HeaderSkeleton />
         ) : (
