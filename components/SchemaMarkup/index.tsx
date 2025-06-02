@@ -19,7 +19,7 @@ export default function SchemaMarkup() {
     ],
     email: "ptbrilianekasaetama@gmail.com",
     description:
-      "PT. Brilian Eka Saetama (BES) menyediakan solusi keamanan dari bahaya kebakaran dengan standar kualitas terbaik.",
+      "PT. Brilian Eka Saetama (BES) adalah perusahaan yang bergerak di bidang jasa instalasi dan pemeliharaan sistem proteksi kebakaran dan keamanan. Layanan kami mencakup pemasangan dan perawatan Hydrant, Fire Alarm System, CCTV, Door Access Control System, hingga Patrol Guard System.",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Sidoarjo",

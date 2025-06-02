@@ -53,7 +53,7 @@ const HeroContent = React.memo(
     };
 
     return (
-      <div className="md:w-1/2">
+      <div className="w-full md:w-3/5">
         {isLoading ? (
           <>
             <TextSkeleton width="60%" height="1.5rem" className="mb-4.5" />
@@ -67,8 +67,8 @@ const HeroContent = React.memo(
               {heroSlogan}
             </h4>
             <h1 className="mb-5 pr-16 text-3xl font-bold text-black dark:text-white xl:text-hero ">
-              {heroTitle} {"   "}
-              <span className="relative inline-block before:absolute before:bottom-2.5 before:left-0 before:-z-1 before:h-3 before:w-full before:bg-titlebg dark:before:bg-titlebgdark ">
+              {heroTitle}
+              <span className="relative inline-block pl-2 before:absolute before:bottom-2.5 before:left-0 before:-z-1 before:h-3 before:w-full before:bg-titlebg dark:before:bg-titlebgdark ">
                 {highlight}
               </span>
             </h1>
@@ -127,17 +127,17 @@ interface HeroMediaProps {
 
 const HeroMedia = React.memo(
   ({ mediaType, mediaSrc, isLoading }: HeroMediaProps) => (
-    <div className="animate_right p-1 md:w-1/2 lg:block">
-      <div className="relative 2xl:-mr-7.5">
+    <div className="animate_right w-full p-1 md:w-2/5 lg:w-2/5">
+      <div className="relative mx-auto max-w-[420px] 2xl:-mr-7.5">
         <Image
           src="/images/shape/shape-01.png"
           alt="shape"
           width={46}
           height={246}
           className="absolute -left-11.5 top-0"
-          priority={true} // For above-the-fold images
-          quality={80} // Balance between quality and size
-          loading="eager" // For critical images
+          priority={true}
+          quality={80}
+          loading="eager"
         />
         <Image
           src="/images/shape/shape-02.svg"
@@ -145,9 +145,9 @@ const HeroMedia = React.memo(
           width={36.9}
           height={36.7}
           className="absolute bottom-0 right-0 z-10"
-          priority={true} // For above-the-fold images
-          quality={80} // Balance between quality and size
-          loading="eager" // For critical images
+          priority={true}
+          quality={80}
+          loading="eager"
         />
         <Image
           src="/images/shape/shape-03.svg"
@@ -155,16 +155,16 @@ const HeroMedia = React.memo(
           width={21.64}
           height={21.66}
           className="absolute -right-6.5 bottom-0 z-1"
-          priority={true} // For above-the-fold images
-          quality={80} // Balance between quality and size
-          loading="eager" // For critical images
+          priority={true}
+          quality={80}
+          loading="eager"
         />
-        <div className="relative aspect-[700/444] w-full overflow-hidden rounded-xl">
+        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl">
           {isLoading ? (
             <div className="h-full w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700" />
           ) : mediaType === "video" ? (
             <video
-              className="shadow-solid-l"
+              className="h-full w-full shadow-solid-l"
               src={mediaSrc}
               autoPlay
               loop
@@ -181,12 +181,12 @@ const HeroMedia = React.memo(
               src={mediaSrc}
               alt="hero image"
               fill
-              sizes="(max-width: 640px) 95vw, (max-width: 768px) 85vw, 50vw" // Specific breakpoints
+              sizes="(max-width: 640px) 95vw, (max-width: 768px) 50vw, 420px"
               className="object-cover"
-              priority={true} // Only for key hero image
-              quality={75} // Slightly lower quality for faster loading
-              placeholder="blur" // Optional: Add placeholder for better UX
-              blurDataURL="data:image/svg+xml;base64,..." // Generate a tiny blurDataURL
+              priority={true}
+              quality={75}
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,..."
             />
           )}
         </div>
@@ -351,9 +351,9 @@ const Hero = () => {
   ]);
 
   return (
-    <section className="overflow-hidden pb-20 pt-30 md:pt-35 xl:pb-25 xl:pt-46">
+    <section className="overflow-hidden pb-20 pt-25 md:pt-25 xl:pb-25 xl:pt-36">
       <div className="mx-auto max-w-c-1280 px-4 md:px-8 2xl:px-0">
-        <div className="flex flex-col items-center gap-32.5 gap-y-8 lg:flex-row lg:gap-8 xl:flex-row">
+        <div className="flex flex-col items-center gap-8 md:flex-row md:items-start lg:gap-12 xl:gap-16">
           <HeroContent
             heroTitle={heroTitle}
             highlight={highlight}

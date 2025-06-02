@@ -71,7 +71,7 @@ const Blog = dynamic(() => import("@/components/Blog"), {
 export const metadata: Metadata = {
   title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
   description:
-    "PT. Brilian Eka Saetama (BES) telah lama berkomitmen menjadi mitra utama dalam keselamatan dengan menyediakan solusi keamanan dari bahaya kebakaran. Kami berkomitmen untuk memberikan layanan pemasangan sistem perangkat pendukung dengan standar kualitas terbaik, membantu masyarakat dan perusahaan menjaga aset mereka dari risiko kebakaran, serta menciptakan lingkungan yang aman dan terlindungi.",
+    "Kami adalah perusahaan yang bergerak di bidang jasa instalasi dan pemeliharaan sistem proteksi kebakaran dan keamanan. Layanan kami mencakup pemasangan dan perawatan Hydrant, Fire Alarm System, CCTV, Door Access Control System, hingga Patrol Guard System.",
   applicationName: "PT Brilian Eka Saetama",
   authors: [
     {
@@ -83,9 +83,9 @@ export const metadata: Metadata = {
   keywords: [
     "pt brilian eka saetama",
     "brilian eka saetama",
-    "bes",
-    "pt bes",
     "brilian eka saetama bes",
+    "pt bes",
+    "bes",
     "kebakaran",
     "alat pemadam api",
     "fire extinguisher",
@@ -97,10 +97,23 @@ export const metadata: Metadata = {
     "sprinkler",
     "fire safety",
     "smoke detector",
+    "patrol guard system",
+    "door access control system",
+    "cctv",
     "proteksi kebakaran",
     "instalasi hydrant",
     "jasa fire safety",
     "konsultan kebakaran",
+    "pemeliharaan sistem proteksi kebakaran",
+    "pemasangan fire alarm",
+    "pemasangan hydrant",
+    "pemasangan sprinkler",
+    "pemasangan smoke detector",
+    "pemasangan fire extinguisher",
+    "pemasangan sistem proteksi kebakaran",
+    "pemasangan Door Access Control System",
+    "pemasangan CCTV",
+    "pemasangan Patrol Guard System",
   ],
   referrer: "origin-when-cross-origin",
   creator: "PT Brilian Eka Saetama",
@@ -114,7 +127,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
     description:
-      "PT. Brilian Eka Saetama (BES) telah lama berkomitmen menjadi mitra utama dalam keselamatan dengan menyediakan solusi keamanan dari bahaya kebakaran. Kami berkomitmen untuk memberikan layanan pemasangan sistem perangkat pendukung dengan standar kualitas terbaik, membantu masyarakat dan perusahaan menjaga aset mereka dari risiko kebakaran, serta menciptakan lingkungan yang aman dan terlindungi.",
+      "Kami adalah perusahaan yang bergerak di bidang jasa instalasi dan pemeliharaan sistem proteksi kebakaran dan keamanan. Layanan kami mencakup pemasangan dan perawatan Hydrant, Fire Alarm System, CCTV, Door Access Control System, hingga Patrol Guard System.",
     siteName: "PT Brilian Eka Saetama",
     images: [
       {
@@ -133,7 +146,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
     description:
-      "PT. Brilian Eka Saetama (BES) telah lama berkomitmen menjadi mitra utama dalam keselamatan dengan menyediakan solusi keamanan dari bahaya kebakaran. Kami berkomitmen untuk memberikan layanan pemasangan sistem perangkat pendukung dengan standar kualitas terbaik, membantu masyarakat dan perusahaan menjaga aset mereka dari risiko kebakaran, serta menciptakan lingkungan yang aman dan terlindungi.",
+      "Kami adalah perusahaan yang bergerak di bidang jasa instalasi dan pemeliharaan sistem proteksi kebakaran dan keamanan. Layanan kami mencakup pemasangan dan perawatan Hydrant, Fire Alarm System, CCTV, Door Access Control System, hingga Patrol Guard System.",
     images: [
       "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
     ],

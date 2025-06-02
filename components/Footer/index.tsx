@@ -49,8 +49,8 @@ const Footer = () => {
       description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
       contact_label: "contact",
       contact_email: "hello@solid.com",
-      light_logo: "/images/logo/logo-light.svg",
-      dark_logo: "/images/logo/logo-dark.svg",
+      light_logo: "/images/logo/logo-light.png",
+      dark_logo: "/images/logo/logo-dark.png",
     },
     quick_links: {
       title: "Quick Links",

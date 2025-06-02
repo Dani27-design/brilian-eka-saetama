@@ -54,7 +54,7 @@ const ClientsInfo = () => {
           {isLoading ? (
             <div className="text-center">Loading clients...</div>
           ) : (
-            <div className="grid grid-cols-3 items-center justify-center gap-7.5 md:grid-cols-6 lg:gap-12.5 xl:gap-29">
+            <div className="grid grid-cols-3 items-start justify-center gap-5 md:grid-cols-6 lg:gap-8 xl:gap-12">
               {brands.map((brand, key) => (
                 <SingleCard brand={brand} key={key} />
               ))}
