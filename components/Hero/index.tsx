@@ -123,85 +123,78 @@ interface HeroMediaProps {
   mediaType: string;
   mediaSrc: string;
   isLoading: boolean;
+  startUnmuted?: boolean; // Add this new optional prop
 }
 
 const HeroMedia = React.memo(
-  ({ mediaType, mediaSrc, isLoading }: HeroMediaProps) => {
+  ({ mediaType, mediaSrc, isLoading, startUnmuted = true }: HeroMediaProps) => {
+    // Initialize audioEnabled state based on the new prop
+    const [audioEnabled, setAudioEnabled] = useState(startUnmuted);
     const videoRef = useRef<HTMLVideoElement>(null);
 
+    // Try to enable audio as soon as component mounts
     useEffect(() => {
-      const handleInteraction = () => {
-        if (videoRef.current) {
-          videoRef.current.muted = false;
-          // Remove the event listeners after first interaction
-          document.removeEventListener("click", handleInteraction);
-          document.removeEventListener("touchstart", handleInteraction);
-          document.removeEventListener("keydown", handleInteraction);
+      if (videoRef.current && startUnmuted) {
+        // Try to play with sound
+        videoRef.current.muted = false;
+
+        // Attempt to play (this might be rejected by browser)
+        const playPromise = videoRef.current.play();
+
+        if (playPromise !== undefined) {
+          playPromise.catch((error) => {
+            // If browser blocks autoplay with sound, revert to muted
+            console.log("Autoplay with sound was blocked by browser", error);
+            if (videoRef.current) {
+              videoRef.current.muted = true;
+              setAudioEnabled(false);
+              // Try playing muted
+              videoRef.current.play();
+            }
+          });
         }
-      };
+      }
+    }, [startUnmuted]);
 
-      document.addEventListener("click", handleInteraction);
-      document.addEventListener("touchstart", handleInteraction);
-      document.addEventListener("keydown", handleInteraction);
-
-      return () => {
-        document.removeEventListener("click", handleInteraction);
-        document.removeEventListener("touchstart", handleInteraction);
-        document.removeEventListener("keydown", handleInteraction);
-      };
-    }, []);
+    // Handle enabling audio (keep this for the button)
+    const enableAudio = () => {
+      if (videoRef.current) {
+        videoRef.current.muted = false;
+        setAudioEnabled(true);
+      }
+    };
 
     return (
       <div className="animate_right w-full p-1 md:w-2/5 lg:w-2/5">
         <div className="relative mx-auto max-w-[420px] 2xl:-mr-7.5">
-          <Image
-            src="/images/shape/shape-01.png"
-            alt="shape"
-            width={46}
-            height={246}
-            className="absolute -left-11.5 top-0"
-            priority={true}
-            quality={80}
-            loading="eager"
-          />
-          <Image
-            src="/images/shape/shape-02.svg"
-            alt="shape"
-            width={36.9}
-            height={36.7}
-            className="absolute bottom-0 right-0 z-10"
-            priority={true}
-            quality={80}
-            loading="eager"
-          />
-          <Image
-            src="/images/shape/shape-03.svg"
-            alt="shape"
-            width={21.64}
-            height={21.66}
-            className="absolute -right-6.5 bottom-0 z-1"
-            priority={true}
-            quality={80}
-            loading="eager"
-          />
+          {/* Shape images remain the same */}
           <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl">
             {isLoading ? (
               <div className="h-full w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700" />
             ) : mediaType === "video" ? (
-              <video
-                ref={videoRef}
-                className="h-full w-full shadow-solid-l"
-                src={mediaSrc}
-                autoPlay
-                loop
-                muted
-                playsInline
-                style={{
-                  objectFit: "cover",
-                  width: "100%",
-                  height: "100%",
-                }}
-              />
+              <div className="relative h-full w-full">
+                <video
+                  ref={videoRef}
+                  className="h-full w-full shadow-solid-l"
+                  src={mediaSrc}
+                  autoPlay
+                  loop
+                  muted={!audioEnabled}
+                  playsInline
+                  style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                />
+                {!audioEnabled && (
+                  <button
+                    onClick={enableAudio}
+                    className="absolute inset-0 flex h-full w-full items-center justify-center bg-transparent"
+                    aria-label="Enable audio"
+                  >
+                    <div className="rounded-full bg-black/50 p-4 text-white">
+                      🔊 Play with sound
+                    </div>
+                  </button>
+                )}
+              </div>
             ) : (
               <Image
                 src={mediaSrc}
@@ -394,6 +387,7 @@ const Hero = () => {
             mediaType={mediaType}
             mediaSrc={mediaSrc}
             isLoading={isLoading}
+            startUnmuted={true} // Add this prop
           />
         </div>
       </div>
