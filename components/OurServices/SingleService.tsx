@@ -24,7 +24,7 @@ const SingleServices = ({ feature }: { feature: Services }) => {
       viewport={{ once: true }}
       className="animate_top z-40 flex h-full flex-col rounded-lg border border-white bg-white p-7.5 shadow-solid-3 transition-all hover:shadow-solid-4 dark:border-strokedark dark:bg-blacksection dark:hover:bg-hoverdark xl:p-12.5"
     >
-      <div className="relative mb-7.5 aspect-[4/3] w-full overflow-hidden">
+      <div className="relative mb-7.5 h-[250px] w-full overflow-hidden sm:h-[250px] md:h-[250px] lg:h-[250px] xl:h-[250px] 2xl:h-[250px]">
         <Image
           src={image}
           alt={title}
@@ -35,8 +35,10 @@ const SingleServices = ({ feature }: { feature: Services }) => {
           style={{
             objectFit: "cover",
             objectPosition: "center",
+            width: "100%",
+            height: "100%",
           }}
-          className="rounded-md"
+          className="rounded-lg"
         />
       </div>
       <h3 className="mb-5 text-xl font-semibold text-black dark:text-white xl:text-itemtitle">
