@@ -22,21 +22,27 @@ const SingleServices = ({ feature }: { feature: Services }) => {
       whileInView="visible"
       transition={{ duration: 0.5 }}
       viewport={{ once: true }}
-      className="animate_top z-40 rounded-lg border border-white bg-white p-7.5 shadow-solid-3 transition-all hover:shadow-solid-4 dark:border-strokedark dark:bg-blacksection dark:hover:bg-hoverdark xl:p-12.5"
+      className="animate_top z-40 flex h-full flex-col rounded-lg border border-white bg-white p-7.5 shadow-solid-3 transition-all hover:shadow-solid-4 dark:border-strokedark dark:bg-blacksection dark:hover:bg-hoverdark xl:p-12.5"
     >
-      <Image
-        src={image}
-        alt={title}
-        width={600}
-        height={600}
-        priority={true} // For above-the-fold images
-        quality={80} // Balance between quality and size
-        loading="eager" // For critical images
-      />
-      <h3 className="mb-5 mt-7.5 text-xl font-semibold text-black dark:text-white xl:text-itemtitle">
+      <div className="relative mb-7.5 h-[200px] w-full overflow-hidden md:h-[240px]">
+        <Image
+          src={image}
+          alt={title}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={true}
+          quality={80}
+          style={{
+            objectFit: "cover",
+            objectPosition: "center",
+          }}
+          className="rounded-md"
+        />
+      </div>
+      <h3 className="mb-5 text-xl font-semibold text-black dark:text-white xl:text-itemtitle">
         {title}
       </h3>
-      <p>{description}</p>
+      <p className="flex-grow">{description}</p>
     </motion.div>
   );
 };
