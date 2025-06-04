@@ -12,16 +12,19 @@ const SingleTestimonial = ({ review }: { review: Testimonial }) => {
           </h3>
           <p>{designation}</p>
         </div>
-        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full">
+        <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2 border-primary/20 shadow-md">
           <Image
             width={64}
             height={64}
             src={imageUrl}
             alt={name}
-            priority={true} // For above-the-fold images
-            quality={80} // Balance between quality and size
-            loading="eager" // For critical images
+            priority={true}
+            quality={80}
+            loading="eager"
             className="h-full w-full object-cover"
+            style={{
+              borderRadius: "50%",
+            }}
           />
         </div>
       </div>
