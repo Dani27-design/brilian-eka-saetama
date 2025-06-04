@@ -98,6 +98,7 @@ const About = () => {
                     key={section.id}
                     className="mt-12.5 flex flex-wrap items-center gap-8 md:flex-row-reverse lg:gap-32.5"
                   >
+                    {/* For even sections (index % 2 === 0) */}
                     <motion.div
                       variants={{
                         hidden: {
@@ -113,26 +114,28 @@ const About = () => {
                       whileInView="visible"
                       transition={{ duration: 0.5, delay: 0.1 }}
                       viewport={{ once: true }}
-                      className="animate_left relative order-2 mx-auto aspect-[588/526.5] w-full md:order-1 md:w-1/3"
+                      className="animate_left relative order-2 mx-auto w-full md:order-1 md:w-1/3"
                     >
-                      <Image
-                        src={section.lightImage}
-                        alt="About"
-                        className="dark:hidden"
-                        fill
-                        priority={true} // For above-the-fold images
-                        quality={80} // Balance between quality and size
-                        loading="eager" // For critical images
-                      />
-                      <Image
-                        src={section.darkImage}
-                        alt="About"
-                        className="hidden dark:block"
-                        fill
-                        priority={true} // For above-the-fold images
-                        quality={80} // Balance between quality and size
-                        loading="eager" // For critical images
-                      />
+                      <div className="relative aspect-square w-full">
+                        <Image
+                          src={section.lightImage}
+                          alt="About"
+                          className="rounded-lg object-cover dark:hidden"
+                          fill
+                          priority={true}
+                          quality={80}
+                          loading="eager"
+                        />
+                        <Image
+                          src={section.darkImage}
+                          alt="About"
+                          className="hidden rounded-lg object-cover dark:block"
+                          fill
+                          priority={true}
+                          quality={80}
+                          loading="eager"
+                        />
+                      </div>
                     </motion.div>
                     <motion.div
                       variants={{
@@ -188,6 +191,45 @@ const About = () => {
                     key={section.id}
                     className="mt-12.5 flex flex-wrap items-center gap-8 lg:gap-32.5"
                   >
+                    {/* For odd sections (index % 2 !== 0) */}
+                    <motion.div
+                      variants={{
+                        hidden: {
+                          opacity: 0,
+                          x: 20,
+                        },
+                        visible: {
+                          opacity: 1,
+                          x: 0,
+                        },
+                      }}
+                      initial="hidden"
+                      whileInView="visible"
+                      transition={{ duration: 1, delay: 0.1 }}
+                      viewport={{ once: true }}
+                      className="animate_right relative order-2 mx-auto w-full md:order-1 md:w-1/3"
+                    >
+                      <div className="relative aspect-square w-full">
+                        <Image
+                          src={section.lightImage}
+                          alt="About"
+                          className="rounded-lg object-cover dark:hidden"
+                          fill
+                          priority={true}
+                          quality={80}
+                          loading="eager"
+                        />
+                        <Image
+                          src={section.darkImage}
+                          alt="About"
+                          className="hidden rounded-lg object-cover dark:block"
+                          fill
+                          priority={true}
+                          quality={80}
+                          loading="eager"
+                        />
+                      </div>
+                    </motion.div>
                     <motion.div
                       variants={{
                         hidden: {
@@ -232,42 +274,6 @@ const About = () => {
                           </a>
                         </div>
                       )} */}
-                    </motion.div>
-                    <motion.div
-                      variants={{
-                        hidden: {
-                          opacity: 0,
-                          x: 20,
-                        },
-                        visible: {
-                          opacity: 1,
-                          x: 0,
-                        },
-                      }}
-                      initial="hidden"
-                      whileInView="visible"
-                      transition={{ duration: 1, delay: 0.1 }}
-                      viewport={{ once: true }}
-                      className="animate_right relative order-2 mx-auto aspect-[588/526.5] w-full md:order-1 md:w-1/3"
-                    >
-                      <Image
-                        src={section.lightImage}
-                        alt="About"
-                        className="dark:hidden"
-                        fill
-                        priority={true} // For above-the-fold images
-                        quality={80} // Balance between quality and size
-                        loading="eager" // For critical images
-                      />
-                      <Image
-                        src={section.darkImage}
-                        alt="About"
-                        className="hidden dark:block"
-                        fill
-                        priority={true} // For above-the-fold images
-                        quality={80} // Balance between quality and size
-                        loading="eager" // For critical images
-                      />
                     </motion.div>
                   </div>
                 );

@@ -22,27 +22,38 @@ const SingleServices = ({ feature }: { feature: Services }) => {
       whileInView="visible"
       transition={{ duration: 0.5 }}
       viewport={{ once: true }}
-      className="animate_top z-40 flex h-full flex-col rounded-lg border border-white bg-white p-7.5 shadow-solid-3 transition-all hover:shadow-solid-4 dark:border-strokedark dark:bg-blacksection dark:hover:bg-hoverdark xl:p-12.5"
+      className="animate_bottom z-40 flex h-full flex-col rounded-lg border border-white bg-white p-7.5 shadow-solid-3 transition-all hover:shadow-solid-4 dark:border-strokedark dark:bg-blacksection dark:hover:bg-hoverdark xl:p-12.5"
     >
-      <div className="relative mb-7.5 h-[200px] w-full overflow-hidden md:h-[240px]">
-        <Image
-          src={image}
-          alt={title}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          priority={true}
-          quality={80}
-          style={{
-            objectFit: "cover",
-            objectPosition: "center",
-          }}
-          className="rounded-md"
-        />
+      <div
+        className="service-card rounded-lg bg-white p-6 shadow-md"
+        style={{
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "320px", // Tetapkan tinggi minimum yang konsisten
+        }}
+        data-service-id={feature.id}
+      >
+        <div className="relative mb-7.5 h-[200px] w-full overflow-hidden md:h-[240px]">
+          <Image
+            src={image}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={true}
+            quality={80}
+            style={{
+              objectFit: "cover",
+              objectPosition: "center",
+            }}
+            className="rounded-md"
+          />
+        </div>
+        <h3 className="mb-5 text-xl font-semibold text-black dark:text-white xl:text-itemtitle">
+          {title}
+        </h3>
+        <p className="flex-grow">{description}</p>
       </div>
-      <h3 className="mb-5 text-xl font-semibold text-black dark:text-white xl:text-itemtitle">
-        {title}
-      </h3>
-      <p className="flex-grow">{description}</p>
     </motion.div>
   );
 };

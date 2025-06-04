@@ -34,7 +34,7 @@ export default function SchemaMarkup() {
     },
     contactPoint: {
       "@type": "ContactPoint",
-      telephone: "+62-857-9042-8078",
+      telephone: "+62-852-3160-0808",
       contactType: "customer service",
     },
     sameAs: ["https://www.instagram.com/pt_brilian"],

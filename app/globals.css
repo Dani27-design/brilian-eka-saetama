@@ -5,6 +5,7 @@
 /* third-party libraries CSS */
 
 html {
+  scroll-padding-top: 120px; /* Adjust based on your header height */
   scroll-behavior: smooth;
 }
 
@@ -190,4 +191,9 @@ pre {
   .lazy-section[data-loaded="true"] {
     animation: none;
   }
+}
+
+.is-scrolling .grid {
+  transition: none !important;
+  animation: none !important;
 }
