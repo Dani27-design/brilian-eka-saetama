@@ -96,7 +96,7 @@ const About = () => {
                 return (
                   <div
                     key={section.id}
-                    className="mt-12.5 flex items-center gap-8 lg:gap-32.5"
+                    className="mt-12.5 flex flex-wrap items-center gap-8 md:flex-row-reverse lg:gap-32.5"
                   >
                     <motion.div
                       variants={{
@@ -113,7 +113,7 @@ const About = () => {
                       whileInView="visible"
                       transition={{ duration: 0.5, delay: 0.1 }}
                       viewport={{ once: true }}
-                      className="animate_left relative mx-auto hidden aspect-[588/526.5] md:block md:w-1/2"
+                      className="animate_left relative order-2 mx-auto aspect-[588/526.5] w-full md:order-1 md:w-1/3"
                     >
                       <Image
                         src={section.lightImage}
@@ -186,7 +186,7 @@ const About = () => {
                 return (
                   <div
                     key={section.id}
-                    className="mt-12.5 flex items-center gap-8 lg:gap-32.5"
+                    className="mt-12.5 flex flex-wrap items-center gap-8 lg:gap-32.5"
                   >
                     <motion.div
                       variants={{
@@ -248,7 +248,7 @@ const About = () => {
                       whileInView="visible"
                       transition={{ duration: 1, delay: 0.1 }}
                       viewport={{ once: true }}
-                      className="animate_right relative mx-auto hidden aspect-[588/526.5] md:block md:w-1/2"
+                      className="animate_right relative order-2 mx-auto aspect-[588/526.5] w-full md:order-1 md:w-1/3"
                     >
                       <Image
                         src={section.lightImage}
