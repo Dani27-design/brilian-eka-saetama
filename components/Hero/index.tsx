@@ -3,7 +3,7 @@ import { getData } from "@/actions/read/hero";
 import { trimByParentheses } from "@/utils/trimText";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useLanguage } from "@/app/context/LanguageContext";
 import TextSkeleton from "../Skeleton/TextSkeleton";
 import React from "react";
@@ -126,72 +126,100 @@ interface HeroMediaProps {
 }
 
 const HeroMedia = React.memo(
-  ({ mediaType, mediaSrc, isLoading }: HeroMediaProps) => (
-    <div className="animate_right w-full p-1 md:w-2/5 lg:w-2/5">
-      <div className="relative mx-auto max-w-[420px] 2xl:-mr-7.5">
-        <Image
-          src="/images/shape/shape-01.png"
-          alt="shape"
-          width={46}
-          height={246}
-          className="absolute -left-11.5 top-0"
-          priority={true}
-          quality={80}
-          loading="eager"
-        />
-        <Image
-          src="/images/shape/shape-02.svg"
-          alt="shape"
-          width={36.9}
-          height={36.7}
-          className="absolute bottom-0 right-0 z-10"
-          priority={true}
-          quality={80}
-          loading="eager"
-        />
-        <Image
-          src="/images/shape/shape-03.svg"
-          alt="shape"
-          width={21.64}
-          height={21.66}
-          className="absolute -right-6.5 bottom-0 z-1"
-          priority={true}
-          quality={80}
-          loading="eager"
-        />
-        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl">
-          {isLoading ? (
-            <div className="h-full w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700" />
-          ) : mediaType === "video" ? (
-            <video
-              className="h-full w-full shadow-solid-l"
-              src={mediaSrc}
-              autoPlay
-              loop
-              playsInline
-              style={{
-                objectFit: "cover",
-                width: "100%",
-                height: "100%",
-              }}
-            />
-          ) : (
-            <Image
-              src={mediaSrc}
-              alt="hero image"
-              fill
-              sizes="(max-width: 640px) 95vw, (max-width: 768px) 50vw, 420px"
-              className="object-cover"
-              priority={true}
-              quality={75}
-              placeholder="blur"
-              blurDataURL="data:image/svg+xml;base64,..."
-            />
-          )}
+  ({ mediaType, mediaSrc, isLoading }: HeroMediaProps) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    useEffect(() => {
+      const handleInteraction = () => {
+        if (videoRef.current) {
+          videoRef.current.muted = false;
+          // Remove the event listeners after first interaction
+          document.removeEventListener("click", handleInteraction);
+          document.removeEventListener("touchstart", handleInteraction);
+          document.removeEventListener("keydown", handleInteraction);
+        }
+      };
+
+      document.addEventListener("click", handleInteraction);
+      document.addEventListener("touchstart", handleInteraction);
+      document.addEventListener("keydown", handleInteraction);
+
+      return () => {
+        document.removeEventListener("click", handleInteraction);
+        document.removeEventListener("touchstart", handleInteraction);
+        document.removeEventListener("keydown", handleInteraction);
+      };
+    }, []);
+
+    return (
+      <div className="animate_right w-full p-1 md:w-2/5 lg:w-2/5">
+        <div className="relative mx-auto max-w-[420px] 2xl:-mr-7.5">
+          <Image
+            src="/images/shape/shape-01.png"
+            alt="shape"
+            width={46}
+            height={246}
+            className="absolute -left-11.5 top-0"
+            priority={true}
+            quality={80}
+            loading="eager"
+          />
+          <Image
+            src="/images/shape/shape-02.svg"
+            alt="shape"
+            width={36.9}
+            height={36.7}
+            className="absolute bottom-0 right-0 z-10"
+            priority={true}
+            quality={80}
+            loading="eager"
+          />
+          <Image
+            src="/images/shape/shape-03.svg"
+            alt="shape"
+            width={21.64}
+            height={21.66}
+            className="absolute -right-6.5 bottom-0 z-1"
+            priority={true}
+            quality={80}
+            loading="eager"
+          />
+          <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl">
+            {isLoading ? (
+              <div className="h-full w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700" />
+            ) : mediaType === "video" ? (
+              <video
+                ref={videoRef}
+                className="h-full w-full shadow-solid-l"
+                src={mediaSrc}
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{
+                  objectFit: "cover",
+                  width: "100%",
+                  height: "100%",
+                }}
+              />
+            ) : (
+              <Image
+                src={mediaSrc}
+                alt="hero image"
+                fill
+                sizes="(max-width: 640px) 95vw, (max-width: 768px) 50vw, 420px"
+                className="object-cover"
+                priority={true}
+                quality={75}
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,..."
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  ),
+    );
+  },
 );
 
 HeroMedia.displayName = "HeroMedia";
