@@ -168,7 +168,6 @@ const HeroMedia = React.memo(
               src={mediaSrc}
               autoPlay
               loop
-              muted
               playsInline
               style={{
                 objectFit: "cover",
