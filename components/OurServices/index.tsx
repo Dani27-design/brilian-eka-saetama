@@ -35,19 +35,6 @@ const useServicesData = (lang: string, collectionId: string, docId: string) => {
 const Services = () => {
   const { language } = useLanguage();
   const [isFirstLoad, setIsFirstLoad] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Check if viewport is mobile on client side
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const {
     data: servicesTitleData,
@@ -115,12 +102,9 @@ const Services = () => {
     };
   }, [servicesTitleData, servicesSubtitleData, servicesData]);
 
-  // CSS classes for the service cards container
-  const serviceCardsContainerClasses = useMemo(() => {
-    return `mt-12.5 grid grid-cols-1 gap-7.5 md:grid-cols-2 lg:mt-15 lg:grid-cols-3 xl:mt-20 xl:gap-12.5 ${
-      !isMobile ? "md:grid-rows-[auto]" : ""
-    }`;
-  }, [isMobile]);
+  // CSS class untuk grid container yang menjamin tinggi yang sama
+  const serviceCardsContainerClasses =
+    "mt-12.5 grid grid-cols-1 gap-7.5 md:grid-cols-2 lg:mt-15 lg:grid-cols-3 xl:mt-20 xl:gap-12.5 auto-rows-fr";
 
   return (
     <section id="services" className="py-10 lg:py-15 xl:py-20">
