@@ -58,8 +58,11 @@ export default function RootLayout({
             "/images/logo/logo-light.png",
             "/images/logo/logo-dark.png",
 
-            // Essential JavaScript
-            "/js/core-functionality.js",
+            // firestore
+            "https://firestore.googleapis.com",
+
+            // firebase storage
+            "https://firebasestorage.googleapis.com",
           ]}
         />
       </head>

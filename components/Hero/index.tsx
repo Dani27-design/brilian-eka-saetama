@@ -72,7 +72,14 @@ const HeroContent = React.memo(
                 {highlight}
               </span>
             </h1>
-            <p className="text-body-color dark:text-body-color-dark min-h-[60px] max-w-[540px] whitespace-pre-wrap text-base leading-relaxed">
+            <p
+              className="text-body-color dark:text-body-color-dark min-h-[60px] max-w-[540px] whitespace-pre-wrap text-base leading-relaxed"
+              style={{
+                transition: "opacity 0.2s",
+                contentVisibility: "auto", // Improves rendering performance
+                willChange: "opacity", // Hint untuk browser
+              }}
+            >
               {heroSubtitle}
             </p>
           </>
