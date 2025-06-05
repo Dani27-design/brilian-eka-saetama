@@ -10,6 +10,7 @@ interface OptimizedImageProps {
   height?: number;
   className?: string;
   priority?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
 }
 
 export default function OptimizedImage({
@@ -19,6 +20,7 @@ export default function OptimizedImage({
   height,
   className = "",
   priority = false,
+  fetchPriority = "auto",
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -31,10 +33,13 @@ export default function OptimizedImage({
       className={`${className} ${isLoaded ? "opacity-100" : "opacity-0"}`}
       onLoadingComplete={() => setIsLoaded(true)}
       priority={priority}
-      // Use consistent decoding attribute
+      fetchPriority={priority ? "high" : fetchPriority}
       decoding="async"
       loading={priority ? "eager" : "lazy"}
-      style={{ transition: "opacity 0.3s" }}
+      style={{
+        transition: "opacity 0.3s",
+        aspectRatio: width && height ? `${width}/${height}` : "auto",
+      }}
     />
   );
 }

@@ -188,12 +188,44 @@ pre {
 
 /* Optimize animations */
 @media (prefers-reduced-motion: reduce) {
-  .lazy-section[data-loaded="true"] {
-    animation: none;
+  .lazy-section[data-loaded="true"],
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
+/* Prevent layout shifts */
 .is-scrolling .grid {
   transition: none !important;
   animation: none !important;
+}
+
+/* Prevent layout shifts for images */
+img {
+  content-visibility: auto;
+}
+
+/* Add image placeholders */
+.img-placeholder {
+  background-color: #f0f0f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.img-placeholder::before {
+  content: "";
+  display: block;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 aspect ratio by default */
+}
+
+/* Optimize for Core Web Vitals */
+[data-lcp] {
+  content-visibility: auto;
+}
+
+/* Create style for lazyloaded sections */
+.lazy-section {
+  will-change: auto; /* Avoid excessive GPU memory use */
 }

@@ -22,6 +22,7 @@ import SchemaMarkup from "@/components/SchemaMarkup";
 import LazyLoadScript from "@/components/LazyLoadScript";
 import PerformanceOptimizer from "@/components/PerformanceOptimizer";
 import Analytics from "@/components/Analytics";
+import CriticalPreload from "@/components/CriticalPreload";
 
 export default function RootLayout({
   children,
@@ -51,8 +52,18 @@ export default function RootLayout({
 
         {/* DNS prefetch for third-party domains */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <CriticalPreload
+          assets={[
+            // LCP images
+            "/images/logo/logo-light.png",
+            "/images/logo/logo-dark.png",
+
+            // Essential JavaScript
+            "/js/core-functionality.js",
+          ]}
+        />
       </head>
-      <body className={`dark:bg-black ${inter.className}`}>
+      <body className={`dark:bg-black ${inter.className} preload`}>
         <Providers>
           <ThemeProvider
             enableSystem={false}
