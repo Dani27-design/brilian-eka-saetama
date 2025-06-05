@@ -6,45 +6,34 @@ export default function PerformanceOptimizer() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Defer non-critical resources
-    const deferNonCritical = () => {
-      // Defer non-critical images loading
-      document.querySelectorAll('img:not([loading="eager"])').forEach((img) => {
-        if (!img.hasAttribute("loading")) {
-          img.setAttribute("loading", "lazy");
+    // ===== LCP OPTIMIZATIONS =====
+    const optimizeLCP = () => {
+      // High-priority images should load quickly
+      document.querySelectorAll('img[fetchpriority="high"]').forEach((img) => {
+        // Make sure we don't change decoding attribute if it's already set
+        if (!img.hasAttribute("decoding")) {
+          img.setAttribute("decoding", "async"); // Keep consistent with client rendering
         }
-      });
-
-      // Defer non-critical JS
-      const deferScripts = document.querySelectorAll("script[data-defer]");
-      deferScripts.forEach((script) => {
-        script.setAttribute("defer", "");
       });
     };
 
-    // Execute during idle time
-    if ("requestIdleCallback" in window) {
-      // @ts-ignore - TypeScript doesn't recognize requestIdleCallback
-      window.requestIdleCallback(deferNonCritical);
-    } else {
-      setTimeout(deferNonCritical, 1000);
-    }
+    // ===== CLS OPTIMIZATIONS =====
+    const preventCLS = () => {
+      // Set fixed dimensions for images without dimensions
+      document
+        .querySelectorAll("img:not([width]):not([height])")
+        .forEach((img) => {
+          img.setAttribute("width", "100%");
+          (img as HTMLImageElement).style.aspectRatio = "auto";
+        });
+    };
 
-    // Add mobile-specific optimizations
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      // Reduce animation complexity
-      document.documentElement.classList.add("reduce-motion");
-
-      // Defer below-fold styles
-      document.querySelectorAll("link[data-below-fold]").forEach((link) => {
-        link.setAttribute("media", "none");
-        link.setAttribute("onload", "this.media='all'");
-      });
-    }
+    // Run optimizations after the component mounts
+    optimizeLCP();
+    preventCLS();
 
     return () => {
-      // Clean up
+      // Cleanup if needed
     };
   }, []);
 

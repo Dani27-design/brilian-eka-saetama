@@ -37,6 +37,7 @@ const BlogItem = ({ blog }: { blog: Blog }) => {
             priority={true} // For above-the-fold images
             quality={80} // Balance between quality and size
             loading="eager" // For critical images
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" // Added sizes attribute
           />
         </Link>
 

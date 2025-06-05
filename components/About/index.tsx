@@ -79,7 +79,7 @@ const About = () => {
   return (
     <>
       {/* <!-- ===== About Start ===== --> */}
-      <section id="aboutus" className="py-10 lg:py-15 xl:py-20">
+      <section id="aboutus" className="my-0 py-0">
         <div className="mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
           <SectionHeader
             headerInfo={{
@@ -125,6 +125,7 @@ const About = () => {
                           priority={true}
                           quality={80}
                           loading="eager"
+                          sizes="(max-width: 768px) 100vw, 33vw" // Added sizes attribute
                         />
                         <Image
                           src={section.darkImage}
@@ -134,6 +135,7 @@ const About = () => {
                           priority={true}
                           quality={80}
                           loading="eager"
+                          sizes="(max-width: 768px) 100vw, 33vw" // Added sizes attribute
                         />
                       </div>
                     </motion.div>
@@ -218,6 +220,7 @@ const About = () => {
                           priority={true}
                           quality={80}
                           loading="eager"
+                          sizes="(max-width: 768px) 100vw, 33vw" // Added sizes attribute
                         />
                         <Image
                           src={section.darkImage}
@@ -227,6 +230,7 @@ const About = () => {
                           priority={true}
                           quality={80}
                           loading="eager"
+                          sizes="(max-width: 768px) 100vw, 33vw" // Added sizes attribute
                         />
                       </div>
                     </motion.div>

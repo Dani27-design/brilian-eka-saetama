@@ -13,7 +13,6 @@ export const getData = async (
       const data = docSnap.data();
       return data[lang];
     } else {
-      console.log("No such document!");
       return null;
     }
   } catch (error) {

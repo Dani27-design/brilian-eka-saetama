@@ -134,6 +134,11 @@ const Footer = () => {
                     priority={true} // For above-the-fold images
                     quality={80} // Balance between quality and size
                     loading="eager" // For critical images
+                    style={{
+                      cursor: "pointer",
+                      width: "auto", // Added to maintain aspect ratio
+                      height: "auto", // Added to maintain aspect ratio
+                    }}
                   />
                   <Image
                     width={110}
@@ -144,6 +149,11 @@ const Footer = () => {
                     priority={true} // For above-the-fold images
                     quality={80} // Balance between quality and size
                     loading="eager" // For critical images
+                    style={{
+                      cursor: "pointer",
+                      width: "auto", // Added to maintain aspect ratio
+                      height: "auto", // Added to maintain aspect ratio
+                    }}
                   />
                 </a>
 

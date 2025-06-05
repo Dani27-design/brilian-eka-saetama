@@ -21,6 +21,7 @@ import { LanguageProvider } from "../context/LanguageContext";
 import SchemaMarkup from "@/components/SchemaMarkup";
 import LazyLoadScript from "@/components/LazyLoadScript";
 import PerformanceOptimizer from "@/components/PerformanceOptimizer";
+import Analytics from "@/components/Analytics";
 
 export default function RootLayout({
   children,
@@ -30,7 +31,26 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <SchemaMarkup />
+        {/* Preconnect to domains for early connection establishment */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+
+        {/* Critical CSS preload */}
+        {/* Enhanced favicon setup */}
+        <link rel="icon" href="/images/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/images/logo/logo-light.png" />
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* DNS prefetch for third-party domains */}
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
       <body className={`dark:bg-black ${inter.className}`}>
         <Providers>
@@ -44,8 +64,12 @@ export default function RootLayout({
               <Header />
               <ToasterContext />
               <PerformanceOptimizer />
-              <LazyLoadScript />
-              {children}
+              <Analytics />
+              {/* Skip to content link for accessibility */}
+              <a href="#main-content" className="sr-only focus:not-sr-only">
+                Skip to content
+              </a>
+              <main id="main-content">{children}</main>
               <Footer />
               <ScrollToTop />
             </LanguageProvider>

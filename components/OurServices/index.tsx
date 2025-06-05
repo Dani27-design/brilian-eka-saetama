@@ -107,7 +107,7 @@ const Services = () => {
     "mt-12.5 grid grid-cols-1 gap-7.5 md:grid-cols-2 lg:mt-15 lg:grid-cols-3 xl:mt-20 xl:gap-12.5 auto-rows-fr";
 
   return (
-    <section id="services" className="py-10 lg:py-15 xl:py-20">
+    <section id="services" className="my-0 py-0">
       <div className="mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
         {/* Always render the skeletons immediately during any loading state */}
         {isLoading && (

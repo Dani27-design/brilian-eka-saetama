@@ -72,6 +72,7 @@ const RelatedPost = () => {
                       priority={true} // For above-the-fold images
                       quality={80} // Balance between quality and size
                       loading="eager" // For critical images
+                      sizes="180px" // Added sizes attribute based on parent container dimensions
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-800">

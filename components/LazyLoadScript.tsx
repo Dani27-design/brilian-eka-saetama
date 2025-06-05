@@ -1,47 +1,109 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export default function LazyLoadScript() {
+interface LazyLoadScriptProps {
+  src: string;
+  id?: string;
+  strategy?: "afterInteraction" | "onVisible" | "onIdle" | "onLoad";
+  onLoad?: () => void;
+}
+
+export default function LazyLoadScript({
+  src,
+  id,
+  strategy = "afterInteraction",
+  onLoad,
+}: LazyLoadScriptProps) {
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
-    // Only run in browser
     if (typeof window === "undefined") return;
 
-    // Check if Intersection Observer is supported
-    if (!("IntersectionObserver" in window)) return;
+    const loadScript = () => {
+      if (document.getElementById(id || src)) {
+        setLoaded(true);
+        return;
+      }
 
-    // Create an observer instance
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Load the component when it's in view
-            const section = entry.target;
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      if (id) script.id = id;
 
-            // Force the component to load by setting a data attribute
-            section.setAttribute("data-loaded", "true");
+      script.onload = () => {
+        setLoaded(true);
+        if (onLoad) onLoad();
+      };
 
-            // Stop observing once loaded
-            observer.unobserve(section);
+      document.body.appendChild(script);
+    };
+
+    let observer: IntersectionObserver | null = null;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    let interactionEvents: string[] = [];
+    let handleInteraction: (() => void) | undefined;
+
+    // Different loading strategies
+    switch (strategy) {
+      case "afterInteraction":
+        // Load after user interaction
+        interactionEvents = ["click", "scroll", "keydown"];
+        handleInteraction = () => {
+          loadScript();
+          interactionEvents.forEach((event) =>
+            window.removeEventListener(event, handleInteraction!),
+          );
+        };
+
+        interactionEvents.forEach((event) => {
+          if (handleInteraction) {
+            window.addEventListener(event, handleInteraction, { once: true });
           }
         });
-      },
-      {
-        rootMargin: "200px", // Start loading 200px before section comes into view
-        threshold: 0,
-      },
-    );
+        break;
 
-    // Observe all lazy-load sections
-    document.querySelectorAll(".lazy-section").forEach((section) => {
-      observer.observe(section);
-    });
+      case "onVisible":
+        // Load when element would be visible
+        observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            loadScript();
+            observer?.disconnect();
+          }
+        });
 
-    // Clean up
+        observer.observe(document.documentElement);
+        break;
+
+      case "onIdle":
+        // Load during browser idle time
+        if ("requestIdleCallback" in window) {
+          // @ts-ignore
+          window.requestIdleCallback(loadScript);
+        } else {
+          timeout = setTimeout(loadScript, 2000);
+        }
+      case "onLoad":
+      default:
+        // Load after window load
+        if (document.readyState === "complete") {
+          loadScript();
+        } else {
+          window.addEventListener("load", loadScript, { once: true });
+        }
+        break;
+    }
+
     return () => {
-      observer.disconnect();
+      if (handleInteraction) {
+        interactionEvents.forEach((event) =>
+          window.removeEventListener(event, handleInteraction!),
+        );
+      }
+      observer?.disconnect();
+      if (timeout) clearTimeout(timeout);
     };
-  }, []);
+  }, [src, id, strategy, onLoad]);
 
   return null;
 }

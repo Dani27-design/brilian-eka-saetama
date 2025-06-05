@@ -104,75 +104,73 @@ const Testimonial = () => {
   }
 
   return (
-    <>
-      <section id="testimonials" className="py-10 lg:py-15 xl:py-20">
-        <div className="mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
-          {/* <!-- Section Title Start --> */}
-          <div className="animate_top mx-auto text-center">
-            <SectionHeader
-              headerInfo={{
-                title: testimonialTitle,
-                subtitle: testimonialSubtitle,
-                description: testimonialDescription,
-              }}
-            />
-          </div>
-          {/* <!-- Section Title End --> */}
+    <section id="testimonials" className="my-0 py-0">
+      <div className="mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
+        {/* <!-- Section Title Start --> */}
+        <div className="animate_top mx-auto text-center">
+          <SectionHeader
+            headerInfo={{
+              title: testimonialTitle,
+              subtitle: testimonialSubtitle,
+              description: testimonialDescription,
+            }}
+          />
         </div>
+        {/* <!-- Section Title End --> */}
+      </div>
 
-        <motion.div
-          variants={{
-            hidden: {
-              opacity: 0,
-              y: -20,
-            },
+      <motion.div
+        variants={{
+          hidden: {
+            opacity: 0,
+            y: -20,
+          },
 
-            visible: {
-              opacity: 1,
-              y: 0,
-            },
-          }}
-          initial="hidden"
-          whileInView="visible"
-          transition={{ duration: 1, delay: 0.1 }}
-          viewport={{ once: true }}
-          className="animate_top mx-auto mt-15 max-w-c-1280 px-4 md:px-8 xl:mt-20 xl:px-0"
-        >
-          {/* <!-- Slider main container --> */}
-          <div className="swiper testimonial-01 mx-20 pb-22.5">
-            {/* <!-- Additional required wrapper --> */}
-            <Swiper
-              // spaceBetween={50}
-              slidesPerView={2}
-              autoplay={{
-                delay: 1500,
-                disableOnInteraction: true,
-              }}
-              pagination={{
-                clickable: true,
-              }}
-              modules={[Autoplay, Pagination]}
-              breakpoints={{
-                // when window width is >= 640px
-                0: {
-                  slidesPerView: 1,
-                },
-                // when window width is >= 768px
-                768: {
-                  slidesPerView: 2,
-                },
-              }}
-            >
-              {testimonials.map((review) => (
-                <SwiperSlide key={review?.id} className="px-5">
-                  <SingleTestimonial review={review} />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
-        </motion.div>
-      </section>
-    </>
+          visible: {
+            opacity: 1,
+            y: 0,
+          },
+        }}
+        initial="hidden"
+        whileInView="visible"
+        transition={{ duration: 1, delay: 0.1 }}
+        viewport={{ once: true }}
+        className="animate_top mx-auto mt-15 max-w-c-1280 px-4 md:px-8 xl:mt-20 xl:px-0"
+      >
+        {/* <!-- Slider main container --> */}
+        <div className="swiper testimonial-01 mx-20 pb-22.5">
+          {/* <!-- Additional required wrapper --> */}
+          <Swiper
+            // spaceBetween={50}
+            slidesPerView={2}
+            autoplay={{
+              delay: 1500,
+              disableOnInteraction: true,
+            }}
+            pagination={{
+              clickable: true,
+            }}
+            modules={[Autoplay, Pagination]}
+            breakpoints={{
+              // when window width is >= 640px
+              0: {
+                slidesPerView: 1,
+              },
+              // when window width is >= 768px
+              768: {
+                slidesPerView: 2,
+              },
+            }}
+          >
+            {testimonials.map((review) => (
+              <SwiperSlide key={review?.id} className="px-5">
+                <SingleTestimonial review={review} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+      </motion.div>
+    </section>
   );
 };
 

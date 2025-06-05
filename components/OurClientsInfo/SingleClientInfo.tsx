@@ -32,7 +32,7 @@ const SingleCard = ({ brand }: { brand: Brand }) => {
             src={image}
             alt={name}
             fill
-            sizes="98px"
+            sizes="(max-width: 768px) 100vw, 98px" // Add responsive sizes
             style={{ objectFit: "cover", objectPosition: "center" }}
             priority={true}
             quality={80}

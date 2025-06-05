@@ -354,24 +354,32 @@ const Header = () => {
                   alt="logo"
                   width={55}
                   height={54}
-                  className="hidden w-full dark:block"
+                  className="hidden dark:block" // Removed w-full if present
                   onClick={scrollToTop}
-                  style={{ cursor: "pointer" }}
-                  priority={true} // For above-the-fold images
-                  quality={80} // Balance between quality and size
-                  loading="eager" // For critical images
+                  style={{
+                    cursor: "pointer",
+                    width: "auto", // Added to maintain aspect ratio
+                    height: "auto", // Added to maintain aspect ratio
+                  }}
+                  priority={true}
+                  quality={80}
+                  loading="eager"
                 />
                 <Image
                   src={logoLight}
                   alt="logo"
                   width={55}
                   height={54}
-                  className="w-full dark:hidden"
+                  className="dark:hidden" // Removed w-full class
                   onClick={scrollToTop}
-                  style={{ cursor: "pointer" }}
-                  priority={true} // For above-the-fold images
-                  quality={80} // Balance between quality and size
-                  loading="eager" // For critical images
+                  style={{
+                    cursor: "pointer",
+                    width: "auto", // Added to maintain aspect ratio
+                    height: "auto", // Added to maintain aspect ratio
+                  }}
+                  priority={true}
+                  quality={80}
+                  loading="eager"
                 />
               </a>
 

@@ -5,8 +5,8 @@
 /* third-party libraries CSS */
 
 html {
-  scroll-padding-top: 120px; /* Adjust based on your header height */
-  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+  scroll-behavior: smooth !important;
 }
 
 @layer base {
