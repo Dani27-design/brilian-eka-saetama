@@ -3,7 +3,7 @@ import { getData } from "@/actions/read/hero";
 import { trimByParentheses } from "@/utils/trimText";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useLanguage } from "@/app/context/LanguageContext";
 import TextSkeleton from "../Skeleton/TextSkeleton";
 import React from "react";
@@ -120,13 +120,62 @@ const HeroContent = React.memo(
 HeroContent.displayName = "HeroContent";
 
 interface HeroMediaProps {
-  mediaType: string;
-  mediaSrc: string;
   isLoading: boolean;
 }
 
-const HeroMedia = React.memo(
-  ({ mediaType, mediaSrc, isLoading }: HeroMediaProps) => (
+const HeroMedia = React.memo(({ isLoading }: HeroMediaProps) => {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoSrc = "/videos/company_profile_bes_hero.mp4";
+
+  const handleVideoLoad = () => {
+    if (videoRef.current && videoRef.current.readyState >= 3) {
+      setVideoLoaded(true);
+    }
+  };
+
+  const handleVideoError = () => {
+    console.error("Failed to load video");
+    setVideoError(true);
+  };
+
+  // Ensure video loading is properly tracked
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (video) {
+      // If video is already loaded when component mounts
+      if (video.readyState >= 3) {
+        setVideoLoaded(true);
+      }
+
+      // Add event listeners
+      video.addEventListener("canplay", handleVideoLoad);
+      video.addEventListener("loadeddata", handleVideoLoad);
+      video.addEventListener("error", handleVideoError);
+    }
+
+    // Create a timeout to ensure we show something even if events don't fire
+    const timer = setTimeout(() => {
+      if (!videoLoaded && !videoError) {
+        console.log("Video loading timeout - forcing loaded state");
+        setVideoLoaded(true);
+      }
+    }, 3000); // 3 seconds timeout
+
+    return () => {
+      // Clean up event listeners
+      if (video) {
+        video.removeEventListener("canplay", handleVideoLoad);
+        video.removeEventListener("loadeddata", handleVideoLoad);
+        video.removeEventListener("error", handleVideoError);
+      }
+      clearTimeout(timer);
+    };
+  }, [videoLoaded, videoError]);
+
+  return (
     <div className="animate_right w-full p-1 md:w-2/5 lg:w-2/5">
       <div className="relative mx-auto max-w-[420px] 2xl:-mr-7.5">
         <Image
@@ -160,40 +209,40 @@ const HeroMedia = React.memo(
           loading="eager"
         />
         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl">
-          {isLoading ? (
-            <div className="h-full w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700" />
-          ) : mediaType === "video" ? (
-            <video
-              className="h-full w-full shadow-solid-l"
-              src={mediaSrc}
-              autoPlay
-              loop
-              muted
-              playsInline
-              style={{
-                objectFit: "cover",
-                width: "100%",
-                height: "100%",
-              }}
-            />
-          ) : (
-            <Image
-              src={mediaSrc}
-              alt="hero image"
-              fill
-              sizes="(max-width: 640px) 95vw, (max-width: 768px) 50vw, 420px"
-              className="object-cover"
-              priority={true}
-              quality={75}
-              placeholder="blur"
-              blurDataURL="data:image/svg+xml;base64,..."
+          {/* Stable skeleton that doesn't flicker */}
+          {(!videoLoaded || isLoading) && (
+            <div
+              className="absolute inset-0 h-full w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700"
+              style={{ zIndex: 1 }}
             />
           )}
+
+          {/* Video with smooth transition */}
+          <video
+            ref={videoRef}
+            className={`h-full w-full shadow-solid-l ${
+              videoLoaded ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              objectFit: "cover",
+              width: "100%",
+              height: "100%",
+              transition: "opacity 0.5s ease",
+              position: videoLoaded ? "relative" : "absolute",
+              zIndex: videoLoaded ? 2 : 0,
+            }}
+            src={videoSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+          />
         </div>
       </div>
     </div>
-  ),
-);
+  );
+});
 
 HeroMedia.displayName = "HeroMedia";
 
@@ -219,19 +268,6 @@ const Hero = () => {
     error: errorSlogan,
   } = useHeroData(language, "hero", "hero_slogan");
 
-  // New media data
-  const {
-    data: mediaTypeData,
-    isLoading: isLoadingMediaType,
-    error: errorMediaType,
-  } = useHeroData(language, "hero", "media_type");
-
-  const {
-    data: mediaSrcData,
-    isLoading: isLoadingMediaSrc,
-    error: errorMediaSrc,
-  } = useHeroData(language, "hero", "media_src");
-
   // Text data for form elements
   const {
     data: emailPlaceholderData,
@@ -251,8 +287,6 @@ const Hero = () => {
       { name: "hero_title", error: errorTitle },
       { name: "hero_subtitle", error: errorSubtitle },
       { name: "hero_slogan", error: errorSlogan },
-      { name: "media_type", error: errorMediaType },
-      { name: "media_src", error: errorMediaSrc },
       { name: "email_placeholder", error: errorEmailPlaceholder },
       { name: "button_text", error: errorButtonText },
     ].forEach(({ name, error }) => {
@@ -264,8 +298,6 @@ const Hero = () => {
     errorTitle,
     errorSubtitle,
     errorSlogan,
-    errorMediaType,
-    errorMediaSrc,
     errorEmailPlaceholder,
     errorButtonText,
   ]);
@@ -274,8 +306,6 @@ const Hero = () => {
     isLoadingTitle ||
     isLoadingSubtitle ||
     isLoadingSlogan ||
-    isLoadingMediaType ||
-    isLoadingMediaSrc ||
     isLoadingEmailPlaceholder ||
     isLoadingButtonText;
 
@@ -284,8 +314,6 @@ const Hero = () => {
     highlight,
     heroSubtitle,
     heroSlogan,
-    mediaType,
-    mediaSrc,
     emailPlaceholder,
     buttonText,
   } = useMemo(() => {
@@ -293,11 +321,9 @@ const Hero = () => {
     let highlight = "";
     let subtitle = "";
     let slogan = "";
-    let mType = "video"; // Default to video
-    let mSrc = ""; // Default source
     let emailPlace =
-      language === "id" ? "Masukkan alamat email" : "Enter email address"; // Default placeholder
-    let btnText = language === "id" ? "Mari Terhubung" : "Connect with us"; // Default button text
+      language === "id" ? "Masukkan alamat email" : "Enter email address";
+    let btnText = language === "id" ? "Mari Terhubung" : "Connect with us";
 
     if (heroTitleData) {
       const parsed = trimByParentheses(heroTitleData);
@@ -313,14 +339,6 @@ const Hero = () => {
       slogan = heroSloganData;
     }
 
-    if (mediaTypeData) {
-      mType = mediaTypeData;
-    }
-
-    if (mediaSrcData) {
-      mSrc = mediaSrcData;
-    }
-
     if (emailPlaceholderData) {
       emailPlace = emailPlaceholderData;
     }
@@ -334,8 +352,6 @@ const Hero = () => {
       highlight,
       heroSubtitle: subtitle,
       heroSlogan: slogan,
-      mediaType: mType,
-      mediaSrc: mSrc,
       emailPlaceholder: emailPlace,
       buttonText: btnText,
     };
@@ -343,8 +359,6 @@ const Hero = () => {
     heroTitleData,
     heroSubtitleData,
     heroSloganData,
-    mediaTypeData,
-    mediaSrcData,
     emailPlaceholderData,
     buttonTextData,
     language,
@@ -363,11 +377,7 @@ const Hero = () => {
             buttonText={buttonText}
             isLoading={isLoading}
           />
-          <HeroMedia
-            mediaType={mediaType}
-            mediaSrc={mediaSrc}
-            isLoading={isLoading}
-          />
+          <HeroMedia isLoading={isLoading} />
         </div>
       </div>
     </section>
