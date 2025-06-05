@@ -13,12 +13,12 @@ const useHeroData = (lang: string, collectionId: string, docId: string) => {
   return useQuery({
     queryKey: [`${collectionId}-${docId}-${lang}`],
     queryFn: () => getData(lang, collectionId, docId),
-    staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes
-    gcTime: 1000 * 60 * 5, // Data will stay in cache for 5 minutes after it becomes inactive
+    staleTime: 1000 * 60 * 60, // Increase to 1 hour to reduce refetches
+    gcTime: 1000 * 60 * 60,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-    refetchIntervalInBackground: true,
+    refetchIntervalInBackground: false, // Turn off background refetching
     retry: false,
     initialData: () => {
       return queryClient.getQueryData([`${collectionId}-${docId}-${lang}`]);
@@ -72,14 +72,8 @@ const HeroContent = React.memo(
                 {highlight}
               </span>
             </h1>
-            <p className="text-body-color dark:text-body-color-dark whitespace-pre-wrap text-base leading-relaxed">
-              {isLoading ? (
-                <span className="inline-block min-h-[1.5em] min-w-[100px]">
-                  <TextSkeleton width="100%" height="1.5em" />
-                </span>
-              ) : (
-                heroSubtitle
-              )}
+            <p className="text-body-color dark:text-body-color-dark min-h-[60px] max-w-[540px] whitespace-pre-wrap text-base leading-relaxed">
+              {heroSubtitle}
             </p>
           </>
         )}
@@ -89,16 +83,8 @@ const HeroContent = React.memo(
             <div className="flex flex-wrap gap-5">
               {isLoading ? (
                 <>
-                  <TextSkeleton
-                    width="200px"
-                    height="2.5rem"
-                    className="rounded-full"
-                  />
-                  <TextSkeleton
-                    width="150px"
-                    height="2.5rem"
-                    className="rounded-full"
-                  />
+                  <div className="h-[2.5rem] w-[200px] rounded-full bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-[2.5rem] w-[150px] rounded-full bg-gray-200 dark:bg-gray-700" />
                 </>
               ) : (
                 <>
@@ -107,11 +93,12 @@ const HeroContent = React.memo(
                     onChange={(e) => setEmail(e.target.value)}
                     type="text"
                     placeholder={emailPlaceholder}
-                    className="w-fit rounded-full border border-stroke px-6 py-2.5 shadow-solid-2 focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:shadow-none dark:focus:border-primary"
+                    className="w-fit rounded-full border border-stroke px-6 py-2.5 focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:focus:border-primary"
                   />
                   <button
                     aria-label="get started button"
-                    className="flex rounded-full bg-black px-7.5 py-2.5 text-white duration-300 ease-in-out hover:bg-blackho dark:bg-btndark dark:hover:bg-blackho"
+                    className="rounded-full bg-black px-7.5 py-2.5 text-white dark:bg-btndark"
+                    type="submit"
                   >
                     {buttonText}
                   </button>
@@ -197,7 +184,7 @@ const HeroMedia = React.memo(({ isLoading }: HeroMediaProps) => {
   }, [videoLoaded, videoError]);
 
   return (
-    <div className="animate_right w-full p-1 md:w-2/5 lg:w-2/5">
+    <div className="w-full p-1 md:w-2/5 lg:w-2/5">
       <div className="relative mx-auto max-w-[420px] 2xl:-mr-7.5">
         <Image
           src="/images/shape/shape-01.png"
@@ -279,74 +266,30 @@ HeroMedia.displayName = "HeroMedia";
 const Hero = () => {
   const { language } = useLanguage();
 
-  // Core hero data
-  const {
-    data: heroTitleData,
-    isLoading: isLoadingTitle,
-    error: errorTitle,
-  } = useHeroData(language, "hero", "hero_title");
+  // Use a single query for all hero content
+  const { data: heroData, isLoading } = useQuery({
+    queryKey: [`hero-all-${language}`],
+    queryFn: async () => {
+      const [title, subtitle, slogan, emailPlaceholder, buttonText] =
+        await Promise.all([
+          getData(language, "hero", "hero_title"),
+          getData(language, "hero", "hero_subtitle"),
+          getData(language, "hero", "hero_slogan"),
+          getData(language, "hero", "email_placeholder"),
+          getData(language, "hero", "button_text"),
+        ]);
 
-  const {
-    data: heroSubtitleData,
-    isLoading: isLoadingSubtitle,
-    error: errorSubtitle,
-  } = useHeroData(language, "hero", "hero_subtitle");
+      return { title, subtitle, slogan, emailPlaceholder, buttonText };
+    },
+    staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 60,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
 
-  const {
-    data: heroSloganData,
-    isLoading: isLoadingSlogan,
-    error: errorSlogan,
-  } = useHeroData(language, "hero", "hero_slogan");
-
-  // Text data for form elements
-  const {
-    data: emailPlaceholderData,
-    isLoading: isLoadingEmailPlaceholder,
-    error: errorEmailPlaceholder,
-  } = useHeroData(language, "hero", "email_placeholder");
-
-  const {
-    data: buttonTextData,
-    isLoading: isLoadingButtonText,
-    error: errorButtonText,
-  } = useHeroData(language, "hero", "button_text");
-
-  useEffect(() => {
-    // Log errors for debugging
-    [
-      { name: "hero_title", error: errorTitle },
-      { name: "hero_subtitle", error: errorSubtitle },
-      { name: "hero_slogan", error: errorSlogan },
-      { name: "email_placeholder", error: errorEmailPlaceholder },
-      { name: "button_text", error: errorButtonText },
-    ].forEach(({ name, error }) => {
-      if (error) {
-        console.error(`Error fetching ${name} data:`, error);
-      }
-    });
-  }, [
-    errorTitle,
-    errorSubtitle,
-    errorSlogan,
-    errorEmailPlaceholder,
-    errorButtonText,
-  ]);
-
-  const isLoading =
-    isLoadingTitle ||
-    isLoadingSubtitle ||
-    isLoadingSlogan ||
-    isLoadingEmailPlaceholder ||
-    isLoadingButtonText;
-
-  const {
-    heroTitle,
-    highlight,
-    heroSubtitle,
-    heroSlogan,
-    emailPlaceholder,
-    buttonText,
-  } = useMemo(() => {
+  // Default values
+  const heroContent = useMemo(() => {
     let title = "";
     let highlight = "";
     let subtitle = "";
@@ -355,26 +298,17 @@ const Hero = () => {
       language === "id" ? "Masukkan alamat email" : "Enter email address";
     let btnText = language === "id" ? "Mari Terhubung" : "Connect with us";
 
-    if (heroTitleData) {
-      const parsed = trimByParentheses(heroTitleData);
-      title = parsed.a;
-      highlight = parsed.b;
-    }
+    if (heroData) {
+      if (heroData.title) {
+        const parsed = trimByParentheses(heroData.title);
+        title = parsed.a;
+        highlight = parsed.b;
+      }
 
-    if (heroSubtitleData) {
-      subtitle = heroSubtitleData;
-    }
-
-    if (heroSloganData) {
-      slogan = heroSloganData;
-    }
-
-    if (emailPlaceholderData) {
-      emailPlace = emailPlaceholderData;
-    }
-
-    if (buttonTextData) {
-      btnText = buttonTextData;
+      subtitle = heroData.subtitle || subtitle;
+      slogan = heroData.slogan || slogan;
+      emailPlace = heroData.emailPlaceholder || emailPlace;
+      btnText = heroData.buttonText || btnText;
     }
 
     return {
@@ -385,26 +319,19 @@ const Hero = () => {
       emailPlaceholder: emailPlace,
       buttonText: btnText,
     };
-  }, [
-    heroTitleData,
-    heroSubtitleData,
-    heroSloganData,
-    emailPlaceholderData,
-    buttonTextData,
-    language,
-  ]);
+  }, [heroData, language]);
 
   return (
     <section className="overflow-hidden pb-20 pt-25 md:pt-25 xl:pb-25 xl:pt-36">
       <div className="mx-auto max-w-c-1280 px-4 md:px-8 2xl:px-0">
         <div className="flex flex-col items-center gap-8 md:flex-row md:items-start lg:gap-12 xl:gap-16">
           <HeroContent
-            heroTitle={heroTitle}
-            highlight={highlight}
-            heroSubtitle={heroSubtitle}
-            heroSlogan={heroSlogan}
-            emailPlaceholder={emailPlaceholder}
-            buttonText={buttonText}
+            heroTitle={heroContent.heroTitle}
+            highlight={heroContent.highlight}
+            heroSubtitle={heroContent.heroSubtitle}
+            heroSlogan={heroContent.heroSlogan}
+            emailPlaceholder={heroContent.emailPlaceholder}
+            buttonText={heroContent.buttonText}
             isLoading={isLoading}
           />
           <HeroMedia isLoading={isLoading} />
