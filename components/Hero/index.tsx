@@ -72,7 +72,15 @@ const HeroContent = React.memo(
                 {highlight}
               </span>
             </h1>
-            <p className="whitespace-pre-wrap">{heroSubtitle}</p>
+            <p className="text-body-color dark:text-body-color-dark whitespace-pre-wrap text-base leading-relaxed">
+              {isLoading ? (
+                <span className="inline-block min-h-[1.5em] min-w-[100px]">
+                  <TextSkeleton width="100%" height="1.5em" />
+                </span>
+              ) : (
+                heroSubtitle
+              )}
+            </p>
           </>
         )}
 
@@ -154,6 +162,19 @@ const HeroMedia = React.memo(({ isLoading }: HeroMediaProps) => {
       video.addEventListener("canplay", handleVideoLoad);
       video.addEventListener("loadeddata", handleVideoLoad);
       video.addEventListener("error", handleVideoError);
+
+      // Reduce initial quality for faster loading
+      video.addEventListener("loadedmetadata", () => {
+        if (
+          "connection" in navigator &&
+          (navigator as any).connection?.effectiveType === "4g"
+        ) {
+          video.play();
+        } else {
+          // Slower connections - maybe don't autoplay
+          setVideoLoaded(true);
+        }
+      });
     }
 
     // Create a timeout to ensure we show something even if events don't fire
@@ -208,7 +229,17 @@ const HeroMedia = React.memo(({ isLoading }: HeroMediaProps) => {
           quality={80}
           loading="eager"
         />
-        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl">
+        <div
+          className="relative overflow-hidden rounded-xl"
+          style={{
+            aspectRatio: "3/4",
+            width: "100%",
+            height: "auto",
+            minHeight: "400px",
+            maxHeight: "600px",
+            backgroundColor: "rgba(0,0,0,0.05)",
+          }}
+        >
           {/* Stable skeleton that doesn't flicker */}
           {(!videoLoaded || isLoading) && (
             <div
@@ -220,15 +251,14 @@ const HeroMedia = React.memo(({ isLoading }: HeroMediaProps) => {
           {/* Video with smooth transition */}
           <video
             ref={videoRef}
-            className={`h-full w-full shadow-solid-l ${
+            className={`h-full w-full object-cover shadow-solid-l ${
               videoLoaded ? "opacity-100" : "opacity-0"
             }`}
             style={{
-              objectFit: "cover",
-              width: "100%",
-              height: "100%",
+              position: "absolute", // Always keep it absolute
+              top: 0,
+              left: 0, // Align to the top left
               transition: "opacity 0.5s ease",
-              position: videoLoaded ? "relative" : "absolute",
               zIndex: videoLoaded ? 2 : 0,
             }}
             src={videoSrc}
