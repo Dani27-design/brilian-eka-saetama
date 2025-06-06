@@ -26,6 +26,15 @@ const nextConfig = {
     return config;
   },
   transpilePackages: ["@firebase/auth", "firebase", "undici"],
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: [
+      "framer-motion",
+      "firebase/firestore",
+      "react-query",
+    ],
+  },
+  output: "standalone",
 };
 
 module.exports = nextConfig;

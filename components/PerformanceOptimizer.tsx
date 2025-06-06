@@ -81,10 +81,28 @@ export default function PerformanceOptimizer() {
       });
     };
 
+    // Defer non-critical JavaScript
+    const deferNonCriticalJS = () => {
+      if (typeof window !== "undefined") {
+        // Analytics, 3rd party scripts, etc.
+        const loadScripts = () => {
+          // Add your non-critical scripts here
+          console.log("Non-critical scripts loaded");
+        };
+
+        if (window.requestIdleCallback) {
+          window.requestIdleCallback(loadScripts);
+        } else {
+          setTimeout(loadScripts, 2000);
+        }
+      }
+    };
+
     // Run optimizations after the component mounts
     optimizeLCP();
     preventCLS();
     optimizeJSExecution();
+    deferNonCriticalJS();
 
     // Add scroll optimization
     let isScrolling = false;

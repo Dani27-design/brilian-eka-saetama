@@ -23,12 +23,31 @@ import LazyLoadScript from "@/components/LazyLoadScript";
 import PerformanceOptimizer from "@/components/PerformanceOptimizer";
 import Analytics from "@/components/Analytics";
 import CriticalPreload from "@/components/CriticalPreload";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Avoid using unload event
+    window.addEventListener("pagehide", () => {
+      // Clean up operations that would otherwise use unload or beforeunload
+    });
+
+    // Clear all beforeunload listeners that might exist
+    window.onbeforeunload = null;
+
+    // Close any open connections on navigation
+    return () => {
+      // Clean up open connections
+    };
+  }, [pathname]);
+
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
@@ -43,6 +62,9 @@ export default function RootLayout({
 
         {/* DNS prefetch for third-party domains */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <CriticalPreload
+          assets={["/images/logo/logo-light.png", "/images/logo/logo-dark.png"]}
+        />
       </head>
       <body className={`dark:bg-black ${inter.className} preload`}>
         <Providers>
@@ -67,6 +89,19 @@ export default function RootLayout({
             </LanguageProvider>
           </ThemeProvider>
         </Providers>
+        {/* Third-party scripts loaded only when needed */}
+        <LazyLoadScript
+          src="https://www.googletagmanager.com/gtag/js?id=YOUR-ID"
+          async={true}
+          defer={true}
+        />
+
+        {/* Any other non-critical scripts */}
+        <LazyLoadScript
+          src="/js/non-critical-functionality.js"
+          async={true}
+          defer={true}
+        />
       </body>
     </html>
   );

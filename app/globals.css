@@ -229,3 +229,20 @@ img {
 .lazy-section {
   will-change: auto; /* Avoid excessive GPU memory use */
 }
+
+/* Add these CSS custom properties to improve contrast */
+
+:root {
+  /* Improved text colors for better contrast */
+  --text-primary: #111827; /* Darker text for better contrast */
+  --text-secondary: #374151; /* Darker secondary text */
+  --link-color: #1d4ed8; /* More accessible link color */
+
+  /* Update your theme colors here with better contrast ratios */
+}
+
+.dark {
+  --text-primary: #f9fafb; /* Lighter text for dark mode */
+  --text-secondary: #e5e7eb; /* Lighter secondary text for dark mode */
+  --link-color: #93c5fd; /* More visible links in dark mode */
+}

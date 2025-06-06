@@ -126,8 +126,8 @@ const Footer = () => {
               >
                 <a href="/" className="relative inline-block">
                   <Image
-                    width={110}
-                    height={80}
+                    width={55}
+                    height={54}
                     src={footer.logo.light_logo}
                     alt="Logo"
                     className="dark:hidden"
@@ -141,8 +141,8 @@ const Footer = () => {
                     }}
                   />
                   <Image
-                    width={110}
-                    height={80}
+                    width={55}
+                    height={54}
                     src={footer.logo.dark_logo}
                     alt="Logo"
                     className="hidden dark:block"
