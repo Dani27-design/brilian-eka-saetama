@@ -79,7 +79,7 @@ const About = () => {
   return (
     <>
       {/* <!-- ===== About Start ===== --> */}
-      <section id="aboutus" className="my-0 py-0">
+      <section id="aboutus" className="my-0 py-4">
         <div className="mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
           <SectionHeader
             headerInfo={{

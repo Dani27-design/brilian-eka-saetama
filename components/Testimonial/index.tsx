@@ -104,7 +104,7 @@ const Testimonial = () => {
   }
 
   return (
-    <section id="testimonials" className="my-0 py-0">
+    <section id="testimonials" className="my-0 py-4">
       <div className="mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
         {/* <!-- Section Title Start --> */}
         <div className="animate_top mx-auto text-center">

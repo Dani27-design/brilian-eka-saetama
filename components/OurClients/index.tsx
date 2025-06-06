@@ -67,7 +67,7 @@ const OurClients = () => {
   return (
     <section
       id="clients"
-      className="pb-5 pt-20 lg:pb-10 lg:pt-25 xl:pb-15 xl:pt-30"
+      className="mt-10 pb-5 pt-20 lg:pb-10 lg:pt-25 xl:pb-15 xl:pt-30"
     >
       <div className="relative z-1 mx-auto max-w-c-1280 rounded-lg bg-gradient-to-t from-[#F8F9FF] to-[#DEE7FF] py-22.5 dark:bg-blacksection dark:bg-gradient-to-t dark:from-transparent dark:to-transparent dark:stroke-strokedark xl:py-27.5">
         <Image
