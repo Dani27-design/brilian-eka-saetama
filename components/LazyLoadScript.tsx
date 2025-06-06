@@ -18,6 +18,8 @@ export default function LazyLoadScript({
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
       if (entry.isIntersecting && !loaded) {
@@ -43,7 +45,9 @@ export default function LazyLoadScript({
 
     return () => {
       observer.disconnect();
-      document.body.removeChild(marker);
+      if (document.body.contains(marker)) {
+        document.body.removeChild(marker);
+      }
     };
   }, [src, async, defer, id, loaded]);
 

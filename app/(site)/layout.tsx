@@ -7,6 +7,35 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { ThemeProvider } from "next-themes";
 import { Inter } from "next/font/google";
 import "../globals.css";
+import dynamic from "next/dynamic";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+
+import ToasterContext from "../context/ToastContext";
+import { Providers } from "../providers";
+import { LanguageProvider } from "../context/LanguageContext";
+import SchemaMarkup from "@/components/SchemaMarkup";
+
+// Dynamically import browser-only components
+const CriticalPreload = dynamic(() => import("@/components/CriticalPreload"), {
+  ssr: false,
+});
+
+const PerformanceOptimizer = dynamic(
+  () => import("@/components/PerformanceOptimizer"),
+  {
+    ssr: false,
+  },
+);
+
+const Analytics = dynamic(() => import("@/components/Analytics"), {
+  ssr: false,
+});
+
+const LazyLoadScript = dynamic(() => import("@/components/LazyLoadScript"), {
+  ssr: false,
+});
+
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -14,17 +43,6 @@ const inter = Inter({
   fallback: ["system-ui", "Arial", "sans-serif"],
   variable: "--font-inter",
 });
-
-import ToasterContext from "../context/ToastContext";
-import { Providers } from "../providers";
-import { LanguageProvider } from "../context/LanguageContext";
-import SchemaMarkup from "@/components/SchemaMarkup";
-import LazyLoadScript from "@/components/LazyLoadScript";
-import PerformanceOptimizer from "@/components/PerformanceOptimizer";
-import Analytics from "@/components/Analytics";
-import CriticalPreload from "@/components/CriticalPreload";
-import { useEffect } from "react";
-import { usePathname } from "next/navigation";
 
 export default function RootLayout({
   children,
@@ -54,7 +72,6 @@ export default function RootLayout({
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <SchemaMarkup />
-        {/* Critical CSS preload */}
         {/* Enhanced favicon setup */}
         <link rel="icon" href="/images/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/images/logo/logo-light.png" />

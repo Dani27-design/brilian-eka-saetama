@@ -1,11 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+// Remove getAnalytics import
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -19,15 +17,19 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-let app, firestore, auth, analytics, storage;
+// Initialize app first and export it
+export const app = initializeApp(firebaseConfig);
+
+// Initialize services that work in both client and server
+let firestore, auth, storage;
 
 try {
-  app = initializeApp(firebaseConfig);
   firestore = getFirestore(app);
   auth = getAuth(app);
-  analytics = getAnalytics(app);
   storage = getStorage(app);
 } catch (error) {
   console.error("Firebase initialization error", error);
 }
-export { firestore, auth, analytics, storage };
+
+// No analytics here - it's handled by firebaseAnalytics.ts
+export { firestore, auth, storage, app as firebaseApp };

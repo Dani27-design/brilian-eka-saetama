@@ -1,44 +1,44 @@
 "use client";
 
 import { useEffect } from "react";
-import Head from "next/head";
 
 interface CriticalPreloadProps {
   assets?: string[];
 }
 
 export default function CriticalPreload({ assets = [] }: CriticalPreloadProps) {
-  // List font files or critical assets to preload
-  const defaultPreloads = [
-    // Add your critical fonts/assets here
-    // Example: "/fonts/your-main-font.woff2"
-  ];
+  useEffect(() => {
+    // Browser-side code only
+    if (typeof document === "undefined") return;
 
-  const allAssets = [...defaultPreloads, ...assets];
+    // Preload critical assets
+    assets.forEach((asset) => {
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as =
+        asset.endsWith(".png") ||
+        asset.endsWith(".jpg") ||
+        asset.endsWith(".webp")
+          ? "image"
+          : "fetch";
+      link.href = asset;
+      document.head.appendChild(link);
+    });
 
-  return (
-    <>
-      {allAssets.map((asset, index) => {
-        const isFont =
-          asset.endsWith(".woff2") ||
-          asset.endsWith(".woff") ||
-          asset.endsWith(".ttf");
-        const isImage =
-          asset.endsWith(".jpg") ||
-          asset.endsWith(".png") ||
-          asset.endsWith(".webp");
+    // Preconnect to Google Fonts
+    const googleFontsPreconnect = document.createElement("link");
+    googleFontsPreconnect.rel = "preconnect";
+    googleFontsPreconnect.href = "https://fonts.googleapis.com";
+    googleFontsPreconnect.crossOrigin = "anonymous";
+    document.head.appendChild(googleFontsPreconnect);
 
-        return (
-          <link
-            key={index}
-            rel="preload"
-            href={asset}
-            as={isFont ? "font" : isImage ? "image" : "fetch"}
-            type={isFont ? "font/woff2" : undefined}
-            crossOrigin={isFont ? "anonymous" : undefined}
-          />
-        );
-      })}
-    </>
-  );
+    const gstaticPreconnect = document.createElement("link");
+    gstaticPreconnect.rel = "preconnect";
+    gstaticPreconnect.href = "https://fonts.gstatic.com";
+    gstaticPreconnect.crossOrigin = "anonymous";
+    document.head.appendChild(gstaticPreconnect);
+  }, [assets]);
+
+  // Render nothing - just side effects
+  return null;
 }

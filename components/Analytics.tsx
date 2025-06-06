@@ -1,74 +1,88 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { initializeAnalytics } from "@/db/firebase/firebaseAnalytics";
 
-// Replace with your actual Google Analytics ID
-const GA_TRACKING_ID = "G-XXXXXXXXXX";
+const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_TRACKING_ID || "";
 
 export default function Analytics() {
   const [consentGiven, setConsentGiven] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Check for existing consent
-    const savedConsent = localStorage.getItem("analytics-consent");
-    if (savedConsent) {
-      setConsentGiven(savedConsent === "true");
+    // Browser-only code
+    try {
+      // Check for existing consent
+      const savedConsent = localStorage.getItem("analytics-consent");
+      if (savedConsent) {
+        setConsentGiven(savedConsent === "true");
+
+        // Initialize analytics if consent was given
+        if (savedConsent === "true") {
+          initAnalytics();
+        }
+      }
+    } catch (error) {
+      console.error("Error checking consent:", error);
     }
   }, []);
 
-  const handleConsent = (consent: boolean) => {
-    localStorage.setItem("analytics-consent", consent.toString());
-    setConsentGiven(consent);
+  const initAnalytics = async () => {
+    try {
+      // Initialize Firebase Analytics
+      await initializeAnalytics();
 
-    if (consent) {
-      // Load analytics only after consent
+      // Load Google Tag Manager script
       const script = document.createElement("script");
-      script.src =
-        "https://www.googletagmanager.com/gtag/js?id=" + GA_TRACKING_ID;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`;
       script.async = true;
       document.body.appendChild(script);
 
-      // Initialize the dataLayer array
+      // Initialize dataLayer and gtag
       window.dataLayer = window.dataLayer || [];
-
-      // Define the gtag function
       const gtag = function (...args: any[]) {
         // @ts-ignore - TS doesn't know about dataLayer
         window.dataLayer.push(arguments);
       };
-
-      // Initialize gtag with your tracking ID
       gtag("js", new Date());
-      gtag("config", GA_TRACKING_ID, {
-        page_path: window.location.pathname,
-        transport_type: "beacon",
-        anonymize_ip: true,
-        send_page_view: true,
-      });
+      gtag("config", GA_TRACKING_ID);
+    } catch (err) {
+      console.error("Failed to initialize analytics:", err);
     }
   };
 
-  if (consentGiven === null) {
-    return (
-      <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-lg rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800">
-        <p className="mb-3">We use cookies to improve your experience.</p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleConsent(true)}
-            className="rounded bg-primary px-4 py-2 text-white"
-          >
-            Accept
-          </button>
-          <button
-            onClick={() => handleConsent(false)}
-            className="rounded bg-gray-200 px-4 py-2 dark:bg-gray-700"
-          >
-            Reject
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleConsent = (consent: boolean) => {
+    try {
+      localStorage.setItem("analytics-consent", consent.toString());
+      setConsentGiven(consent);
 
-  return null;
+      if (consent) {
+        initAnalytics();
+      }
+    } catch (error) {
+      console.error("Error handling consent:", error);
+    }
+  };
+
+  // Only render consent dialog when needed
+  if (consentGiven !== null) return null;
+
+  return (
+    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto w-fit max-w-lg items-center justify-center rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+      <p className="mx-auto mb-3">We use cookies to improve your experience.</p>
+      <div className="mx-auto flex gap-2">
+        <button
+          onClick={() => handleConsent(true)}
+          className="rounded bg-primary px-4 py-2 text-white"
+        >
+          Accept
+        </button>
+        <button
+          onClick={() => handleConsent(false)}
+          className="rounded bg-gray-200 px-4 py-2 dark:bg-gray-700"
+        >
+          Reject
+        </button>
+      </div>
+    </div>
+  );
 }
