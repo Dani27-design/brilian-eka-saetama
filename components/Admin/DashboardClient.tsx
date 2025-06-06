@@ -78,7 +78,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="container mx-auto">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="mb-2 text-3xl font-bold text-black dark:text-white">
