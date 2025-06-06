@@ -19,38 +19,15 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-// const app = initializeApp(firebaseConfig);
-
-// // Initialize Firestore
-// const firestore = getFirestore(app);
-
-// // Initialize Firebase Authentication
-// const auth = getAuth(app);
-
-// // Dynamically import analytics (client-side only)
-// let analytics;
-// if (typeof window !== "undefined") {
-//   import("firebase/analytics")
-//     .then(({ getAnalytics }) => {
-//       analytics = getAnalytics(app);
-//     })
-//     .catch((error) => {
-//       console.error("Error loading Firebase analytics:", error);
-//     });
-// }
-
 let app, firestore, auth, analytics, storage;
 
-if (typeof window !== "undefined") {
-  try {
-    app = initializeApp(firebaseConfig);
-    firestore = getFirestore(app);
-    auth = getAuth(app);
-    analytics = getAnalytics(app);
-    storage = getStorage(app);
-  } catch (error) {
-    console.error("Firebase initialization error", error);
-  }
+try {
+  app = initializeApp(firebaseConfig);
+  firestore = getFirestore(app);
+  auth = getAuth(app);
+  analytics = getAnalytics(app);
+  storage = getStorage(app);
+} catch (error) {
+  console.error("Firebase initialization error", error);
 }
 export { firestore, auth, analytics, storage };

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 
 // Import critical components directly instead of lazy-loading
 import Hero from "@/components/Hero";
@@ -177,6 +178,11 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
+  // Get language from cookies on the server
+  const cookieStore = cookies();
+  const langCookie = cookieStore.get("NEXT_LOCALE");
+  const language = langCookie?.value || "id";
+
   return (
     <main className="min-h-screen w-full overflow-x-hidden">
       {/* Render critical above-fold content immediately */}
@@ -188,7 +194,7 @@ export default function Home() {
         <h2 id="hero-heading" className="sr-only">
           Solusi Keamanan Kebakaran Terpercaya
         </h2>
-        <Hero />
+        <Hero language={language} />
       </section>
 
       <section

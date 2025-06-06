@@ -35,15 +35,6 @@ export default function RootLayout({
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <SchemaMarkup />
-        {/* Preconnect to domains for early connection establishment */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-
         {/* Critical CSS preload */}
         {/* Enhanced favicon setup */}
         <link rel="icon" href="/images/favicon.ico" sizes="any" />
@@ -52,19 +43,6 @@ export default function RootLayout({
 
         {/* DNS prefetch for third-party domains */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        <CriticalPreload
-          assets={[
-            // LCP images
-            "/images/logo/logo-light.png",
-            "/images/logo/logo-dark.png",
-
-            // firestore
-            "https://firestore.googleapis.com",
-
-            // firebase storage
-            "https://firebasestorage.googleapis.com",
-          ]}
-        />
       </head>
       <body className={`dark:bg-black ${inter.className} preload`}>
         <Providers>
