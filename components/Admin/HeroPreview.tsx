@@ -7,9 +7,97 @@ import { useLanguage } from "@/app/context/LanguageContext";
 import { trimByParentheses } from "@/utils/trimText";
 import { HeroForm, HeroVideo } from "../Hero/HeroClient";
 
+// Custom implementation of HeroForm that supports separate editing regions
+const EditableHeroForm = ({
+  emailPlaceholder,
+  buttonText,
+  activeSection,
+  onEditSection,
+  setHoveredSection,
+  hoveredSection,
+}) => {
+  const [email, setEmail] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-wrap gap-5">
+      {/* Email Input with square hover ring container */}
+      <div
+        className={`relative p-1.5 ${
+          activeSection === "email_placeholder"
+            ? "rounded-sm ring-2 ring-primary/40"
+            : "hover:rounded-sm hover:ring-2 hover:ring-primary/40"
+        } hover:cursor-pointer`}
+        onClick={(e) => {
+          e.stopPropagation();
+          activeSection !== "email_placeholder" &&
+            onEditSection &&
+            onEditSection("email_placeholder");
+        }}
+        onMouseEnter={() => setHoveredSection("email_placeholder")}
+        onMouseLeave={() => setHoveredSection(null)}
+      >
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder={emailPlaceholder}
+          className="w-fit rounded-full border border-stroke px-6 py-2.5 focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:focus:border-primary"
+        />
+
+        {/* Email Placeholder tooltip - positioned directly within its container */}
+        {setHoveredSection && hoveredSection === "email_placeholder" && (
+          <div className="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-black/80 px-2 py-1 text-xs text-white">
+            Email Placeholder (Click to Edit)
+          </div>
+        )}
+      </div>
+
+      {/* Button with square hover ring container */}
+      <div
+        className={`relative p-1.5 ${
+          activeSection === "button_text"
+            ? "rounded-sm ring-2 ring-primary/40"
+            : "hover:rounded-sm hover:ring-2 hover:ring-primary/40"
+        } hover:cursor-pointer`}
+        onClick={(e) => {
+          e.stopPropagation();
+          activeSection !== "button_text" &&
+            onEditSection &&
+            onEditSection("button_text");
+        }}
+        onMouseEnter={() => setHoveredSection("button_text")}
+        onMouseLeave={() => setHoveredSection(null)}
+      >
+        <button
+          aria-label="get started button"
+          type="submit"
+          className="rounded-full bg-black px-7.5 py-2.5 text-white dark:bg-btndark"
+        >
+          {buttonText}
+        </button>
+
+        {/* Button Text tooltip - positioned directly within its container */}
+        {setHoveredSection && hoveredSection === "button_text" && (
+          <div className="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-black/80 px-2 py-1 text-xs text-white">
+            Button Text (Click to Edit)
+          </div>
+        )}
+      </div>
+    </form>
+  );
+};
+
 interface HeroPreviewProps {
-  data: any;
-  activeSection?: string;
+  data: {
+    [key: string]: {
+      [lang: string]: string;
+    };
+  };
+  activeSection: string | null;
   onEditSection?: (section: string) => void;
   previewMode?: "desktop" | "mobile";
   onPreviewModeChange?: (mode: "desktop" | "mobile") => void;
@@ -118,7 +206,7 @@ const HeroPreview = ({
             </h4>
             {hoveredSection === "hero_slogan" && (
               <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
-                Hero Slogan
+                Hero Slogan (Click to Edit)
               </div>
             )}
           </div>
@@ -151,7 +239,7 @@ const HeroPreview = ({
             </h1>
             {hoveredSection === "hero_title" && (
               <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
-                Hero Title
+                Hero Title (Click to Edit)
               </div>
             )}
           </div>
@@ -177,43 +265,22 @@ const HeroPreview = ({
             </p>
             {hoveredSection === "hero_subtitle" && (
               <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
-                Hero Subtitle
+                Hero Subtitle (Click to Edit)
               </div>
             )}
           </div>
 
-          {/* Email Form */}
+          {/* Email Form - Now split into separate editable components */}
           <div className="mt-5 lg:mt-10 xl:mt-10">
-            <div className="relative">
-              <div
-                className={`${
-                  activeSection === "email_placeholder" ||
-                  activeSection === "button_text"
-                    ? "relative rounded-sm ring-2 ring-primary/40"
-                    : ""
-                } hover:cursor-pointer hover:rounded-sm hover:ring-2 hover:ring-primary/40`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (
-                    activeSection !== "email_placeholder" &&
-                    activeSection !== "button_text"
-                  ) {
-                    onEditSection && onEditSection("email_placeholder");
-                  }
-                }}
-                onMouseEnter={() => setHoveredSection("email_form")}
-                onMouseLeave={() => setHoveredSection(null)}
-              >
-                <HeroForm
-                  emailPlaceholder={heroContent.emailPlaceholder}
-                  buttonText={heroContent.buttonText}
-                />
-              </div>
-              {hoveredSection === "email_form" && (
-                <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
-                  Email Form
-                </div>
-              )}
+            <div className="relative w-fit">
+              <EditableHeroForm
+                emailPlaceholder={heroContent.emailPlaceholder}
+                buttonText={heroContent.buttonText}
+                activeSection={activeSection}
+                onEditSection={onEditSection}
+                setHoveredSection={setHoveredSection}
+                hoveredSection={hoveredSection}
+              />
             </div>
           </div>
         </div>
@@ -270,29 +337,34 @@ const HeroPreview = ({
   return (
     <div className="rounded-lg border bg-white p-6 dark:bg-black">
       {/* Preview mode toggle buttons */}
-      <div className="mb-4 flex justify-end space-x-2">
-        <button
-          type="button"
-          onClick={() => handlePreviewModeChange("desktop")}
-          className={`rounded-md px-3 py-1 text-sm ${
-            currentPreviewMode === "desktop"
-              ? "bg-primary text-white"
-              : "bg-gray-100 dark:bg-gray-800"
-          }`}
-        >
-          Desktop
-        </button>
-        <button
-          type="button"
-          onClick={() => handlePreviewModeChange("mobile")}
-          className={`rounded-md px-3 py-1 text-sm ${
-            currentPreviewMode === "mobile"
-              ? "bg-primary text-white"
-              : "bg-gray-100 dark:bg-gray-800"
-          }`}
-        >
-          Mobile
-        </button>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-black dark:text-white">
+          Hero Section
+        </h2>
+        <div className="flex space-x-2">
+          <button
+            type="button"
+            onClick={() => handlePreviewModeChange("desktop")}
+            className={`rounded-md px-3 py-1 text-sm ${
+              currentPreviewMode === "desktop"
+                ? "bg-primary text-white"
+                : "bg-gray-100 dark:bg-gray-800"
+            }`}
+          >
+            Desktop
+          </button>
+          <button
+            type="button"
+            onClick={() => handlePreviewModeChange("mobile")}
+            className={`rounded-md px-3 py-1 text-sm ${
+              currentPreviewMode === "mobile"
+                ? "bg-primary text-white"
+                : "bg-gray-100 dark:bg-gray-800"
+            }`}
+          >
+            Mobile
+          </button>
+        </div>
       </div>
 
       {/* Device mockup container */}
@@ -328,7 +400,8 @@ const HeroPreview = ({
               <div className="absolute bottom-1 left-1/2 h-1 w-32 -translate-x-1/2 rounded-full bg-gray-300"></div>
             </div>
             <div className="mt-4 text-center text-sm text-gray-500">
-              Mobile Preview • Scroll to see more content
+              Mobile Preview • Scroll to see more content{"\n"}Hover over and
+              click on any section to edit its content.
             </div>
           </div>
         ) : (
@@ -361,7 +434,7 @@ const HeroPreview = ({
                     />
                   </svg>
                   <span className="text-xs text-gray-600 dark:text-gray-300">
-                    yourcompany.com
+                    brilian-eka-saetama.com
                   </span>
                 </div>
 
@@ -380,7 +453,8 @@ const HeroPreview = ({
               </div>
             </div>
             <div className="mt-4 text-center text-sm text-gray-500">
-              Desktop Preview • Scroll to see more content
+              Desktop Preview • Scroll to see more content{"\n"}Hover over and
+              click on any section to edit its content.
             </div>
           </div>
         )}

@@ -5,7 +5,6 @@ import { useTheme } from "next-themes";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
-import Link from "next/link";
 import HeroPreview from "./HeroPreview";
 
 interface HeroEditorProps {
@@ -30,7 +29,7 @@ const HeroEditor = ({
     initialData || { en: "", id: "" },
   );
   const [fullHeroData, setFullHeroData] = useState<any>({});
-  const [activeTab, setActiveTab] = useState<string>("en");
+  const [activeTab, setActiveTab] = useState<string>(language || "en");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
     "desktop",
   );
@@ -211,45 +210,16 @@ const HeroEditor = ({
   return (
     <div className="space-y-8">
       <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-black dark:text-white">
             Hero Preview
           </h2>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={`/admin/collections/hero/edit/hero_title`}
-              className="rounded-md bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/20"
-            >
-              Edit Title
-            </Link>
-            <Link
-              href={`/admin/collections/hero/edit/hero_subtitle`}
-              className="rounded-md bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/20"
-            >
-              Edit Subtitle
-            </Link>
-            <Link
-              href={`/admin/collections/hero/edit/hero_slogan`}
-              className="rounded-md bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/20"
-            >
-              Edit Slogan
-            </Link>
-            <Link
-              href={`/admin/collections/hero/edit/email_placeholder`}
-              className="rounded-md bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/20"
-            >
-              Edit Form Placeholder
-            </Link>
-            <Link
-              href={`/admin/collections/hero/edit/button_text`}
-              className="rounded-md bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/20"
-            >
-              Edit Button Text
-            </Link>
-          </div>
+          <p className="text-sm text-gray-500">
+            Click on any element to edit it directly
+          </p>
         </div>
 
-        {/* Hero preview component */}
+        {/* Hero preview component - No more edit buttons above */}
         <HeroPreview
           data={fullHeroData}
           activeSection={documentId}
@@ -299,7 +269,7 @@ const HeroEditor = ({
           </div>
         </div>
 
-        <div className="min-h-[300px]">{renderFormFields()}</div>
+        <div className="h-fit">{renderFormFields()}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

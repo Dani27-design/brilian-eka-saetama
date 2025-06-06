@@ -158,11 +158,19 @@ const Contact = () => {
       setIsSubmitting(true);
 
       const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-      const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+      const templateIdInboundConsultation =
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_INBOUND_CONSULTATION;
+      const templateIdOutbondWelcome =
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_OUTBOUND_WELCOME;
       const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
       // Validate EmailJS credentials exist
-      if (!serviceId || !templateId || !publicKey) {
+      if (
+        !serviceId ||
+        !templateIdInboundConsultation ||
+        !publicKey ||
+        !templateIdOutbondWelcome
+      ) {
         throw new Error("EmailJS credentials are not properly configured");
       }
 
@@ -177,7 +185,21 @@ const Contact = () => {
       };
 
       // Send email using EmailJS with validated credentials
-      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      await emailjs.send(
+        serviceId,
+        templateIdInboundConsultation,
+        templateParams,
+        publicKey,
+      );
+
+      await emailjs.send(
+        serviceId,
+        templateIdOutbondWelcome,
+        {
+          email: formData.email,
+        },
+        publicKey,
+      );
 
       // Reset form after successful submission
       setFormData({
@@ -217,6 +239,18 @@ const Contact = () => {
   if (!hasMounted) {
     return null;
   }
+
+  /**
+   * Handle location click to open Google Maps
+   */
+  const handleLocationClick = () => {
+    // Encode the address for the URL
+    const encodedAddress = encodeURIComponent(contactInfo.location.text);
+    // Create Google Maps URL with the address
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+    // Open in a new tab
+    window.open(googleMapsUrl, "_blank");
+  };
 
   return (
     <section id="contactus" className="my-10 py-0">
@@ -427,28 +461,39 @@ const Contact = () => {
               {contactInfo.title}
             </h2>
 
-            <div className="5 mb-7">
-              <h3 className="mb-4 text-metatitle3 font-medium text-black dark:text-white">
+            {/* Location section - updated to be clickable */}
+            <div className="mb-7">
+              <h3
+                onClick={handleLocationClick}
+                className="mb-4 cursor-pointer text-metatitle3 font-medium text-black hover:text-primary dark:text-white dark:hover:text-primary"
+              >
                 {contactInfo.location.title}
               </h3>
-              <p>{contactInfo.location.text}</p>
+              <p
+                onClick={handleLocationClick}
+                className="cursor-pointer hover:text-primary dark:hover:text-primary"
+              >
+                {contactInfo.location.text}
+              </p>
             </div>
-            <div className="5 mb-7">
+
+            {/* Email section - unchanged */}
+            <div className="mb-7">
               <h3 className="mb-4 text-metatitle3 font-medium text-black dark:text-white">
                 {contactInfo.email.title}
               </h3>
-              <p>
-                <a href={`mailto:${contactInfo.email.text}`}>
-                  {contactInfo.email.text}
-                </a>
-              </p>
+              <p>{contactInfo.email.text}</p>
             </div>
+
+            {/* Phone section - unchanged */}
             <div>
               <h4 className="mb-4 text-metatitle3 font-medium text-black dark:text-white">
                 {contactInfo.phone.title}
               </h4>
-              <p>
-                <a href={`tel:${contactInfo.phone.text}`}>
+              <p className="cursor-pointer hover:text-primary dark:hover:text-primary">
+                <a
+                  href={`https://wa.me/6285231600808?text=Halo%20PT%20Brilian%20Eka%20Saetama,%20saya%20ingin%20konsultasi%20tentang%20layanan%20keamanan%20kebakaran.`}
+                >
                   {contactInfo.phone.text}
                 </a>
               </p>

@@ -1,10 +1,11 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getData } from "@/actions/read/hero";
+import emailjs from "@emailjs/browser";
 
 // Custom hook for fetching footer data from Firestore
 const useFooterData = (lang: string, collectionId: string, docId: string) => {
@@ -28,6 +29,15 @@ const useFooterData = (lang: string, collectionId: string, docId: string) => {
 const Footer = () => {
   const { language } = useLanguage();
   const [hasMounted, setHasMounted] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({
+    type: null,
+    message: "",
+  });
 
   // Fetch footer data
   const {
@@ -42,6 +52,101 @@ const Footer = () => {
       console.error("Error fetching footer data:", error);
     }
   }, [error]);
+
+  // Clear status message after 5 seconds
+  useEffect(() => {
+    if (submitStatus.type) {
+      const timer = setTimeout(() => {
+        setSubmitStatus({ type: null, message: "" });
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [submitStatus]);
+
+  /**
+   * Handle newsletter form submission
+   */
+  const handleNewsletterSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setSubmitStatus({
+        type: "error",
+        message: "Please enter a valid email address",
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+      const templateIdInboundConsultation =
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_INBOUND_CONSULTATION;
+      const templateIdOutbondWelcome =
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_OUTBOUND_WELCOME;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+      // Validate EmailJS credentials exist
+      if (
+        !serviceId ||
+        !templateIdInboundConsultation ||
+        !publicKey ||
+        !templateIdOutbondWelcome
+      ) {
+        throw new Error("EmailJS credentials are not properly configured");
+      }
+
+      // Prepare template parameters for EmailJS
+      const templateParams = {
+        to_email: "ptbrilianekasaetama@gmail.com",
+        from_name: email.replace(/@.*/, ""),
+        from_email: email,
+        subject: "Ingin Berlangganan Informasi",
+        message: `Pengunjung Website '${email.replace(
+          /@.*/,
+          "",
+        )}' dari email '${email}' ingin selalu mendapatkan informasi terbaru.`,
+      };
+
+      // Send email using EmailJS
+      await emailjs.send(
+        serviceId,
+        templateIdInboundConsultation,
+        templateParams,
+        publicKey,
+      );
+
+      await emailjs.send(
+        serviceId,
+        templateIdOutbondWelcome,
+        {
+          email: email,
+        },
+        publicKey,
+      );
+
+      // Reset form after successful submission
+      setEmail("");
+
+      // Show success message
+      setSubmitStatus({
+        type: "success",
+        message: "Thank you for subscribing to our newsletter!",
+      });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setSubmitStatus({
+        type: "error",
+        message: "Failed to submit your request. Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Default values for footer
   let footer = {
@@ -100,6 +205,57 @@ const Footer = () => {
     return null;
   }
 
+  /**
+   * Handle mailto contact email with EmailJS instead of default email client
+   */
+  const handleContactEmailClick = async (e) => {
+    e.preventDefault();
+
+    // Open a modal or prompt user for their email information
+    const userEmail = prompt("Please enter your email:");
+
+    if (!userEmail) return;
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    try {
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+      const templateId =
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_INBOUND_CONSULTATION;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+      if (!serviceId || !templateId || !publicKey) {
+        throw new Error("EmailJS credentials are not properly configured");
+      }
+
+      // Prepare template parameters
+      const templateParams = {
+        to_email: "ptbrilianekasaetama@gmail.com",
+        from_name: userEmail.replace(/@.*/, ""),
+        from_email: userEmail,
+        subject: "Ingin Terhubung",
+        message: `Pengunjung Website '${email.replace(
+          /@.*/,
+          "",
+        )}' dari email '${email}' ingin terhubung dan konsultasi lebih lanjut.`,
+      };
+
+      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+
+      alert("Your contact request has been sent!");
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert(
+        "Failed to send your request. Please try using direct email instead.",
+      );
+    }
+  };
+
   return (
     <>
       <footer className="border-t border-stroke bg-white dark:border-strokedark dark:bg-blacksection">
@@ -131,13 +287,13 @@ const Footer = () => {
                     src={footer.logo.light_logo}
                     alt="Logo"
                     className="dark:hidden"
-                    priority={true} // For above-the-fold images
-                    quality={80} // Balance between quality and size
-                    loading="eager" // For critical images
+                    priority={true}
+                    quality={80}
+                    loading="eager"
                     style={{
                       cursor: "pointer",
-                      width: "auto", // Added to maintain aspect ratio
-                      height: "auto", // Added to maintain aspect ratio
+                      width: "auto",
+                      height: "auto",
                     }}
                   />
                   <Image
@@ -146,13 +302,13 @@ const Footer = () => {
                     src={footer.logo.dark_logo}
                     alt="Logo"
                     className="hidden dark:block"
-                    priority={true} // For above-the-fold images
-                    quality={80} // Balance between quality and size
-                    loading="eager" // For critical images
+                    priority={true}
+                    quality={80}
+                    loading="eager"
                     style={{
                       cursor: "pointer",
-                      width: "auto", // Added to maintain aspect ratio
-                      height: "auto", // Added to maintain aspect ratio
+                      width: "auto",
+                      height: "auto",
                     }}
                   />
                 </a>
@@ -165,7 +321,8 @@ const Footer = () => {
                   {footer.logo.contact_label}
                 </p>
                 <a
-                  href={`mailto:${footer.logo.contact_email}`}
+                  href="#"
+                  onClick={handleContactEmailClick}
                   className="font-bolder break-words font-medium text-black dark:text-white"
                 >
                   {footer.logo.contact_email}
@@ -267,40 +424,64 @@ const Footer = () => {
                     {footer.newsletter.description}
                   </p>
 
-                  <form action="#" className="max-w-[280px]">
+                  <form
+                    onSubmit={handleNewsletterSubmit}
+                    className="max-w-[280px]"
+                  >
                     <div className="relative">
                       <input
-                        type="text"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         placeholder={footer.newsletter.placeholder}
                         className="w-full rounded-full border border-stroke px-6 py-3 shadow-solid-11 focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:shadow-none dark:focus:border-primary"
+                        disabled={isSubmitting}
                       />
 
                       <button
+                        type="submit"
                         aria-label="signup to newsletter"
                         className="absolute right-0 p-4"
+                        disabled={isSubmitting}
                       >
-                        <svg
-                          className="fill-[#757693] hover:fill-primary dark:fill-white"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <g clipPath="url(#clip0_48_1487)">
-                            <path
-                              d="M3.1175 1.17318L18.5025 9.63484C18.5678 9.67081 18.6223 9.72365 18.6602 9.78786C18.6982 9.85206 18.7182 9.92527 18.7182 9.99984C18.7182 10.0744 18.6982 10.1476 18.6602 10.2118C18.6223 10.276 18.5678 10.3289 18.5025 10.3648L3.1175 18.8265C3.05406 18.8614 2.98262 18.8792 2.91023 18.8781C2.83783 18.8769 2.76698 18.857 2.70465 18.8201C2.64232 18.7833 2.59066 18.7308 2.55478 18.6679C2.51889 18.6051 2.50001 18.5339 2.5 18.4615V1.53818C2.50001 1.46577 2.51889 1.39462 2.55478 1.33174C2.59066 1.26885 2.64232 1.2164 2.70465 1.17956C2.76698 1.14272 2.83783 1.12275 2.91023 1.12163C2.98262 1.12051 3.05406 1.13828 3.1175 1.17318ZM4.16667 10.8332V16.3473L15.7083 9.99984L4.16667 3.65234V9.16651H8.33333V10.8332H4.16667Z"
-                              fill=""
-                            />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0_48_1487">
-                              <rect width="20" height="20" fill="white" />
-                            </clipPath>
-                          </defs>
-                        </svg>
+                        {isSubmitting ? (
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        ) : (
+                          <svg
+                            className="fill-[#757693] hover:fill-primary dark:fill-white"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g clipPath="url(#clip0_48_1487)">
+                              <path
+                                d="M3.1175 1.17318L18.5025 9.63484C18.5678 9.67081 18.6223 9.72365 18.6602 9.78786C18.6982 9.85206 18.7182 9.92527 18.7182 9.99984C18.7182 10.0744 18.6982 10.1476 18.6602 10.2118C18.6223 10.276 18.5678 10.3289 18.5025 10.3648L3.1175 18.8265C3.05406 18.8614 2.98262 18.8792 2.91023 18.8781C2.83783 18.8769 2.76698 18.857 2.70465 18.8201C2.64232 18.7833 2.59066 18.7308 2.55478 18.6679C2.51889 18.6051 2.50001 18.5339 2.5 18.4615V1.53818C2.50001 1.46577 2.51889 1.39462 2.55478 1.33174C2.59066 1.26885 2.64232 1.2164 2.70465 1.17956C2.76698 1.14272 2.83783 1.12275 2.91023 1.12163C2.98262 1.12051 3.05406 1.13828 3.1175 1.17318ZM4.16667 10.8332V16.3473L15.7083 9.99984L4.16667 3.65234V9.16651H8.33333V10.8332H4.16667Z"
+                                fill=""
+                              />
+                            </g>
+                            <defs>
+                              <clipPath id="clip0_48_1487">
+                                <rect width="20" height="20" fill="white" />
+                              </clipPath>
+                            </defs>
+                          </svg>
+                        )}
                       </button>
                     </div>
+
+                    {submitStatus.type && (
+                      <div
+                        className={`mt-3 rounded-md p-2 text-sm ${
+                          submitStatus.type === "success"
+                            ? "bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                        }`}
+                      >
+                        {submitStatus.message}
+                      </div>
+                    )}
                   </form>
                 </motion.div>
               </div>

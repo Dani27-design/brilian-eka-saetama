@@ -3,33 +3,148 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import TextSkeleton from "../Skeleton/TextSkeleton";
+import emailjs from "@emailjs/browser";
 
 export function HeroForm({ emailPlaceholder, buttonText }) {
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({
+    type: null,
+    message: "",
+  });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setSubmitStatus({
+        type: "error",
+        message: "Please enter a valid email address",
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+      const templateIdInboundConsultation =
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_INBOUND_CONSULTATION;
+      const templateIdOutbondWelcome =
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_OUTBOUND_WELCOME;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+      // Validate EmailJS credentials exist
+      if (
+        !serviceId ||
+        !templateIdInboundConsultation ||
+        !publicKey ||
+        !templateIdOutbondWelcome
+      ) {
+        throw new Error("EmailJS credentials are not properly configured");
+      }
+
+      // Prepare template parameters for EmailJS
+      const templateParams = {
+        to_email: "ptbrilianekasaetama@gmail.com",
+        from_name: email.replace(/@.*/, ""),
+        from_email: email,
+        subject: "Ingin Terhubung",
+        message: `Pengunjung Website '${email.replace(
+          /@.*/,
+          "",
+        )}' dari email '${email}' ingin terhubung dan konsultasi lebih lanjut.`,
+      };
+
+      // Send email using EmailJS
+      await emailjs.send(
+        serviceId,
+        templateIdInboundConsultation,
+        templateParams,
+        publicKey,
+      );
+
+      await emailjs.send(
+        serviceId,
+        templateIdOutbondWelcome,
+        {
+          email: email,
+        },
+        publicKey,
+      );
+
+      // Reset form after successful submission
+      setEmail("");
+
+      // Show success message
+      setSubmitStatus({
+        type: "success",
+        message: "Thank you for subscribing! We'll be in touch soon.",
+      });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setSubmitStatus({
+        type: "error",
+        message: "Failed to submit your email. Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  // Clear status message after 5 seconds
+  useEffect(() => {
+    if (submitStatus.type) {
+      const timer = setTimeout(() => {
+        setSubmitStatus({ type: null, message: "" });
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [submitStatus]);
+
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="flex flex-wrap gap-5">
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          type="text"
-          placeholder={emailPlaceholder}
-          className="w-fit rounded-full border border-stroke px-6 py-2.5 focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:focus:border-primary"
-        />
-        <button
-          aria-label="get started button"
-          className="rounded-full bg-black px-7.5 py-2.5 text-white dark:bg-btndark"
-          type="submit"
+    <div className="w-full">
+      <form onSubmit={handleSubmit}>
+        <div className="flex flex-wrap gap-5">
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder={emailPlaceholder}
+            className="w-fit rounded-full border border-stroke px-6 py-2.5 focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:focus:border-primary"
+            disabled={isSubmitting}
+          />
+          <button
+            aria-label="get started button"
+            className={`rounded-full bg-black px-7.5 py-2.5 text-white dark:bg-btndark ${
+              isSubmitting ? "cursor-not-allowed opacity-70" : ""
+            }`}
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Sending..." : buttonText}
+          </button>
+        </div>
+      </form>
+
+      {submitStatus.type && (
+        <div
+          className={`mt-3 rounded-md p-3 text-sm ${
+            submitStatus.type === "success"
+              ? "bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+              : "bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          }`}
         >
-          {buttonText}
-        </button>
-      </div>
-    </form>
+          {submitStatus.message}
+        </div>
+      )}
+    </div>
   );
 }
 
