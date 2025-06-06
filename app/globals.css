@@ -102,7 +102,7 @@ html {
 }
 
 .blog-details p {
-  @apply mb-8 text-base leading-relaxed text-titlebgdark dark:text-waterloo;
+  @apply mb-8 text-base leading-relaxed text-black dark:text-gray-100;
 }
 
 .blog-details p strong {
@@ -245,4 +245,27 @@ img {
   --text-primary: #f9fafb; /* Lighter text for dark mode */
   --text-secondary: #e5e7eb; /* Lighter secondary text for dark mode */
   --link-color: #93c5fd; /* More visible links in dark mode */
+}
+
+/* Apply these variables to text elements */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+div,
+li {
+  color: var(--text-primary);
+}
+
+.text-waterloo {
+  color: var(--text-secondary);
+}
+
+/* Fix specific low-contrast elements */
+.blog-details p {
+  @apply text-base leading-relaxed text-black dark:text-gray-100;
 }

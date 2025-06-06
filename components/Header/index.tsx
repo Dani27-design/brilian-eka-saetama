@@ -348,40 +348,38 @@ const Header = () => {
         ) : (
           <>
             <div className="flex w-full items-center justify-between xl:max-w-[12%]">
-              <a>
-                <Image
-                  src={logoDark}
-                  alt="logo"
-                  width={55}
-                  height={54}
-                  className="hidden dark:block" // Removed w-full if present
-                  onClick={scrollToTop}
-                  style={{
-                    cursor: "pointer",
-                    width: "auto", // Added to maintain aspect ratio
-                    height: "auto", // Added to maintain aspect ratio
-                  }}
-                  priority={true}
-                  quality={80}
-                  loading="eager"
-                />
-                <Image
-                  src={logoLight}
-                  alt="logo"
-                  width={55}
-                  height={54}
-                  className="dark:hidden" // Removed w-full class
-                  onClick={scrollToTop}
-                  style={{
-                    cursor: "pointer",
-                    width: "auto", // Added to maintain aspect ratio
-                    height: "auto", // Added to maintain aspect ratio
-                  }}
-                  priority={true}
-                  quality={80}
-                  loading="eager"
-                />
-              </a>
+              <Image
+                src={logoDark}
+                alt="logo"
+                width={55}
+                height={54}
+                className="hidden dark:block" // Removed w-full if present
+                onClick={scrollToTop}
+                style={{
+                  cursor: "pointer",
+                  width: "auto", // Added to maintain aspect ratio
+                  height: "auto", // Added to maintain aspect ratio
+                }}
+                priority={true}
+                quality={80}
+                loading="eager"
+              />
+              <Image
+                src={logoLight}
+                alt="logo"
+                width={55}
+                height={54}
+                className="dark:hidden" // Removed w-full class
+                onClick={scrollToTop}
+                style={{
+                  cursor: "pointer",
+                  width: "auto", // Added to maintain aspect ratio
+                  height: "auto", // Added to maintain aspect ratio
+                }}
+                priority={true}
+                quality={80}
+                loading="eager"
+              />
 
               {/* <!-- Hamburger Toggle BTN --> */}
               <button

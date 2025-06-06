@@ -44,6 +44,18 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+// Add inline critical CSS to the <head> section
+// Extract critical CSS from your CSS files
+const criticalCSS = `
+  /* Essential styles for above-the-fold content */
+  body { 
+    margin: 0; 
+    font-family: 'Inter', sans-serif; 
+    text-rendering: optimizeSpeed;
+  }
+  /* Add more critical styles here */
+`;
+
 export default function RootLayout({
   children,
 }: {
@@ -82,6 +94,21 @@ export default function RootLayout({
         <CriticalPreload
           assets={["/images/logo/logo-light.png", "/images/logo/logo-dark.png"]}
         />
+        <style dangerouslySetInnerHTML={{ __html: criticalCSS }} />
+        {/* Load non-critical CSS asynchronously */}
+        <link
+          rel="preload"
+          href="/styles/main.css"
+          as="style"
+          onLoad={(e) => {
+            const target = e.currentTarget;
+            target.onload = null;
+            target.rel = "stylesheet";
+          }}
+        />
+        <noscript>
+          <link rel="stylesheet" href="/styles/main.css" />
+        </noscript>
       </head>
       <body className={`dark:bg-black ${inter.className} preload`}>
         <Providers>

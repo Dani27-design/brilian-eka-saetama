@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Head from "next/head";
 
 interface CriticalPreloadProps {
   assets?: string[];
@@ -39,6 +40,49 @@ export default function CriticalPreload({ assets = [] }: CriticalPreloadProps) {
     document.head.appendChild(gstaticPreconnect);
   }, [assets]);
 
-  // Render nothing - just side effects
-  return null;
+  return (
+    <Head>
+      {/* Preload LCP image */}
+      <link
+        rel="preload"
+        href="/images/shape/shape-01.png"
+        as="image"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        href="/images/shape/shape-02.svg"
+        as="image"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        href="/images/shape/shape-03.svg"
+        as="image"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        href="/images/shape/shape-04.png"
+        as="image"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        href="/images/shape/shape-05.png"
+        as="image"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        href="/images/shape/shape-06.png"
+        as="image"
+        fetchPriority="high"
+      />
+
+      {/* Preconnect to critical origins */}
+      <link rel="preconnect" href="https://firestore.googleapis.com" />
+      <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+    </Head>
+  );
 }

@@ -3,6 +3,9 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
+  },
   images: {
     domains: ["localhost", "firebasestorage.googleapis.com"],
     remotePatterns: [
@@ -30,6 +33,7 @@ const nextConfig = {
     optimizeCss: true,
     optimizePackageImports: [
       "framer-motion",
+      "react-icons",
       "firebase/firestore",
       "react-query",
     ],
