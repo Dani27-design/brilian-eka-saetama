@@ -95,20 +95,6 @@ export default function RootLayout({
           assets={["/images/logo/logo-light.png", "/images/logo/logo-dark.png"]}
         />
         <style dangerouslySetInnerHTML={{ __html: criticalCSS }} />
-        {/* Load non-critical CSS asynchronously */}
-        <link
-          rel="preload"
-          href="/styles/main.css"
-          as="style"
-          onLoad={(e) => {
-            const target = e.currentTarget;
-            target.onload = null;
-            target.rel = "stylesheet";
-          }}
-        />
-        <noscript>
-          <link rel="stylesheet" href="/styles/main.css" />
-        </noscript>
       </head>
       <body className={`dark:bg-black ${inter.className} preload`}>
         <Providers>
