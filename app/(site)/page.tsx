@@ -69,9 +69,9 @@ const Blog = dynamic(() => import("@/components/Blog"), {
 
 // Comprehensive metadata with all necessary SEO elements
 export const metadata: Metadata = {
-  title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
+  title: "PT Brilian Eka Saetama | Keamanan & Proteksi Kebakaran Terpercaya",
   description:
-    "Kami adalah perusahaan terpercaya yang bergerak di bidang jasa instalasi dan pemeliharaan sistem proteksi kebakaran dan keamanan. Layanan kami mencakup pemasangan dan perawatan Hydrant, Fire Alarm System, CCTV, Door Access Control System, hingga Patrol Guard System.",
+    "Dapatkan solusi pengamanan dan proteksi kebakaran terbaik. Hubungi PT Brilian Eka Saetama untuk instalasi dan perawatan sistem keamanan profesional.",
   applicationName: "PT Brilian Eka Saetama",
   authors: [
     {
@@ -81,30 +81,15 @@ export const metadata: Metadata = {
   ],
   generator: "Next.js",
   keywords: [
-    "pt brilian eka saetama",
-    "brilian eka saetama",
-    "brilian eka saetama bes",
-    "pt bes",
-    "bes",
-    "kebakaran",
-    "alat pemadam api",
-    "fire extinguisher",
-    "jasa pemasangan alat pemadam kebakaran",
-    "mitra penyedia jasa keamanan kebakaran",
-    "apar",
-    "fire alarm system",
-    "hydrant",
-    "sprinkler",
-    "fire safety",
-    "smoke detector",
-    "patrol guard system",
-    "door access control system",
-    "cctv",
     "proteksi kebakaran",
+    "sistem keamanan",
     "instalasi hydrant",
-    "jasa fire safety",
-    "konsultan kebakaran",
-    "pemeliharaan sistem proteksi kebakaran",
+    "fire alarm system",
+    "APAR",
+    "CCTV",
+    "door access control",
+    "patrol guard system",
+    "keamanan profesional",
   ],
   referrer: "origin-when-cross-origin",
   creator: "PT Brilian Eka Saetama",
@@ -116,9 +101,9 @@ export const metadata: Metadata = {
   },
   category: "safety services",
   openGraph: {
-    title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
+    title: "PT Brilian Eka Saetama | Keamanan & Proteksi Kebakaran Terpercaya",
     description:
-      "Kami adalah perusahaan terpercaya yang bergerak di bidang jasa instalasi dan pemeliharaan sistem proteksi kebakaran dan keamanan. Layanan kami mencakup pemasangan dan perawatan Hydrant, Fire Alarm System, CCTV, Door Access Control System, hingga Patrol Guard System.",
+      "Dapatkan solusi pengamanan dan proteksi kebakaran terbaik. PT Brilian Eka Saetama hadir dengan layanan instalasi dan perawatan sistem keamanan terlengkap.",
     siteName: "PT Brilian Eka Saetama",
     images: [
       {
@@ -127,7 +112,7 @@ export const metadata: Metadata = {
           "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
         width: 1200,
         height: 630,
-        alt: "PT Brilian Eka Saetama Logo",
+        alt: "Logo PT Brilian Eka Saetama",
         type: "image/png",
       },
     ],
@@ -137,9 +122,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "PT Brilian Eka Saetama | Solusi Keamanan Kebakaran Terpercaya",
+    title: "PT Brilian Eka Saetama | Keamanan & Proteksi Kebakaran",
     description:
-      "Kami adalah perusahaan terpercaya yang bergerak di bidang jasa instalasi dan pemeliharaan sistem proteksi kebakaran dan keamanan. Layanan kami mencakup pemasangan dan perawatan Hydrant, Fire Alarm System, CCTV, Door Access Control System, hingga Patrol Guard System.",
+      "Hubungi kami untuk solusi instalasi dan perawatan sistem keamanan serta proteksi kebakaran terbaik.",
     images: [
       "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
     ],
