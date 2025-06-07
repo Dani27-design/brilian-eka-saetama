@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useLanguage } from "@/app/context/LanguageContext";
 import DocumentForm from "@/components/Admin/DocumentForm";
-import HeaderEditor from "@/components/Admin/HeaderEditor";
 import { firestore } from "@/db/firebase/firebaseConfig";
 
 export default function EditDocumentPage({
@@ -21,13 +20,6 @@ export default function EditDocumentPage({
   const { language } = useLanguage();
   const router = useRouter();
   const { collection: collectionName, document: documentId } = params;
-
-  // Determine if we should use the header editor
-  const isHeaderDocument =
-    collectionName === "header" &&
-    ["menu_items", "logo_dark", "logo_light", "language_dropdown"].includes(
-      documentId,
-    );
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -108,23 +100,13 @@ export default function EditDocumentPage({
           <div className="h-80 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700"></div>
         </div>
       ) : document ? (
-        isHeaderDocument ? (
-          <HeaderEditor
-            collectionName={collectionName}
-            documentId={documentId}
-            initialData={document}
-            onSubmit={handleSave}
-            isSaving={isSaving}
-          />
-        ) : (
-          <DocumentForm
-            initialData={document}
-            onSubmit={handleSave}
-            isSaving={isSaving}
-            language={language}
-            collectionType={collectionName}
-          />
-        )
+        <DocumentForm
+          initialData={document}
+          onSubmit={handleSave}
+          isSaving={isSaving}
+          language={language}
+          collectionType={collectionName}
+        />
       ) : (
         <div className="rounded-lg border border-stroke bg-white p-6 dark:border-strokedark dark:bg-black">
           <p className="text-center text-gray-500 dark:text-gray-400">
