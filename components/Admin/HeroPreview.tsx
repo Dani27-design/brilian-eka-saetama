@@ -171,7 +171,7 @@ const HeroPreview = ({
 
   // Hero content to render inside device frames
   const renderHeroContent = () => (
-    <div className="px-auto mx-auto max-w-c-1280">
+    <div className="px-auto mx-auto w-full text-sm">
       <div
         className={`flex ${
           currentPreviewMode === "mobile"
@@ -180,15 +180,11 @@ const HeroPreview = ({
         }`}
       >
         {/* Hero Content */}
-        <div
-          className={
-            currentPreviewMode === "mobile" ? "w-full" : "w-full md:w-3/5"
-          }
-        >
+        <div className="w-full text-sm">
           {/* Hero Slogan */}
           <div className="relative">
             <h4
-              className={`mb-4.5 text-lg font-medium text-black dark:text-white ${
+              className={`mb-4.5 font-medium text-black dark:text-white ${
                 activeSection === "hero_slogan"
                   ? "relative rounded-sm ring-2 ring-primary/40"
                   : ""
@@ -216,9 +212,7 @@ const HeroPreview = ({
             <h1
               className={`mb-5 ${
                 currentPreviewMode === "mobile" ? "pr-4" : "pr-16"
-              } text-3xl font-bold text-black dark:text-white ${
-                currentPreviewMode === "desktop" ? "xl:text-hero" : ""
-              } ${
+              } text-xl font-bold text-black dark:text-white ${
                 activeSection === "hero_title"
                   ? "relative rounded-sm ring-2 ring-primary/40"
                   : ""
@@ -247,7 +241,7 @@ const HeroPreview = ({
           {/* Hero Subtitle */}
           <div className="relative">
             <p
-              className={`text-body-color dark:text-body-color-dark min-h-[60px] max-w-[540px] whitespace-pre-wrap text-base leading-relaxed ${
+              className={`text-body-color dark:text-body-color-dark min-h-[60px] max-w-[540px] whitespace-pre-wrap text-sm leading-relaxed ${
                 activeSection === "hero_subtitle"
                   ? "relative rounded-sm ring-2 ring-primary/40"
                   : ""
@@ -470,8 +464,8 @@ const HeroPreview = ({
               </div>
 
               {/* Browser content */}
-              <div className="h-[600px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
-                <div className="origin-top scale-100 px-5 pb-10 pt-6">
+              <div className="h-fit max-h-[600px] min-h-[250px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
+                <div className="origin-top scale-100 px-5 pb-5 pt-6">
                   {renderHeroContent()}
                 </div>
               </div>

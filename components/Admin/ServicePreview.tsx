@@ -385,8 +385,8 @@ const ServicePreview = ({
               </div>
 
               {/* Browser content */}
-              <div className="h-[600px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
-                <div className="origin-top scale-[0.85] pb-10">
+              <div className="h-fit max-h-[600px] min-h-[250px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
+                <div className="origin-top scale-[0.85] pb-5">
                   {renderServicesContent()}
                 </div>
               </div>

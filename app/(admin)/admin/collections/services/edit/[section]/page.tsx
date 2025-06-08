@@ -32,9 +32,9 @@ export default function EditServicesSection() {
           setData({ en: "", id: "" });
         }
         setError(null);
-      } catch (err) {
-        console.error("Error fetching document:", err);
-        setError("Failed to load data. Please try again.");
+      } catch (error) {
+        console.error("Error fetching document:", error);
+        setError("Failed to load document. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -53,9 +53,9 @@ export default function EditServicesSection() {
       toast.success("Changes saved successfully!");
       // Navigate back to services management page
       router.push("/admin/collections/services");
-    } catch (err) {
-      console.error("Error updating document:", err);
-      toast.error("Failed to save changes. Please try again.");
+    } catch (error) {
+      console.error("Error saving document:", error);
+      setError("Failed to save document. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -63,30 +63,19 @@ export default function EditServicesSection() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mx-auto max-w-md p-4">
-        <div className="rounded-lg bg-red-50 p-4 text-red-800">
-          <p>{error}</p>
-          <button
-            className="mt-2 rounded bg-red-100 px-4 py-2 font-medium text-red-800"
-            onClick={() => router.push("/admin/collections/services")}
-          >
-            Go Back
-          </button>
-        </div>
+      <div className="flex h-full w-full items-center justify-center py-10">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto">
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400">
+          {error}
+        </div>
+      )}
       <ServiceEditor
         collectionName="services"
         documentId={section}

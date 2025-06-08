@@ -1,31 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
-import AdminPageHeader from "@/components/Admin/AdminPageHeader";
-import HeroEditor from "@/components/Admin/HeroEditor";
+import { useLanguage } from "@/app/context/LanguageContext";
+import ClientsEditor from "@/components/Admin/ClientsEditor";
 
-export default function EditHero({ params }) {
-  const router = useRouter();
-  const { field } = params;
-  const [initialData, setInitialData] = useState({});
+export default function EditClientsPage({ params }) {
+  const { docId } = params;
+  const { language } = useLanguage();
+  const [initialData, setInitialData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch initial data
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchDocument = async () => {
       try {
         setIsLoading(true);
-        const docRef = doc(firestore, "hero", field);
-        const docSnap = await getDoc(docRef);
+        const docRef = doc(firestore, "clients", docId);
+        const docSnapshot = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          setInitialData(docSnap.data());
+        if (docSnapshot.exists()) {
+          setInitialData(docSnapshot.data());
         } else {
-          // Initialize with empty data for new documents
+          // If document doesn't exist, initialize with empty data
           setInitialData({ en: "", id: "" });
         }
       } catch (error) {
@@ -36,14 +36,20 @@ export default function EditHero({ params }) {
       }
     };
 
-    fetchInitialData();
-  }, [field]);
+    fetchDocument();
+  }, [docId]);
 
-  const handleSubmit = async (data) => {
-    setIsSaving(true);
+  // Handle form submission
+  const handleSubmit = async (data: any) => {
     try {
-      await setDoc(doc(firestore, "hero", field), data);
-      router.push("/admin/collections/hero");
+      setIsSaving(true);
+      setError(null);
+
+      // Save data to Firestore
+      await setDoc(doc(firestore, "clients", docId), data, { merge: true });
+
+      // Redirect back to clients collection page after successful save
+      window.location.href = "/admin/collections/clients";
     } catch (error) {
       console.error("Error saving document:", error);
       setError("Failed to save document. Please try again.");
@@ -67,9 +73,9 @@ export default function EditHero({ params }) {
           {error}
         </div>
       )}
-      <HeroEditor
-        collectionName="hero"
-        documentId={field}
+      <ClientsEditor
+        collectionName="clients"
+        documentId={docId}
         initialData={initialData}
         onSubmit={handleSubmit}
         isSaving={isSaving}

@@ -512,10 +512,10 @@ const HeaderPreview = ({
               </div>
 
               {/* Browser content */}
-              <div className="h-[500px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
-                <div className="origin-top scale-100 pb-10">
+              <div className="h-fit max-h-[600px] min-h-[250px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
+                <div className="origin-top scale-100 pb-5">
                   {renderHeaderContent()}
-                  <div className="h-[400px] p-4 text-center text-sm text-gray-500">
+                  <div className="flex h-[200px] items-center justify-center p-4 text-center text-sm text-gray-500">
                     Page content would appear here
                   </div>
                 </div>
