@@ -395,6 +395,36 @@ export default function AdminSidebar({ onToggle }) {
                     {isOpen && <span>Services Section</span>}
                   </Link>
                 </li>
+
+                {/* About Section Editor Link */}
+                <li>
+                  <Link
+                    href="/admin/collections/about"
+                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/about"
+                        ? "bg-primary text-white"
+                        : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    {isOpen && <span>About Section</span>}
+                  </Link>
+                </li>
               </ul>
             )}
           </li>
@@ -405,7 +435,8 @@ export default function AdminSidebar({ onToggle }) {
               (collectionId) =>
                 collectionId !== "header" &&
                 collectionId !== "hero" &&
-                collectionId !== "services",
+                collectionId !== "services" &&
+                collectionId !== "about",
             )
             .map((collectionId) => (
               <li key={collectionId}>

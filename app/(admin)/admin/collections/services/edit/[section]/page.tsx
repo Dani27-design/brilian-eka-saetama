@@ -86,7 +86,7 @@ export default function EditServicesSection() {
   }
 
   return (
-    <div className="container mx-auto max-w-5xl">
+    <div className="container mx-auto">
       <ServiceEditor
         collectionName="services"
         documentId={section}

@@ -97,7 +97,7 @@ export default function EditHeader({ params }) {
   };
 
   return (
-    <div className="container mx-auto max-w-5xl">
+    <div className="container mx-auto">
       <HeaderEditor
         collectionName="header"
         documentId={field}

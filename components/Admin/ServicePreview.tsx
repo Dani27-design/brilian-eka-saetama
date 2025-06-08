@@ -125,7 +125,7 @@ const ServicePreview = ({
         >
           <h2
             className={`mb-4 font-bold text-black dark:text-white ${
-              currentPreviewMode === "mobile" ? "text-2xl" : "text-3xl"
+              currentPreviewMode === "mobile" ? "text-xl" : "text-2xl"
             }`}
           >
             {servicesContent.servicesTitle}

@@ -47,7 +47,7 @@ export default function EditHero({ params }) {
   };
 
   return (
-    <div className="container mx-auto max-w-5xl">
+    <div className="container mx-auto">
       <HeroEditor
         collectionName="hero"
         documentId={field}
