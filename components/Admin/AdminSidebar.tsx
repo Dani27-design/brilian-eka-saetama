@@ -516,6 +516,36 @@ export default function AdminSidebar({ onToggle }) {
                     {isOpen && <span>FAQ Section</span>}
                   </Link>
                 </li>
+
+                {/* Testimonial Section Editor Link */}
+                <li>
+                  <Link
+                    href="/admin/collections/testimonial"
+                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/testimonial"
+                        ? "bg-primary text-white"
+                        : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                        />
+                      </svg>
+                    </div>
+                    {isOpen && <span>Testimonial Section</span>}
+                  </Link>
+                </li>
               </ul>
             )}
           </li>
@@ -530,7 +560,8 @@ export default function AdminSidebar({ onToggle }) {
                 collectionId !== "about" &&
                 collectionId !== "clients" &&
                 collectionId !== "clientsInfo" &&
-                collectionId !== "faq",
+                collectionId !== "faq" &&
+                collectionId !== "testimonial",
             )
             .map((collectionId) => (
               <li key={collectionId}>
@@ -546,7 +577,12 @@ export default function AdminSidebar({ onToggle }) {
                   <div className="mr-3">
                     <CollectionIcon />
                   </div>
-                  {isOpen && <span className="capitalize">{collectionId}</span>}
+                  {isOpen && (
+                    <span className="capitalize">
+                      {collectionId}
+                      {"-under-construction-"}
+                    </span>
+                  )}
                 </Link>
               </li>
             ))}

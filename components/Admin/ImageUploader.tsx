@@ -282,7 +282,7 @@ const ImageUploader = ({
               className="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             >
               {isUploading ? (
-                <span className="flex items-center">
+                <span className="flex items-center justify-center">
                   <svg
                     className="mr-2 h-4 w-4 animate-spin"
                     viewBox="0 0 24 24"
@@ -301,10 +301,12 @@ const ImageUploader = ({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Uploading {uploadProgress}%
+                  <p className="m-0 p-0 text-center">
+                    Uploading {uploadProgress}%
+                  </p>
                 </span>
               ) : (
-                <>
+                <span className="flex w-full items-center justify-center">
                   <svg
                     className="mr-2 h-4 w-4"
                     fill="none"
@@ -319,8 +321,8 @@ const ImageUploader = ({
                       d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                     />
                   </svg>
-                  Upload from device
-                </>
+                  <p className="m-0 p-0 text-center">Upload from Device</p>
+                </span>
               )}
             </label>
           </div>

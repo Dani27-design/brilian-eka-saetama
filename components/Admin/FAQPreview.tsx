@@ -166,8 +166,8 @@ const FAQPreview = ({
 
   // Render FAQ content for device frames
   const renderFAQContent = () => (
-    <section id="faq" className="my-0 py-8">
-      <div className="relative mx-auto max-w-c-1280 px-4 md:px-8 xl:px-0">
+    <div className="mx-auto w-full py-4">
+      <div className="relative mx-auto w-full px-4 md:px-8 xl:px-0">
         <div className="absolute -z-1 h-full w-full">
           <Image
             src="/images/shape/shape-dotted-light-02.svg"
@@ -238,9 +238,12 @@ const FAQPreview = ({
 
               {(hoveredSection === "faq_title" ||
                 activeSection === "faq_title") && (
-                <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
-                  FAQ Title (Click to Edit)
-                </div>
+                <>
+                  <div className="absolute inset-0 rounded-sm ring-2 ring-primary"></div>
+                  <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
+                    FAQ Title (Click to Edit)
+                  </div>
+                </>
               )}
             </div>
 
@@ -263,9 +266,12 @@ const FAQPreview = ({
 
               {(hoveredSection === "faq_subtitle" ||
                 activeSection === "faq_subtitle") && (
-                <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
-                  FAQ Subtitle (Click to Edit)
-                </div>
+                <>
+                  <div className="absolute inset-0 rounded-sm ring-2 ring-primary"></div>
+                  <div className="absolute -bottom-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
+                    FAQ Subtitle (Click to Edit)
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -308,7 +314,7 @@ const FAQPreview = ({
                 activeSection === "faq_items") && (
                 <>
                   <div className="absolute inset-0 rounded-sm ring-2 ring-primary"></div>
-                  <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
+                  <div className="absolute left-0 top-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
                     FAQ Items (Click to Edit)
                   </div>
                 </>
@@ -317,7 +323,7 @@ const FAQPreview = ({
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 
   return (
