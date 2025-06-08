@@ -368,7 +368,7 @@ const HeroPreview = ({
       </div>
 
       {/* Device mockup container */}
-      <div className="mx-auto max-w-fit">
+      <div className="mx-auto w-full">
         {currentPreviewMode === "mobile" ? (
           /* Mobile Phone Mockup */
           <div className="mx-auto w-[350px]">

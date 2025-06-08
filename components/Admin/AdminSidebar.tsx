@@ -9,6 +9,7 @@ import { firestore } from "@/db/firebase/firebaseConfig";
 
 export default function AdminSidebar({ onToggle }) {
   const [isOpen, setIsOpen] = useState(true);
+  const [websiteContentExpanded, setWebsiteContentExpanded] = useState(false);
   const [collections, setCollections] = useState<string[]>([]);
   const pathname = usePathname();
 
@@ -256,25 +257,142 @@ export default function AdminSidebar({ onToggle }) {
             </Link>
           </li>
 
-          {/* Collection Links - Dynamically Generated */}
-          {collections.map((collectionId) => (
-            <li key={collectionId}>
-              <Link
-                href={`/admin/collections/${collectionId}`}
-                className={`flex items-center rounded-lg px-4 py-3 text-base font-medium transition-colors ${
-                  pathname === `/admin/collections/${collectionId}` ||
-                  pathname.startsWith(`/admin/collections/${collectionId}/`)
-                    ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
-                }`}
-              >
+          {/* Website Content Section */}
+          <li className="mb-1">
+            <div
+              className={`flex cursor-pointer items-center justify-between rounded-lg px-4 py-3 text-base font-medium transition-colors`}
+              onClick={() => {
+                setWebsiteContentExpanded(!websiteContentExpanded);
+              }}
+            >
+              <div className="flex items-center">
                 <div className="mr-3">
-                  <CollectionIcon />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    />
+                  </svg>
                 </div>
-                {isOpen && <span className="capitalize">{collectionId}</span>}
-              </Link>
-            </li>
-          ))}
+                {isOpen && <span>Website Content</span>}
+              </div>
+              {isOpen && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-4 w-4 transition-transform ${
+                    websiteContentExpanded ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              )}
+            </div>
+
+            {websiteContentExpanded && (
+              <ul className={`space-y-1 pt-1 ${isOpen ? "ml-6" : ""}`}>
+                {/* Header Section Editor Link */}
+                <li>
+                  <Link
+                    href="/admin/collections/header"
+                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/header"
+                        ? "bg-primary text-white"
+                        : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 7h18M3 12h18m-9 5h9M3 17h6m-6-4h6m-6-4h6m-6-4h6M3 7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
+                        />
+                      </svg>
+                    </div>
+                    {isOpen && <span>Header Section</span>}
+                  </Link>
+                </li>
+
+                {/* Hero Section Editor Link */}
+                <li>
+                  <Link
+                    href="/admin/collections/hero"
+                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/hero"
+                        ? "bg-primary text-white"
+                        : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8V4m0 0a2 2 0 012-2h6a2 2 0 012 2v16a2 2 0 01-2 2h-6a2 2 0 01-2-2V8zm0 0H6a2 2 0 00-2 2v10a2 2 0 002 2h6a2 2 0 002-2V8z"
+                        />
+                      </svg>
+                    </div>
+                    {isOpen && <span>Hero Section</span>}
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
+          {/* Collection Links - Dynamically Generated */}
+          {collections
+            .filter(
+              (collectionId) =>
+                collectionId !== "header" && collectionId !== "hero",
+            )
+            .map((collectionId) => (
+              <li key={collectionId}>
+                <Link
+                  href={`/admin/collections/${collectionId}`}
+                  className={`flex items-center rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                    pathname === `/admin/collections/${collectionId}` ||
+                    pathname.startsWith(`/admin/collections/${collectionId}/`)
+                      ? "bg-primary text-white"
+                      : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <div className="mr-3">
+                    <CollectionIcon />
+                  </div>
+                  {isOpen && <span className="capitalize">{collectionId}</span>}
+                </Link>
+              </li>
+            ))}
         </ul>
       </nav>
     </div>
