@@ -154,6 +154,7 @@ const HeaderPreview = ({
                 width: "auto",
                 height: "auto",
               }}
+              quality={50}
             />
             <Image
               src={headerContent.logoDark}
@@ -166,6 +167,7 @@ const HeaderPreview = ({
                 width: "auto",
                 height: "auto",
               }}
+              quality={50}
             />
             {hoveredSection === "logo_data" && (
               <div className="-bottom-100 absolute left-0 z-10 w-fit rounded bg-black/80 px-2 py-1 text-xs text-white">
@@ -306,8 +308,7 @@ const HeaderPreview = ({
                 height={16}
                 className="dark:hidden"
                 priority={true}
-                quality={80}
-                loading="eager"
+                quality={50}
               />
 
               <Image
@@ -317,8 +318,7 @@ const HeaderPreview = ({
                 height={17}
                 className="hidden dark:block"
                 priority={true}
-                quality={80}
-                loading="eager"
+                quality={50}
               />
             </button>
 

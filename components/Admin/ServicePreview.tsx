@@ -211,6 +211,7 @@ const ServicePreview = ({
                   objectFit: "cover",
                   objectPosition: "center",
                 }}
+                quality={50}
               />
             </div>
             <h3

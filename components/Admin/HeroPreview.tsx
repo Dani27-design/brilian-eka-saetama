@@ -306,8 +306,8 @@ const HeroPreview = ({
               width={46}
               height={246}
               className="absolute -left-11.5 top-0"
-              priority={true}
-              quality={80}
+              priority={false}
+              quality={50}
             />
             <Image
               src="/images/shape/shape-02.svg"
@@ -315,8 +315,8 @@ const HeroPreview = ({
               width={36.9}
               height={36.7}
               className="absolute bottom-0 right-0 z-10"
-              priority={true}
-              quality={80}
+              priority={false}
+              quality={50}
             />
             <Image
               src="/images/shape/shape-03.svg"
@@ -324,8 +324,8 @@ const HeroPreview = ({
               width={21.64}
               height={21.66}
               className="absolute -right-6.5 bottom-0 z-1"
-              priority={true}
-              quality={80}
+              priority={false}
+              quality={50}
             />
             <HeroVideo />
           </div>

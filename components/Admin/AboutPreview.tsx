@@ -209,6 +209,7 @@ const AboutPreview = ({
                           alt={section.title || "About"}
                           className="rounded-lg object-cover dark:hidden"
                           fill
+                          quality={50}
                         />
                         <Image
                           src={
@@ -218,6 +219,7 @@ const AboutPreview = ({
                           alt={section.title || "About"}
                           className="hidden rounded-lg object-cover dark:block"
                           fill
+                          quality={50}
                         />
                       </div>
                     </div>
@@ -294,6 +296,7 @@ const AboutPreview = ({
                           alt={section.title || "About"}
                           className="rounded-lg object-cover dark:hidden"
                           fill
+                          quality={50}
                         />
                         <Image
                           src={
@@ -303,6 +306,7 @@ const AboutPreview = ({
                           alt={section.title || "About"}
                           className="hidden rounded-lg object-cover dark:block"
                           fill
+                          quality={50}
                         />
                       </div>
                     </div>

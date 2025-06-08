@@ -2,6 +2,7 @@
 import { Inter } from "next/font/google";
 import "../globals.css";
 import AdminLayoutClient from "@/components/Admin/AdminLayoutClient";
+import { Providers } from "../providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,7 +42,9 @@ export default function AdminLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AdminLayoutClient>{children}</AdminLayoutClient>
+        <Providers>
+          <AdminLayoutClient>{children}</AdminLayoutClient>
+        </Providers>
       </body>
     </html>
   );
