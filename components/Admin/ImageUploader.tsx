@@ -201,125 +201,153 @@ const ImageUploader = ({
 
   return (
     <div className="space-y-3">
-      {/* Current image preview */}
-      {value && (
-        <div className="mb-3 rounded-lg border border-gray-200 p-2 dark:border-gray-700">
-          <div className="relative overflow-hidden rounded-md">
-            <div className={`relative w-full ${getAspectRatioClass()}`}>
-              <Image
-                src={value}
-                alt="Selected image"
-                fill
-                className="object-cover"
-                style={{
-                  objectFit: "cover",
-                  objectPosition: "center",
-                }}
-                onError={() => setError("Failed to load image")}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={clearImage}
-              className="absolute right-2 top-2 rounded-full bg-red-600 p-1 text-white hover:bg-red-700"
-              aria-label="Remove image"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Main container - flex layout for side-by-side positioning */}
+      <div className="flex flex-col gap-4 sm:flex-row">
+        {/* Left side: Image preview */}
+        {value ? (
+          <div className="w-full rounded-lg border border-gray-200 dark:border-gray-700 sm:w-1/2">
+            <div className="relative overflow-hidden rounded-md">
+              <div className={`relative w-full ${getAspectRatioClass()}`}>
+                <Image
+                  src={value}
+                  alt="Selected image"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  onError={(err: any) => {
+                    // Handle Firebase Storage errors
+                    const error = err?.target?.error;
+                    const storagePath = value.includes("firebase")
+                      ? `Firebase Storage (${value
+                          .split("?")[0]
+                          .split("/")
+                          .pop()})`
+                      : "storage";
 
-      {/* Upload controls */}
-      <div className="flex flex-wrap gap-2">
-        {/* Upload from device */}
-        <div className="flex-1">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-            id="image-upload"
-          />
-          <label
-            htmlFor="image-upload"
-            className="flex h-10 cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-          >
-            {isUploading ? (
-              <span className="flex items-center">
-                <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Uploading {uploadProgress}%
-              </span>
-            ) : (
-              <>
+                    if (value.includes("firebasestorage.googleapis.com")) {
+                      setError(
+                        `Failed to load image from ${storagePath}: The file may have been deleted or you don't have permission to view it.`,
+                      );
+                    } else {
+                      setError(
+                        `Failed to load image: ${
+                          error?.message || "Unknown error"
+                        }`,
+                      );
+                    }
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={clearImage}
+                className="absolute right-2 top-2 rounded-full bg-red-600 p-1 text-white hover:bg-red-700"
+                aria-label="Remove image"
+              >
                 <svg
-                  className="mr-2 h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
                 >
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
                   />
                 </svg>
-                Upload from device
-              </>
-            )}
-          </label>
-        </div>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex h-[120px] w-full items-center justify-center rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 sm:w-1/2">
+            <p className="text-sm text-gray-400">No image selected</p>
+          </div>
+        )}
 
-        {/* Select from gallery */}
-        <button
-          type="button"
-          onClick={toggleGallery}
-          className="flex h-10 items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-        >
-          <svg
-            className="mr-2 h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+        {/* Right side: Upload controls */}
+        <div className="flex w-full flex-col justify-start gap-2 sm:w-1/2">
+          {/* Upload from device */}
+          <div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              className="hidden"
+              id="image-upload"
             />
-          </svg>
-          {showGallery ? "Close Gallery" : "Choose from Gallery"}
-        </button>
+            <label
+              htmlFor="image-upload"
+              className="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              {isUploading ? (
+                <span className="flex items-center">
+                  <svg
+                    className="mr-2 h-4 w-4 animate-spin"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Uploading {uploadProgress}%
+                </span>
+              ) : (
+                <>
+                  <svg
+                    className="mr-2 h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  Upload from device
+                </>
+              )}
+            </label>
+          </div>
+
+          {/* Select from gallery */}
+          <button
+            type="button"
+            onClick={toggleGallery}
+            className="flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+          >
+            <svg
+              className="mr-2 h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {showGallery ? "Close Gallery" : "Choose from Gallery"}
+          </button>
+        </div>
       </div>
 
       {/* Error message */}
@@ -380,7 +408,7 @@ const ImageUploader = ({
               No images found in media library
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
               {galleryImages.map((mediaFile) => (
                 <div
                   key={mediaFile.id}
@@ -398,6 +426,28 @@ const ImageUploader = ({
                       fill
                       sizes="(max-width: 768px) 33vw, 25vw"
                       className="object-cover"
+                      onError={(err: any) => {
+                        // Handle Firebase Storage errors
+                        const error = err?.target?.error;
+                        const storagePath = value.includes("firebase")
+                          ? `Firebase Storage (${value
+                              .split("?")[0]
+                              .split("/")
+                              .pop()})`
+                          : "storage";
+
+                        if (value.includes("firebasestorage.googleapis.com")) {
+                          setError(
+                            `Failed to load image from ${storagePath}: The file may have been deleted or you don't have permission to view it.`,
+                          );
+                        } else {
+                          setError(
+                            `Failed to load image: ${
+                              error?.message || "Unknown error"
+                            }`,
+                          );
+                        }
+                      }}
                     />
                   </div>
 

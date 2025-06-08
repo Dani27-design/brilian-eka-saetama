@@ -5,7 +5,15 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/app/context/LanguageContext";
 
-interface ServicePreviewProps {
+interface Brand {
+  id: number;
+  name: string;
+  href: string;
+  image: string;
+  imageLight?: string;
+}
+
+interface ClientsInfoPreviewProps {
   data: {
     [key: string]: {
       [lang: string]: any;
@@ -17,13 +25,13 @@ interface ServicePreviewProps {
   onPreviewModeChange?: (mode: "desktop" | "mobile") => void;
 }
 
-const ServicePreview = ({
+const ClientsInfoPreview = ({
   data,
   activeSection,
   onEditSection,
   previewMode = "desktop",
   onPreviewModeChange,
-}: ServicePreviewProps) => {
+}: ClientsInfoPreviewProps) => {
   const { theme } = useTheme();
   const { language } = useLanguage();
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
@@ -44,210 +52,133 @@ const ServicePreview = ({
     }
   };
 
-  // Process the services data for the current language
-  const processServicesData = () => {
+  // Process the clients info data for the current language
+  const processClientsInfoData = () => {
     const currentLang = language || "en";
 
-    // Get services title
-    const getServicesTitle = () => {
-      if (!data.services_title || !data.services_title[currentLang]) {
-        return currentLang === "en" ? "Our Services" : "Layanan Kami";
+    // Get clients data
+    const getClientsData = () => {
+      if (!data.clients || !data.clients[currentLang]) {
+        // Default sample data if none exists
+        return [
+          {
+            id: 1,
+            name: "Brand One",
+            href: "#",
+            image: "/images/brands/brand-01.svg",
+            imageLight: "/images/brands/brand-01-light.svg",
+          },
+          {
+            id: 2,
+            name: "Brand Two",
+            href: "#",
+            image: "/images/brands/brand-02.svg",
+            imageLight: "/images/brands/brand-02-light.svg",
+          },
+          {
+            id: 3,
+            name: "Brand Three",
+            href: "#",
+            image: "/images/brands/brand-03.svg",
+            imageLight: "/images/brands/brand-03-light.svg",
+          },
+          {
+            id: 4,
+            name: "Brand Four",
+            href: "#",
+            image: "/images/brands/brand-04.svg",
+            imageLight: "/images/brands/brand-04-light.svg",
+          },
+          {
+            id: 5,
+            name: "Brand Five",
+            href: "#",
+            image: "/images/brands/brand-05.svg",
+            imageLight: "/images/brands/brand-05-light.svg",
+          },
+          {
+            id: 6,
+            name: "Brand Six",
+            href: "#",
+            image: "/images/brands/brand-06.svg",
+            imageLight: "/images/brands/brand-06-light.svg",
+          },
+        ];
       }
-      return data.services_title[currentLang];
+
+      return data.clients[currentLang];
     };
 
-    // Get services subtitle
-    const getServicesSubtitle = () => {
-      if (!data.services_subtitle || !data.services_subtitle[currentLang]) {
-        return currentLang === "en"
-          ? "Discover our comprehensive range of services"
-          : "Temukan berbagai layanan komprehensif kami";
-      }
-      return data.services_subtitle[currentLang];
-    };
-
-    // Get services data
-    const getServicesData = () => {
-      try {
-        if (!data.services_data || !data.services_data[currentLang]) return [];
-        const items = data.services_data[currentLang];
-        return Array.isArray(items) ? items : [];
-      } catch (e) {
-        console.error("Error parsing services data:", e);
-        return [];
-      }
-    };
-
-    const servicesTitle = getServicesTitle();
-    const servicesSubtitle = getServicesSubtitle();
-    const servicesData = getServicesData();
+    const clientsData = getClientsData();
 
     return {
-      servicesTitle,
-      servicesSubtitle,
-      servicesData,
+      brands: clientsData,
     };
   };
 
-  const servicesContent = processServicesData();
+  const clientsContent = processClientsInfoData();
 
-  // Determine classes based on preview mode
-  const getServiceCardsContainerClasses = () => {
-    if (currentPreviewMode === "mobile") {
-      // Mobile view: single column, smaller spacing
-      return "mt-8 grid grid-cols-1 gap-6";
-    } else {
-      // Desktop view: multi-column, larger spacing
-      return "mt-12 grid grid-cols-3 gap-10";
-    }
-  };
-
-  // Render services content for device frames
-  const renderServicesContent = () => (
-    <div className="mx-auto w-full py-4">
-      {/* Section Header with Title and Subtitle */}
-      <div className="mx-auto text-center">
-        <div className="mb-4 inline-block rounded-full bg-zumthor px-4.5 py-1.5 dark:border dark:border-strokedark dark:bg-blacksection">
-          <span className="text-sectiontitle font-medium text-black dark:text-white">
-            {language === "en" ? "Our Services" : "Layanan Kami"}
-          </span>
-        </div>
+  // Render clients info content for device frames
+  const renderClientsInfoContent = () => (
+    <div
+      className={`mx-auto w-full border border-x-0 border-y-stroke bg-alabaster py-10 dark:border-y-strokedark dark:bg-black`}
+    >
+      <div className="mx-auto px-2">
         <div
-          className="relative mb-4 cursor-pointer"
+          className="relative cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
-            activeSection !== "services_title" &&
+            activeSection !== "clients" &&
               onEditSection &&
-              onEditSection("services_title");
+              onEditSection("clients");
           }}
-          onMouseEnter={() => setHoveredSection("services_title")}
+          onMouseEnter={() => setHoveredSection("clients")}
           onMouseLeave={() => setHoveredSection(null)}
         >
-          <h2
-            className={`mb-4 font-bold text-black dark:text-white ${
-              currentPreviewMode === "mobile" ? "text-xl" : "text-2xl"
-            }`}
-          >
-            {servicesContent.servicesTitle}
-          </h2>
-
-          {(hoveredSection === "services_title" ||
-            activeSection === "services_title") && (
-            <>
-              <div className="absolute inset-0 rounded-sm ring-2 ring-primary"></div>
-              <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
-                Services Title (Click to Edit)
-              </div>
-            </>
-          )}
-        </div>
-
-        <div
-          className="relative mb-10 w-full cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation();
-            activeSection !== "services_subtitle" &&
-              onEditSection &&
-              onEditSection("services_subtitle");
-          }}
-          onMouseEnter={() => setHoveredSection("services_subtitle")}
-          onMouseLeave={() => setHoveredSection(null)}
-        >
-          <p
-            className={`text-body-color mx-auto font-medium leading-relaxed ${
-              currentPreviewMode === "mobile"
-                ? "w-full text-sm"
-                : "max-w-c-665 text-base"
-            }`}
-          >
-            {servicesContent.servicesSubtitle}
-          </p>
-
-          {(hoveredSection === "services_subtitle" ||
-            activeSection === "services_subtitle") && (
-            <>
-              <div className="absolute inset-0 rounded-sm ring-2 ring-primary"></div>
-              <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
-                Services Subtitle (Click to Edit)
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Services Cards Grid */}
-      <div
-        className={`relative cursor-pointer ${getServiceCardsContainerClasses()}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          activeSection !== "services_data" &&
-            onEditSection &&
-            onEditSection("services_data");
-        }}
-        onMouseEnter={() => setHoveredSection("services_data")}
-        onMouseLeave={() => setHoveredSection(null)}
-      >
-        {servicesContent.servicesData.map((service, index) => (
+          {/* Clients brands grid */}
           <div
-            key={index}
-            className="z-40 flex h-full flex-col rounded-lg border border-white bg-white p-6 shadow-solid-3 transition-all hover:shadow-solid-4 dark:border-strokedark dark:bg-blacksection dark:hover:bg-hoverdark"
+            className={
+              currentPreviewMode === "mobile"
+                ? "grid grid-cols-3 items-start justify-center gap-4"
+                : "grid grid-cols-3 items-start justify-center gap-5 md:grid-cols-6 lg:gap-8"
+            }
           >
-            <div
-              className={`relative mb-6 w-full overflow-hidden rounded-lg ${
-                currentPreviewMode === "mobile" ? "h-[160px]" : "h-[230px]"
-              }`}
-            >
-              <Image
-                src={service.image || "/images/service-placeholder.jpg"}
-                alt={service.title || "Service"}
-                fill
-                sizes={
-                  currentPreviewMode === "mobile"
-                    ? "100vw"
-                    : "(max-width: 1200px) 33vw, 33vw"
-                }
-                className="object-cover"
-                style={{
-                  objectFit: "cover",
-                  objectPosition: "center",
-                }}
-                quality={50}
-              />
-            </div>
-            <h3
-              className={`mb-3 font-semibold text-black dark:text-white ${
-                currentPreviewMode === "mobile" ? "text-lg" : "text-xl"
-              }`}
-            >
-              {service.title || "Service Title"}
-            </h3>
-            <p
-              className={`flex-grow ${
-                currentPreviewMode === "mobile" ? "text-sm" : ""
-              }`}
-            >
-              {service.description || "Service description goes here."}
-            </p>
+            {clientsContent.brands.map((brand: Brand) => (
+              <div
+                key={brand.id}
+                className="flex h-[170px] w-full max-w-[120px] flex-col items-center justify-start gap-2"
+              >
+                <div className="flex h-[120px] w-[98px] items-center justify-center overflow-hidden rounded-lg">
+                  <div className="relative h-full w-full rounded-lg shadow-lg">
+                    <Image
+                      className="rounded-lg opacity-50 shadow-lg transition-all duration-300 hover:opacity-100"
+                      src={brand.imageLight || brand.image}
+                      alt={brand.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 98px"
+                      style={{ objectFit: "cover", objectPosition: "center" }}
+                      quality={50}
+                    />
+                  </div>
+                </div>
+                <div className="mt-2 h-[40px] w-full overflow-hidden text-center">
+                  <p className="mx-auto line-clamp-2 max-w-full whitespace-normal px-1 text-sm leading-tight">
+                    {brand.name}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
 
-        {/* Show placeholder card if no services */}
-        {servicesContent.servicesData.length === 0 && (
-          <div className="z-40 flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-            <span className="mb-3 text-3xl">➕</span>
-            <p>Add services to display here</p>
-          </div>
-        )}
-
-        {(hoveredSection === "services_data" ||
-          activeSection === "services_data") && (
-          <>
-            <div className="absolute inset-0 rounded-sm ring-2 ring-primary"></div>
-            <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
-              Services Data (Click to Edit)
-            </div>
-          </>
-        )}
+          {(hoveredSection === "clients" || activeSection === "clients") && (
+            <>
+              <div className="absolute inset-0 rounded-sm ring-2 ring-primary"></div>
+              <div className="absolute -top-8 left-0 z-10 rounded bg-black/80 px-2 py-1 text-xs text-white">
+                Client Brands (Click to Edit)
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -260,17 +191,11 @@ const ServicePreview = ({
           <div className="flex items-center justify-center space-x-2">
             <div className="h-2 w-2 animate-pulse rounded-full bg-primary"></div>
             <span className="text-sm font-medium text-primary">
-              {activeSection === "services_title" ? (
-                <span>Editing Title</span>
-              ) : activeSection === "services_subtitle" ? (
-                <span>Editing Subtitle</span>
-              ) : (
-                <span>Editing Service Lists</span>
-              )}
+              Editing Client Brands
             </span>
           </div>
           <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-            Click on other sections to edit them
+            Click to edit client brands information
           </p>
         </div>
       )}
@@ -278,7 +203,7 @@ const ServicePreview = ({
       {/* Preview mode toggle buttons */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-black dark:text-white">
-          Service Section
+          Client List Section
         </h2>
         <div className="flex space-x-2">
           <button
@@ -330,7 +255,7 @@ const ServicePreview = ({
                 {/* Scrollable content area */}
                 <div className="h-[644px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
                   <div className="origin-top scale-[0.9] pb-12 pt-0">
-                    {renderServicesContent()}
+                    {renderClientsInfoContent()}
                   </div>
                 </div>
               </div>
@@ -373,7 +298,7 @@ const ServicePreview = ({
                     />
                   </svg>
                   <span className="text-xs text-gray-600 dark:text-gray-300">
-                    brilian-eka-saetama.com/#services
+                    brilian-eka-saetama.com/#clients-info
                   </span>
                 </div>
 
@@ -387,7 +312,7 @@ const ServicePreview = ({
               {/* Browser content */}
               <div className="h-fit max-h-[600px] min-h-[250px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
                 <div className="origin-top scale-[0.85] pb-5">
-                  {renderServicesContent()}
+                  {renderClientsInfoContent()}
                 </div>
               </div>
             </div>
@@ -402,4 +327,4 @@ const ServicePreview = ({
   );
 };
 
-export default ServicePreview;
+export default ClientsInfoPreview;

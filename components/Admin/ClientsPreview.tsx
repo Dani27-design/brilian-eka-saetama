@@ -256,7 +256,7 @@ const ClientsPreview = ({
       {/* Preview mode toggle buttons */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-black dark:text-white">
-          Clients Section
+          Client Satisfaction Section
         </h2>
         <div className="flex space-x-2">
           <button

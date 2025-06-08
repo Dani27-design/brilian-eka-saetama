@@ -4,10 +4,9 @@ import { useState, useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
-import ServicePreview from "./ServicePreview";
-import ImageUploader from "./ImageUploader";
+import FAQPreview from "./FAQPreview";
 
-interface ServiceEditorProps {
+interface FAQEditorProps {
   collectionName: string;
   documentId: string;
   initialData: any;
@@ -15,37 +14,33 @@ interface ServiceEditorProps {
   isSaving: boolean;
 }
 
-const ServiceEditor = ({
+const FAQEditor = ({
   collectionName,
   documentId,
   initialData,
   onSubmit,
   isSaving,
-}: ServiceEditorProps) => {
+}: FAQEditorProps) => {
   const { language } = useLanguage();
   const [formData, setFormData] = useState<any>(
     initialData || { en: "", id: "" },
   );
-  const [fullServicesData, setFullServicesData] = useState<any>({});
+  const [fullFAQData, setFullFAQData] = useState<any>({});
   const [activeTab, setActiveTab] = useState<string>(language || "en");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
     "desktop",
   );
-  const [serviceItems, setServiceItems] = useState<any[]>([]);
+  const [faqItems, setFaqItems] = useState<any[]>([]);
 
-  // Load all services-related data for the preview
+  // Load all FAQ-related data for the preview
   useEffect(() => {
-    const fetchServicesData = async () => {
+    const fetchFAQData = async () => {
       try {
-        const docTypes = [
-          "services_title",
-          "services_subtitle",
-          "services_data",
-        ];
+        const docTypes = ["faq_title", "faq_subtitle", "faq_items"];
         const data = {};
 
         for (const docType of docTypes) {
-          const docRef = doc(firestore, "services", docType);
+          const docRef = doc(firestore, "faq", docType);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             data[docType] = docSnap.data();
@@ -57,23 +52,23 @@ const ServiceEditor = ({
           data[documentId] = formData;
         }
 
-        setFullServicesData(data);
+        setFullFAQData(data);
 
-        // Special handling for services data
-        if (documentId === "services_data" && formData && formData[activeTab]) {
+        // Special handling for FAQ items
+        if (documentId === "faq_items" && formData && formData[activeTab]) {
           try {
-            const servicesData = formData[activeTab];
-            setServiceItems(Array.isArray(servicesData) ? servicesData : []);
+            const faqData = formData[activeTab];
+            setFaqItems(Array.isArray(faqData) ? faqData : []);
           } catch (e) {
-            console.error("Failed to process service items:", e);
+            console.error("Failed to process FAQ items:", e);
           }
         }
       } catch (error) {
-        console.error("Error fetching services data:", error);
+        console.error("Error fetching FAQ data:", error);
       }
     };
 
-    fetchServicesData();
+    fetchFAQData();
   }, [documentId, formData, activeTab]);
 
   // Make sure formData is properly initialized when initialData changes
@@ -81,13 +76,13 @@ const ServiceEditor = ({
     if (initialData && Object.keys(initialData).length > 0) {
       setFormData(initialData);
 
-      // Special handling for services data
-      if (documentId === "services_data" && initialData[activeTab]) {
+      // Special handling for FAQ items
+      if (documentId === "faq_items" && initialData[activeTab]) {
         try {
-          const servicesData = initialData[activeTab];
-          setServiceItems(Array.isArray(servicesData) ? servicesData : []);
+          const faqData = initialData[activeTab];
+          setFaqItems(Array.isArray(faqData) ? faqData : []);
         } catch (e) {
-          console.error("Failed to process service items:", e);
+          console.error("Failed to process FAQ items:", e);
         }
       }
     }
@@ -101,33 +96,59 @@ const ServiceEditor = ({
     }));
   };
 
-  // Handle service item changes
-  const handleServiceItemChange = (
-    index: number,
-    field: string,
-    value: string,
-  ) => {
-    const newServiceItems = [...serviceItems];
-    newServiceItems[index] = { ...newServiceItems[index], [field]: value };
-    setServiceItems(newServiceItems);
-    handleFormChange(newServiceItems);
+  // Handle FAQ item changes
+  const handleFaqItemChange = (index: number, field: string, value: string) => {
+    const newFaqItems = [...faqItems];
+    newFaqItems[index] = { ...newFaqItems[index], [field]: value };
+    setFaqItems(newFaqItems);
+    handleFormChange(newFaqItems);
   };
 
-  const addServiceItem = () => {
+  // Add a new FAQ item
+  const addFaqItem = () => {
+    const newId =
+      faqItems.length > 0
+        ? Math.max(...faqItems.map((item) => item.id)) + 1
+        : 1;
+
     const newItem = {
-      title: "New Service",
-      description: "Service description goes here",
-      image: "",
+      id: newId,
+      question: "New Question",
+      answer: "Answer goes here",
     };
-    const newServiceItems = [...serviceItems, newItem];
-    setServiceItems(newServiceItems);
-    handleFormChange(newServiceItems);
+
+    const newFaqItems = [...faqItems, newItem];
+    setFaqItems(newFaqItems);
+    handleFormChange(newFaqItems);
   };
 
-  const removeServiceItem = (index: number) => {
-    const newServiceItems = serviceItems.filter((_, i) => i !== index);
-    setServiceItems(newServiceItems);
-    handleFormChange(newServiceItems);
+  // Remove FAQ item
+  const removeFaqItem = (index: number) => {
+    const newFaqItems = faqItems.filter((_, i) => i !== index);
+    setFaqItems(newFaqItems);
+    handleFormChange(newFaqItems);
+  };
+
+  // Move FAQ item up
+  const moveFaqItemUp = (index: number) => {
+    if (index === 0) return; // Can't move the first item up
+    const newFaqItems = [...faqItems];
+    const temp = newFaqItems[index];
+    newFaqItems[index] = newFaqItems[index - 1];
+    newFaqItems[index - 1] = temp;
+    setFaqItems(newFaqItems);
+    handleFormChange(newFaqItems);
+  };
+
+  // Move FAQ item down
+  const moveFaqItemDown = (index: number) => {
+    if (index === faqItems.length - 1) return; // Can't move the last item down
+    const newFaqItems = [...faqItems];
+    const temp = newFaqItems[index];
+    newFaqItems[index] = newFaqItems[index + 1];
+    newFaqItems[index + 1] = temp;
+    setFaqItems(newFaqItems);
+    handleFormChange(newFaqItems);
   };
 
   // Handle form submission
@@ -139,19 +160,19 @@ const ServiceEditor = ({
   // Handle which section to edit
   const handleEditSection = (section: string) => {
     if (section !== documentId) {
-      window.location.href = `/admin/collections/services/edit/${section}`;
+      window.location.href = `/admin/collections/faq/edit/${section}`;
     }
   };
 
   // Render form fields based on the document type
   const renderFormFields = () => {
     switch (documentId) {
-      case "services_title":
+      case "faq_title":
         return (
           <div className="space-y-4">
             <div>
               <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
-                Services Section Title
+                FAQ Section Title
               </label>
               <input
                 type="text"
@@ -159,119 +180,121 @@ const ServiceEditor = ({
                 onChange={(e) => handleFormChange(e.target.value)}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
-                  activeTab === "en" ? "Our Services" : "Layanan Kami"
+                  activeTab === "en" ? "OUR FAQS" : "TANYA JAWAB KAMI"
                 }
               />
               <p className="mt-1 text-sm text-gray-500">
-                Enter the main title for the services section
+                Enter the title that appears above the FAQ section
               </p>
             </div>
           </div>
         );
 
-      case "services_subtitle":
+      case "faq_subtitle":
         return (
           <div className="space-y-4">
             <div>
               <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
-                Services Section Subtitle
+                FAQ Section Subtitle
               </label>
-              <textarea
+              <input
+                type="text"
                 value={formData[activeTab] || ""}
                 onChange={(e) => handleFormChange(e.target.value)}
-                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en"
-                    ? "Discover our comprehensive range of services."
-                    : "Temukan berbagai layanan komprehensif kami."
+                    ? "Frequently Asked Questions"
+                    : "Pertanyaan yang Sering Diajukan"
                 }
               />
               <p className="mt-1 text-sm text-gray-500">
-                Enter the subtitle or description for the services section
+                Enter the subtitle text that appears below the main title
               </p>
             </div>
           </div>
         );
 
-      case "services_data":
+      case "faq_items":
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
               <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
-                Service Items
+                FAQ Items
               </label>
               <p className="mb-4 text-sm text-gray-500">
-                Add, edit, or remove service items below.
+                Add, edit, or remove FAQ items below.
               </p>
 
-              {serviceItems.length === 0 && (
+              {faqItems.length === 0 && (
                 <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500 dark:bg-gray-800">
-                  No service items yet. Add one below.
+                  No FAQ items yet. Add your first question below.
                 </div>
               )}
 
-              {serviceItems.map((item, index) => (
+              {faqItems.map((item, index) => (
                 <div
-                  key={index}
-                  className="mb-6 rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-700"
+                  key={item.id || index}
+                  className="mb-8 rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-700"
                 >
                   <div className="mb-3 flex items-center justify-between">
                     <span className="font-medium text-black dark:text-white">
-                      Service Item {index + 1}
+                      FAQ Item {index + 1}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => removeServiceItem(index)}
-                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-                    >
-                      Remove
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => moveFaqItemUp(index)}
+                        disabled={index === 0}
+                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveFaqItemDown(index)}
+                        disabled={index === faqItems.length - 1}
+                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeFaqItem(index)}
+                        className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mb-3">
                     <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Service Title
+                      Question
                     </label>
                     <input
                       type="text"
-                      value={item.title || ""}
+                      value={item.question || ""}
                       onChange={(e) =>
-                        handleServiceItemChange(index, "title", e.target.value)
+                        handleFaqItemChange(index, "question", e.target.value)
                       }
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      placeholder="Enter a question"
                     />
                   </div>
 
-                  <div className="mb-3">
+                  <div>
                     <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Service Description
+                      Answer
                     </label>
                     <textarea
-                      value={item.description || ""}
+                      value={item.answer || ""}
                       onChange={(e) =>
-                        handleServiceItemChange(
-                          index,
-                          "description",
-                          e.target.value,
-                        )
+                        handleFaqItemChange(index, "answer", e.target.value)
                       }
-                      className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Service Image
-                    </label>
-
-                    {/* Image Uploader Component */}
-                    <ImageUploader
-                      value={item.image || ""}
-                      onChange={(url) =>
-                        handleServiceItemChange(index, "image", url)
-                      }
-                      folder={`services/${activeTab}`}
-                      aspectRatio="landscape"
+                      rows={4}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      placeholder="Enter an answer"
                     />
                   </div>
                 </div>
@@ -279,10 +302,10 @@ const ServiceEditor = ({
 
               <button
                 type="button"
-                onClick={addServiceItem}
-                className="mt-2 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5 dark:bg-transparent"
+                onClick={addFaqItem}
+                className="mt-4 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5 dark:bg-transparent"
               >
-                + Add Service Item
+                + Add FAQ Item
               </button>
             </div>
           </div>
@@ -299,9 +322,9 @@ const ServiceEditor = ({
 
   return (
     <div className="space-y-8">
-      {/* Services preview component */}
-      <ServicePreview
-        data={fullServicesData}
+      {/* FAQ preview component */}
+      <FAQPreview
+        data={fullFAQData}
         activeSection={documentId}
         onEditSection={handleEditSection}
         previewMode={previewMode}
@@ -365,4 +388,4 @@ const ServiceEditor = ({
   );
 };
 
-export default ServiceEditor;
+export default FAQEditor;

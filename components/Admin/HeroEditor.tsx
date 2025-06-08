@@ -222,9 +222,7 @@ const HeroEditor = ({
         onSubmit={handleSubmit}
         className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
       >
-        <h2 className="mb-4 text-xl font-bold capitalize">
-          {documentId.replace(/_/g, " ")} Editor
-        </h2>
+        <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
         <div className="mb-4 border-b border-stroke dark:border-strokedark">

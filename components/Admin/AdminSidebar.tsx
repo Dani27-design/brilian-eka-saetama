@@ -431,7 +431,8 @@ export default function AdminSidebar({ onToggle }) {
                   <Link
                     href="/admin/collections/clients"
                     className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                      pathname === "/admin/collections/clients"
+                      pathname === "/admin/collections/clients" ||
+                      pathname.includes("/admin/collections/clients/edit/")
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -455,6 +456,66 @@ export default function AdminSidebar({ onToggle }) {
                     {isOpen && <span>Client Satisfaction Section</span>}
                   </Link>
                 </li>
+
+                {/* Clients Info Section Editor Link */}
+                <li>
+                  <Link
+                    href="/admin/collections/clientsInfo"
+                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/clientsInfo"
+                        ? "bg-primary text-white"
+                        : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                        />
+                      </svg>
+                    </div>
+                    {isOpen && <span>Client List Section</span>}
+                  </Link>
+                </li>
+
+                {/* FAQ Section Editor Link */}
+                <li>
+                  <Link
+                    href="/admin/collections/faq"
+                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/faq"
+                        ? "bg-primary text-white"
+                        : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    {isOpen && <span>FAQ Section</span>}
+                  </Link>
+                </li>
               </ul>
             )}
           </li>
@@ -467,7 +528,9 @@ export default function AdminSidebar({ onToggle }) {
                 collectionId !== "hero" &&
                 collectionId !== "services" &&
                 collectionId !== "about" &&
-                collectionId !== "clients",
+                collectionId !== "clients" &&
+                collectionId !== "clientsInfo" &&
+                collectionId !== "faq",
             )
             .map((collectionId) => (
               <li key={collectionId}>

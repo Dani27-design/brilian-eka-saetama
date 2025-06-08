@@ -299,7 +299,7 @@ const HeaderEditor = ({
                 >
                   <div className="mb-3 flex items-center justify-between">
                     <span className="font-medium text-black dark:text-white">
-                      Menu Item {index + 1}
+                      #{index + 1}
                     </span>
                     <button
                       type="button"
@@ -325,7 +325,7 @@ const HeaderEditor = ({
                       />
                     </div>
 
-                    <div>
+                    <div className="cursor-not-allowed">
                       <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                         Path / URL
                       </label>
@@ -335,95 +335,11 @@ const HeaderEditor = ({
                         onChange={(e) =>
                           handleMenuItemChange(index, "path", e.target.value)
                         }
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800"
+                        disabled={true}
+                        className="w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800"
                         placeholder="#section or /page"
                       />
                     </div>
-                  </div>
-
-                  {/* Submenu items section */}
-                  <div className="mt-3">
-                    <div className="mb-2 flex items-center justify-between">
-                      <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                        Submenu Items
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => addSubmenuItem(index)}
-                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300"
-                      >
-                        + Add Submenu Item
-                      </button>
-                    </div>
-
-                    {item.submenu && item.submenu.length > 0 ? (
-                      <div className="ml-4 space-y-3 border-l border-gray-200 pl-4 dark:border-gray-600">
-                        {item.submenu.map((subItem, subIndex) => (
-                          <div
-                            key={subIndex}
-                            className="rounded-md bg-gray-50 p-3 dark:bg-gray-800"
-                          >
-                            <div className="mb-2 flex items-center justify-between">
-                              <span className="text-xs font-medium">
-                                Submenu {subIndex + 1}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  removeSubmenuItem(index, subIndex)
-                                }
-                                className="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-                              >
-                                Remove
-                              </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                              <div>
-                                <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">
-                                  Title
-                                </label>
-                                <input
-                                  type="text"
-                                  value={subItem.title || ""}
-                                  onChange={(e) =>
-                                    handleSubmenuItemChange(
-                                      index,
-                                      subIndex,
-                                      "title",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-700"
-                                />
-                              </div>
-                              <div>
-                                <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">
-                                  Path
-                                </label>
-                                <input
-                                  type="text"
-                                  value={subItem.path || ""}
-                                  onChange={(e) =>
-                                    handleSubmenuItemChange(
-                                      index,
-                                      subIndex,
-                                      "path",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-700"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        No submenu items. Click "Add Submenu Item" to add one.
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
@@ -463,9 +379,7 @@ const HeaderEditor = ({
         onSubmit={handleSubmit}
         className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
       >
-        <h2 className="mb-4 text-xl font-bold capitalize">
-          {documentId.replace(/_/g, " ")} Editor
-        </h2>
+        <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
         <div className="mb-4 border-b border-stroke dark:border-strokedark">
