@@ -209,29 +209,14 @@ const HeroEditor = ({
 
   return (
     <div className="space-y-8">
-      <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-black dark:text-white">
-            Hero Preview
-          </h2>
-          <p className="text-sm text-gray-500">
-            Click on any element to edit it directly
-          </p>
-        </div>
-
-        {/* Hero preview component - No more edit buttons above */}
-        <HeroPreview
-          data={fullHeroData}
-          activeSection={documentId}
-          onEditSection={handleEditSection}
-          previewMode={previewMode}
-          onPreviewModeChange={setPreviewMode}
-        />
-
-        <div className="mt-4 text-sm text-gray-500">
-          <p>Click on different sections to navigate to their edit pages.</p>
-        </div>
-      </div>
+      {/* Hero preview component - No more edit buttons above */}
+      <HeroPreview
+        data={fullHeroData}
+        activeSection={documentId}
+        onEditSection={handleEditSection}
+        previewMode={previewMode}
+        onPreviewModeChange={setPreviewMode}
+      />
 
       <form
         onSubmit={handleSubmit}

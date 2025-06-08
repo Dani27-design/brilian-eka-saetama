@@ -336,6 +336,30 @@ const HeroPreview = ({
 
   return (
     <div className="rounded-lg border bg-white p-6 dark:bg-black">
+      {/* Editing Status Indicator */}
+      {activeSection && (
+        <div className="mb-3 rounded-md bg-primary/10 p-2 text-center shadow-sm">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-primary"></div>
+            <span className="text-sm font-medium text-primary">
+              {activeSection === "hero_title" ? (
+                <span>Editing Title</span>
+              ) : activeSection === "hero_subtitle" ? (
+                <span>Editing Subtitle</span>
+              ) : activeSection === "hero_slogan" ? (
+                <span>Editing Slogan</span>
+              ) : activeSection === "email_placeholder" ? (
+                <span>Editing Email Placeholder</span>
+              ) : (
+                <span>Editing Button Text</span>
+              )}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+            Click on other sections to edit them
+          </p>
+        </div>
+      )}
       {/* Preview mode toggle buttons */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-black dark:text-white">
@@ -459,27 +483,6 @@ const HeroPreview = ({
           </div>
         )}
       </div>
-
-      {/* Tooltip indicators */}
-      {activeSection && (
-        <div className="mt-6 text-center text-xs text-gray-500">
-          {activeSection === "hero_title" ? (
-            <span>Editing Title • Click on other sections to edit them</span>
-          ) : activeSection === "hero_subtitle" ? (
-            <span>Editing Subtitle • Click on other sections to edit them</span>
-          ) : activeSection === "hero_slogan" ? (
-            <span>Editing Slogan • Click on other sections to edit them</span>
-          ) : activeSection === "email_placeholder" ? (
-            <span>
-              Editing Email Placeholder • Click on other sections to edit them
-            </span>
-          ) : (
-            <span>
-              Editing Button Text • Click on other sections to edit them
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 };

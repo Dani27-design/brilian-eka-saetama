@@ -378,6 +378,27 @@ const HeaderPreview = ({
 
   return (
     <div className="rounded-lg border bg-white p-6 dark:bg-black">
+      {/* Tooltip indicators */}
+      {activeSection && (
+        <div className="mb-3 rounded-md bg-primary/10 p-2 text-center shadow-sm">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-primary"></div>
+            <span className="text-sm font-medium text-primary">
+              {activeSection === "logo_data" ? (
+                <span>Editing Logo</span>
+              ) : activeSection === "menu_items" ? (
+                <span>Editing Menu Items</span>
+              ) : (
+                <span>Editing Language Dropdown</span>
+              )}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+            Click on other sections to edit them
+          </p>
+        </div>
+      )}
+
       {/* Preview mode toggle buttons */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-black dark:text-white">
@@ -507,23 +528,6 @@ const HeaderPreview = ({
           </div>
         )}
       </div>
-
-      {/* Tooltip indicators */}
-      {activeSection && (
-        <div className="mt-6 text-center text-xs text-gray-500">
-          {activeSection === "logo_data" ? (
-            <span>Editing Logo • Click on other sections to edit them</span>
-          ) : activeSection === "menu_items" ? (
-            <span>
-              Editing Menu Items • Click on other sections to edit them
-            </span>
-          ) : (
-            <span>
-              Editing Language Dropdown • Click on other sections to edit them
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 };

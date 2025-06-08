@@ -7,6 +7,7 @@ import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import HeaderPreview from "./HeaderPreview";
 import Image from "next/image";
+import ImageUploader from "./ImageUploader";
 
 interface HeaderEditorProps {
   collectionName: string;
@@ -203,62 +204,30 @@ const HeaderEditor = ({
               <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
                 Light Mode Logo
               </label>
-              <div className="mb-4">
-                {logoData.light && (
-                  <div className="mb-2 flex items-center space-x-2">
-                    <span className="text-sm text-gray-500">Current:</span>
-                    <Image
-                      src={logoData.light}
-                      alt="Light Mode Logo Preview"
-                      width={55}
-                      height={54}
-                      className="border border-gray-200"
-                    />
-                  </div>
-                )}
-                <input
-                  type="text"
-                  value={logoData.light || ""}
-                  onChange={(e) =>
-                    handleLogoDataChange("light", e.target.value)
-                  }
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="/images/logo/logo-light.png"
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  Enter the path to the light mode logo image
-                </p>
-              </div>
+              <ImageUploader
+                value={logoData.light || ""}
+                onChange={(url) => handleLogoDataChange("light", url)}
+                folder={`logo/light`}
+                aspectRatio="square"
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                Upload or select the light mode logo image
+              </p>
+            </div>
 
+            <div>
               <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
                 Dark Mode Logo
               </label>
-              <div className="mb-4">
-                {logoData.dark && (
-                  <div className="mb-2 flex items-center space-x-2">
-                    <span className="text-sm text-gray-500">Current:</span>
-                    <div className="bg-gray-800 p-1">
-                      <Image
-                        src={logoData.dark}
-                        alt="Dark Mode Logo Preview"
-                        width={55}
-                        height={54}
-                        className="border border-gray-600"
-                      />
-                    </div>
-                  </div>
-                )}
-                <input
-                  type="text"
-                  value={logoData.dark || ""}
-                  onChange={(e) => handleLogoDataChange("dark", e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="/images/logo/logo-dark.png"
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  Enter the path to the dark mode logo image
-                </p>
-              </div>
+              <ImageUploader
+                value={logoData.dark || ""}
+                onChange={(url) => handleLogoDataChange("dark", url)}
+                folder={`logo/dark`}
+                aspectRatio="square"
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                Upload or select the dark mode logo image
+              </p>
             </div>
           </div>
         );
@@ -481,29 +450,14 @@ const HeaderEditor = ({
 
   return (
     <div className="space-y-8">
-      <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-black dark:text-white">
-            Header Preview
-          </h2>
-          <p className="text-sm text-gray-500">
-            Click on any element to edit it directly
-          </p>
-        </div>
-
-        {/* Header preview component */}
-        <HeaderPreview
-          data={fullHeaderData}
-          activeSection={documentId}
-          onEditSection={handleEditSection}
-          previewMode={previewMode}
-          onPreviewModeChange={setPreviewMode}
-        />
-
-        <div className="mt-4 text-sm text-gray-500">
-          <p>Click on different sections to navigate to their edit pages.</p>
-        </div>
-      </div>
+      {/* Header preview component */}
+      <HeaderPreview
+        data={fullHeaderData}
+        activeSection={documentId}
+        onEditSection={handleEditSection}
+        previewMode={previewMode}
+        onPreviewModeChange={setPreviewMode}
+      />
 
       <form
         onSubmit={handleSubmit}
