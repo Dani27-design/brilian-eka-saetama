@@ -14,6 +14,6 @@ export default function robots(): MetadataRoute.Robots {
       "https://brilian-eka-saetama.vercel.app/sitemap.xml",
       "https://brilian-eka-saetama.vercel.app/server-sitemap.xml",
     ],
-    host: "https://brilian-eka-saetama.vercel.app",
+    // Host directive dihapus karena tidak didukung oleh Google
   };
 }
