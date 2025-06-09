@@ -5,8 +5,10 @@ import { collection, getDocs } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import HeaderPreview from "./HeaderPreview";
+import { useRouter } from "next/navigation";
 
 const CollectionHeader = ({ collectionName }) => {
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
     "desktop",
@@ -15,7 +17,7 @@ const CollectionHeader = ({ collectionName }) => {
 
   // Function to handle section editing
   const handleEditSection = (section: string) => {
-    window.location.href = `/admin/collections/header/edit/${section}`;
+    router.push(`/admin/collections/header/edit/${section}`);
   };
 
   // Query function to fetch header data
