@@ -40,7 +40,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body className={inter.className}>
         <Providers>
           <AdminLayoutClient>{children}</AdminLayoutClient>

@@ -1,17 +1,52 @@
-const SharePost = () => {
+import { FC } from "react";
+
+interface SharePostProps {
+  title?: string;
+  slug?: string;
+}
+
+const SharePost: FC<SharePostProps> = ({ title = "", slug = "" }) => {
+  // Create share URLs
+  const shareUrl = `https://brilian-eka-saetama.vercel.app/blog/blog-details/${slug}`;
+  const encodedUrl = encodeURIComponent(shareUrl);
+  const encodedTitle = encodeURIComponent(title);
+
+  const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+  const twitterShareUrl = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+  const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+  const whatsAppShareUrl = `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`;
+  const instagramShareUrl = `https://www.instagram.com/`;
+
+  const copyToClipboard = () => {
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => {
+        alert("URL copied to clipboard!");
+      })
+      .catch((err) => {
+        alert(`Failed to copy: ${err}`);
+      });
+  };
+
   return (
     <>
       <div className="mt-11 flex flex-wrap gap-4 md:items-center md:justify-between md:gap-0">
-        <ul className="flex items-center gap-6">
-          <li>
+        <ul className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+          <li className="flex items-center">
             <p className="text-black dark:text-white">Share On:</p>
           </li>
-          <li>
-            <a href="#" aria-label="social link">
+          <li className="flex items-center justify-center">
+            <a
+              href={facebookShareUrl}
+              aria-label="Share on Facebook"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
               <svg
                 className="fill-[#D1D8E0] transition-all duration-300 hover:fill-primary"
-                width="24"
-                height="24"
+                width="20"
+                height="20"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -30,12 +65,18 @@ const SharePost = () => {
               </svg>
             </a>
           </li>
-          <li>
-            <a href="#" aria-label="social link">
+          <li className="flex items-center justify-center">
+            <a
+              href={twitterShareUrl}
+              aria-label="Share on Twitter"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
               <svg
                 className="fill-[#D1D8E0] transition-all duration-300 hover:fill-primary"
-                width="24"
-                height="24"
+                width="20"
+                height="20"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -54,12 +95,18 @@ const SharePost = () => {
               </svg>
             </a>
           </li>
-          <li>
-            <a href="#" aria-label="social link">
+          <li className="flex items-center justify-center">
+            <a
+              href={linkedInShareUrl}
+              aria-label="Share on LinkedIn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
               <svg
                 className="fill-[#D1D8E0] transition-all duration-300 hover:fill-primary"
-                width="24"
-                height="24"
+                width="20"
+                height="20"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -78,29 +125,73 @@ const SharePost = () => {
               </svg>
             </a>
           </li>
-          <li>
-            <a href="#" aria-label="social link">
+          <li className="flex items-center justify-center">
+            <a
+              href={whatsAppShareUrl}
+              aria-label="Share on WhatsApp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
               <svg
-                className="fill-[#D1D8E0] transition-all duration-300 hover:fill-primary"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="none"
+                className="fill-[#D1D8E0] transition-all duration-300 hover:fill-primary"
+                viewBox="0 0 24 24"
               >
-                <g clipPath="url(#clip0_48_1508)">
-                  <path d="M7.443 5.3501C8.082 5.3501 8.673 5.4001 9.213 5.5481C9.70301 5.63814 10.1708 5.82293 10.59 6.0921C10.984 6.3391 11.279 6.6861 11.475 7.1311C11.672 7.5761 11.77 8.1211 11.77 8.7141C11.77 9.4071 11.623 10.0001 11.279 10.4451C10.984 10.8911 10.492 11.2861 9.902 11.5831C10.738 11.8311 11.377 12.2761 11.77 12.8691C12.164 13.4631 12.41 14.2051 12.41 15.0461C12.41 15.7391 12.262 16.3321 12.016 16.8271C11.77 17.3221 11.377 17.7671 10.934 18.0641C10.4528 18.3825 9.92084 18.6165 9.361 18.7561C8.771 18.9051 8.181 19.0041 7.591 19.0041H1V5.3501H7.443ZM7.049 10.8901C7.59 10.8901 8.033 10.7421 8.377 10.4951C8.721 10.2481 8.869 9.8021 8.869 9.2581C8.869 8.9611 8.819 8.6641 8.721 8.4671C8.623 8.2691 8.475 8.1201 8.279 7.9721C8.082 7.8731 7.885 7.7741 7.639 7.7251C7.393 7.6751 7.148 7.6751 6.852 7.6751H4V10.8911H7.05L7.049 10.8901ZM7.197 16.7281C7.492 16.7281 7.787 16.6781 8.033 16.6291C8.28138 16.5819 8.51628 16.4805 8.721 16.3321C8.92139 16.1873 9.08903 16.002 9.213 15.7881C9.311 15.5411 9.41 15.2441 9.41 14.8981C9.41 14.2051 9.213 13.7101 8.82 13.3641C8.426 13.0671 7.885 12.9191 7.246 12.9191H4V16.7291H7.197V16.7281ZM16.689 16.6781C17.082 17.0741 17.672 17.2721 18.459 17.2721C19 17.2721 19.492 17.1241 19.885 16.8771C20.279 16.5801 20.525 16.2831 20.623 15.9861H23.033C22.639 17.1731 22.049 18.0141 21.263 18.5581C20.475 19.0531 19.541 19.3501 18.41 19.3501C17.6864 19.3523 16.9688 19.2179 16.295 18.9541C15.6887 18.7266 15.148 18.3529 14.721 17.8661C14.2643 17.4107 13.9267 16.8498 13.738 16.2331C13.492 15.5901 13.393 14.8981 13.393 14.1061C13.393 13.3641 13.492 12.6721 13.738 12.0281C13.9745 11.4082 14.3245 10.8378 14.77 10.3461C15.213 9.9011 15.754 9.5061 16.344 9.2581C17.0007 8.99416 17.7022 8.85969 18.41 8.8621C19.246 8.8621 19.984 9.0111 20.623 9.3571C21.263 9.7031 21.754 10.0991 22.148 10.6931C22.5499 11.2636 22.8494 11.8998 23.033 12.5731C23.131 13.2651 23.18 13.9581 23.131 14.7491H16C16 15.5411 16.295 16.2831 16.689 16.6791V16.6781ZM19.787 11.4841C19.443 11.1381 18.902 10.9401 18.262 10.9401C17.82 10.9401 17.475 11.0391 17.18 11.1871C16.885 11.3361 16.689 11.5341 16.492 11.7321C16.311 11.9234 16.1912 12.1643 16.148 12.4241C16.098 12.6721 16.049 12.8691 16.049 13.0671H20.475C20.377 12.3251 20.131 11.8311 19.787 11.4841V11.4841ZM15.459 6.2901H20.967V7.6261H15.46V6.2901H15.459Z" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_48_1508">
-                    <rect width="24" height="24" fill="white" />
-                  </clipPath>
-                </defs>
+                <path d="M20.52 3.48A11.88 11.88 0 0 0 12 0C5.37 0 0 5.37 0 12a11.94 11.94 0 0 0 1.6 5.9L0 24l6.3-1.65a11.86 11.86 0 0 0 5.7 1.44c6.63 0 12-5.37 12-12a11.88 11.88 0 0 0-3.48-8.52zM12 21.5a9.58 9.58 0 0 1-4.88-1.32l-.35-.21-3.73.98 1-3.64-.23-.38A9.56 9.56 0 0 1 2.5 12c0-5.25 4.25-9.5 9.5-9.5s9.5 4.25 9.5 9.5-4.25 9.5-9.5 9.5zm5.27-7.58c-.29-.14-1.71-.84-1.97-.93-.26-.1-.45-.14-.64.15-.19.29-.74.93-.91 1.12-.17.2-.34.22-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.76-1.44-1.7-1.6-1.99-.17-.29-.02-.45.13-.6.13-.13.29-.34.43-.5.14-.17.19-.29.29-.48.1-.2.05-.37-.02-.51-.07-.14-.64-1.55-.88-2.12-.23-.56-.47-.48-.64-.49h-.54c-.17 0-.45.07-.69.34s-.9.88-.9 2.15.92 2.5 1.05 2.67c.14.17 1.81 2.77 4.4 3.89.62.27 1.1.43 1.48.55.62.2 1.18.17 1.63.1.5-.07 1.53-.63 1.75-1.24.22-.6.22-1.13.15-1.24-.07-.1-.26-.17-.55-.3z" />
               </svg>
             </a>
           </li>
+          <li className="flex items-center justify-center">
+            <a
+              href={instagramShareUrl}
+              aria-label="Share on Instagram"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <svg
+                className="fill-[#D1D8E0] transition-all duration-300 hover:fill-primary"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"
+                  fill=""
+                />
+              </svg>
+            </a>
+          </li>
+          <li className="flex items-center justify-center">
+            <button
+              onClick={copyToClipboard}
+              aria-label="Copy URL"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <svg
+                className="fill-[#D1D8E0] transition-all duration-300 hover:fill-primary"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z"
+                  fill=""
+                />
+              </svg>
+            </button>
+          </li>
         </ul>
 
-        <ul className="flex items-center gap-4">
+        {/* <ul className="flex items-center gap-4">
           <li>
             <p className="text-black dark:text-white">Tags:</p>
           </li>
@@ -119,7 +210,7 @@ const SharePost = () => {
               #saas
             </a>
           </li>
-        </ul>
+        </ul> */}
       </div>
     </>
   );

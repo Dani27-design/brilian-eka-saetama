@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Lines from "@/components/Lines";
 import ScrollToTop from "@/components/ScrollToTop";
 import { ThemeProvider } from "next-themes";
-import { Inter } from "next/font/google";
+import { Inter, Roboto } from "next/font/google";
 import "../globals.css";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
@@ -44,6 +44,13 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const roboto = Roboto({
+  weight: ["400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-roboto",
+});
+
 // Add inline critical CSS to the <head> section
 // Extract critical CSS from your CSS files
 const criticalCSS = `
@@ -79,7 +86,11 @@ export default function RootLayout({
   }, [pathname]);
 
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html
+      lang="id"
+      suppressHydrationWarning
+      className={`${inter.variable} ${roboto.variable}`}
+    >
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
