@@ -207,13 +207,16 @@ const ImageUploader = ({
         {value ? (
           <div className="w-full rounded-lg border border-gray-200 dark:border-gray-700 sm:w-1/2">
             <div className="relative overflow-hidden rounded-md">
-              <div className={`relative w-full ${getAspectRatioClass()}`}>
+              <div
+                className={`relative w-full ${getAspectRatioClass()} overflow-hidden`}
+              >
                 <Image
                   src={value}
                   alt="Selected image"
                   fill
-                  className="object-cover"
+                  className="w-full object-contain object-center"
                   sizes="(max-width: 768px) 100vw, 50vw"
+                  quality={80}
                   onError={(err: any) => {
                     // Handle Firebase Storage errors
                     const error = err?.target?.error;
@@ -237,6 +240,24 @@ const ImageUploader = ({
                     }
                   }}
                 />
+                <div className="absolute bottom-2 left-2 flex space-x-1">
+                  <button
+                    type="button"
+                    onClick={() => window.open(value, "_blank")}
+                    className="rounded-full bg-black/50 p-1 text-white hover:bg-black/70"
+                    title="View full image"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <button
                 type="button"

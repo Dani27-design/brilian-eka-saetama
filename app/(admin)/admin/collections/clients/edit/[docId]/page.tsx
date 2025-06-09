@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
-import { useLanguage } from "@/app/context/LanguageContext";
 import ClientsEditor from "@/components/Admin/ClientsEditor";
+import { useRouter } from "next/navigation";
 
 export default function EditClientsPage({ params }) {
+  const router = useRouter();
   const { docId } = params;
-  const { language } = useLanguage();
   const [initialData, setInitialData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -41,15 +41,10 @@ export default function EditClientsPage({ params }) {
 
   // Handle form submission
   const handleSubmit = async (data: any) => {
+    setIsSaving(true);
     try {
-      setIsSaving(true);
-      setError(null);
-
-      // Save data to Firestore
       await setDoc(doc(firestore, "clients", docId), data, { merge: true });
-
-      // Redirect back to clients collection page after successful save
-      window.location.href = "/admin/collections/clients";
+      router.push("/admin/collections/clients");
     } catch (error) {
       console.error("Error saving document:", error);
       setError("Failed to save document. Please try again.");

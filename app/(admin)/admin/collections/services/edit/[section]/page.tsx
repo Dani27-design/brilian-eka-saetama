@@ -1,27 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import ServiceEditor from "@/components/Admin/ServiceEditor";
-import AdminPageHeader from "@/components/Admin/AdminPageHeader";
-import { toast } from "react-hot-toast";
 
-export default function EditServicesSection() {
+export default function EditServicesSection({ params }) {
   const router = useRouter();
-  const params = useParams();
-  const section = params.section as string;
-
+  const { section } = params;
   const [data, setData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
       try {
+        setIsLoading(true);
         const docRef = doc(firestore, "services", section);
         const docSnap = await getDoc(docRef);
 
@@ -31,7 +27,6 @@ export default function EditServicesSection() {
           // Handle case where document doesn't exist - initialize with empty data
           setData({ en: "", id: "" });
         }
-        setError(null);
       } catch (error) {
         console.error("Error fetching document:", error);
         setError("Failed to load document. Please try again.");
@@ -40,18 +35,15 @@ export default function EditServicesSection() {
       }
     };
 
-    if (section) {
-      fetchData();
-    }
+    fetchData();
   }, [section]);
 
   const handleSubmit = async (formData: any) => {
     setIsSaving(true);
     try {
-      const docRef = doc(firestore, "services", section);
-      await updateDoc(docRef, formData);
-      toast.success("Changes saved successfully!");
-      // Navigate back to services management page
+      await setDoc(doc(firestore, "services", section), formData, {
+        merge: true,
+      });
       router.push("/admin/collections/services");
     } catch (error) {
       console.error("Error saving document:", error);

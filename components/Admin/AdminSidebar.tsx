@@ -51,7 +51,9 @@ export default function AdminSidebar({ onToggle }) {
             console.log(`Collection ${collectionId} not accessible`);
           }
         }
-
+        if (pathname.includes("/admin/collections/")) {
+          setWebsiteContentExpanded(true);
+        }
         setCollections(availableCollections);
       } catch (error) {
         console.error("Error fetching collections:", error);
@@ -164,10 +166,10 @@ export default function AdminSidebar({ onToggle }) {
         </button>
       </div>
 
-      <nav className="mt-3 px-4">
+      <nav className="px-2">
         <ul className="space-y-2">
           {/* Dashboard Link */}
-          <li>
+          {/* <li>
             <Link
               href="/admin/dashboard"
               className={`flex items-center rounded-lg px-4 py-3 text-base font-medium transition-colors ${
@@ -194,79 +196,18 @@ export default function AdminSidebar({ onToggle }) {
               </div>
               {isOpen && <span>Dashboard</span>}
             </Link>
-          </li>
-
-          {/* New Checksheet APAR Link */}
-          <li>
-            <Link
-              href="/admin/checksheet-apar"
-              className={`flex items-center rounded-lg px-4 py-3 text-base font-medium transition-colors ${
-                pathname === "/admin/checksheet-apar" ||
-                pathname.startsWith("/admin/checksheet-apar/")
-                  ? "bg-primary text-white"
-                  : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
-              }`}
-            >
-              <div className="mr-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              {isOpen && <span>Checksheet APAR</span>}
-            </Link>
-          </li>
-
-          {/* Media Library Link */}
-          <li>
-            <Link
-              href="/admin/media"
-              className={`flex items-center rounded-lg px-4 py-3 text-base font-medium transition-colors ${
-                pathname === "/admin/media"
-                  ? "bg-primary text-white"
-                  : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
-              }`}
-            >
-              <div className="mr-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              {isOpen && <span>Media Library</span>}
-            </Link>
-          </li>
+          </li> */}
 
           {/* Website Content Section */}
           <li className="mb-1">
             <div
-              className={`flex cursor-pointer items-center justify-between rounded-lg px-4 py-3 text-base font-medium transition-colors`}
+              className={`flex cursor-pointer items-center justify-between rounded-lg px-0 py-2 text-base font-medium transition-colors`}
               onClick={() => {
                 setWebsiteContentExpanded(!websiteContentExpanded);
               }}
             >
               <div className="flex items-center">
-                <div className="mr-3">
+                <div className="px-3">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5"
@@ -310,13 +251,14 @@ export default function AdminSidebar({ onToggle }) {
                 <li>
                   <Link
                     href="/admin/collections/header"
-                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                      pathname === "/admin/collections/header"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/header" ||
+                      pathname.includes("/admin/collections/header/edit/")
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="mr-3">
+                    <div className="px-3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
@@ -340,13 +282,14 @@ export default function AdminSidebar({ onToggle }) {
                 <li>
                   <Link
                     href="/admin/collections/hero"
-                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                      pathname === "/admin/collections/hero"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/hero" ||
+                      pathname.includes("/admin/collections/hero/edit/")
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="mr-3">
+                    <div className="px-3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
@@ -370,13 +313,14 @@ export default function AdminSidebar({ onToggle }) {
                 <li>
                   <Link
                     href="/admin/collections/services"
-                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                      pathname === "/admin/collections/services"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/services" ||
+                      pathname.includes("/admin/collections/services/edit/")
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="mr-3">
+                    <div className="px-3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
@@ -400,13 +344,14 @@ export default function AdminSidebar({ onToggle }) {
                 <li>
                   <Link
                     href="/admin/collections/about"
-                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                      pathname === "/admin/collections/about"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/about" ||
+                      pathname.includes("/admin/collections/about/edit/")
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="mr-3">
+                    <div className="px-3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
@@ -430,14 +375,14 @@ export default function AdminSidebar({ onToggle }) {
                 <li>
                   <Link
                     href="/admin/collections/clients"
-                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/clients" ||
                       pathname.includes("/admin/collections/clients/edit/")
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="mr-3">
+                    <div className="px-3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
@@ -461,13 +406,14 @@ export default function AdminSidebar({ onToggle }) {
                 <li>
                   <Link
                     href="/admin/collections/clientsInfo"
-                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                      pathname === "/admin/collections/clientsInfo"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/clientsInfo" ||
+                      pathname.includes("/admin/collections/clientsInfo/edit/")
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="mr-3">
+                    <div className="px-3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
@@ -491,13 +437,14 @@ export default function AdminSidebar({ onToggle }) {
                 <li>
                   <Link
                     href="/admin/collections/faq"
-                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                      pathname === "/admin/collections/faq"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/faq" ||
+                      pathname.includes("/admin/collections/faq/edit/")
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="mr-3">
+                    <div className="px-3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
@@ -521,13 +468,14 @@ export default function AdminSidebar({ onToggle }) {
                 <li>
                   <Link
                     href="/admin/collections/testimonial"
-                    className={`flex items-center rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                      pathname === "/admin/collections/testimonial"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/testimonial" ||
+                      pathname.includes("/admin/collections/testimonial/edit/")
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="mr-3">
+                    <div className="px-3">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
@@ -546,8 +494,162 @@ export default function AdminSidebar({ onToggle }) {
                     {isOpen && <span>Testimonial Section</span>}
                   </Link>
                 </li>
+
+                {/* Contact Section Editor Link */}
+                <li>
+                  <Link
+                    href="/admin/collections/contact"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/contact" ||
+                      pathname.includes("/admin/collections/contact/edit/")
+                        ? "bg-primary text-white"
+                        : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="px-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    {isOpen && <span>Contact Section</span>}
+                  </Link>
+                </li>
+
+                {/* Blog Section Editor Link */}
+                <li>
+                  <Link
+                    href="/admin/collections/blog"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/blog" ||
+                      pathname.includes("/admin/collections/blog/edit/")
+                        ? "bg-primary text-white"
+                        : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="px-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                    </div>
+                    {isOpen && <span>Blog Section</span>}
+                  </Link>
+                </li>
+                
+                {/* Footer Section Editor Link */}
+                <li>
+                  <Link
+                    href="/admin/collections/footer"
+                    className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                      pathname === "/admin/collections/footer" ||
+                      pathname.includes("/admin/collections/footer/edit/")
+                        ? "bg-primary text-white"
+                        : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="px-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 13l-7 7-7-7m14-8l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
+                    {isOpen && <span>Footer Section</span>}
+                  </Link>
+                </li>
               </ul>
             )}
+          </li>
+
+          {/* Media Library Link */}
+          <li>
+            <Link
+              href="/admin/media"
+              className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                pathname === "/admin/media"
+                  ? "bg-primary text-white"
+                  : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+              }`}
+            >
+              <div className="px-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              {isOpen && <span>Media Library</span>}
+            </Link>
+          </li>
+
+          {/* Checksheet Link */}
+          <li>
+            <Link
+              href="/admin/checksheet-apar"
+              className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                pathname === "/admin/checksheet-apar" ||
+                pathname.startsWith("/admin/checksheet-apar/")
+                  ? "bg-primary text-white"
+                  : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+              }`}
+            >
+              <div className="px-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              {isOpen && <span>Checksheet APAR</span>}
+            </Link>
           </li>
 
           {/* Collection Links - Dynamically Generated */}
@@ -561,20 +663,23 @@ export default function AdminSidebar({ onToggle }) {
                 collectionId !== "clients" &&
                 collectionId !== "clientsInfo" &&
                 collectionId !== "faq" &&
-                collectionId !== "testimonial",
+                collectionId !== "testimonial" &&
+                collectionId !== "contact" &&
+                collectionId !== "blog" &&
+                collectionId !== "footer",
             )
             .map((collectionId) => (
               <li key={collectionId}>
                 <Link
                   href={`/admin/collections/${collectionId}`}
-                  className={`flex items-center rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                  className={`flex items-center rounded-lg px-0 py-3 text-base font-medium transition-colors ${
                     pathname === `/admin/collections/${collectionId}` ||
                     pathname.startsWith(`/admin/collections/${collectionId}/`)
                       ? "bg-primary text-white"
                       : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                   }`}
                 >
-                  <div className="mr-3">
+                  <div className="px-3">
                     <CollectionIcon />
                   </div>
                   {isOpen && (

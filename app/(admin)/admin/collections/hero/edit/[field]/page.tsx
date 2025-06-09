@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
-import AdminPageHeader from "@/components/Admin/AdminPageHeader";
 import HeroEditor from "@/components/Admin/HeroEditor";
 
 export default function EditHero({ params }) {
@@ -42,7 +41,7 @@ export default function EditHero({ params }) {
   const handleSubmit = async (data) => {
     setIsSaving(true);
     try {
-      await setDoc(doc(firestore, "hero", field), data);
+      await setDoc(doc(firestore, "hero", field), data, { merge: true });
       router.push("/admin/collections/hero");
     } catch (error) {
       console.error("Error saving document:", error);

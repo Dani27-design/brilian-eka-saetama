@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
-import { useLanguage } from "@/app/context/LanguageContext";
 import ClientsInfoEditor from "@/components/Admin/ClientsInfoEditor";
+import { useRouter } from "next/navigation";
 
 export default function EditClientsInfoPage({ params }) {
+  const router = useRouter();
   const { docId } = params;
-  const { language } = useLanguage();
   const [initialData, setInitialData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -41,15 +41,10 @@ export default function EditClientsInfoPage({ params }) {
 
   // Handle form submission
   const handleSubmit = async (data: any) => {
+    setIsSaving(true);
     try {
-      setIsSaving(true);
-      setError(null);
-
-      // Save data to Firestore
       await setDoc(doc(firestore, "clientsInfo", docId), data, { merge: true });
-
-      // Redirect back to clients info collection page after successful save
-      window.location.href = "/admin/collections/clientsInfo";
+      router.push("/admin/collections/clientsInfo");
     } catch (error) {
       console.error("Error saving document:", error);
       setError("Failed to save document. Please try again.");

@@ -1,50 +1,50 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
-import AboutEditor from "@/components/Admin/AboutEditor";
-import { useRouter } from "next/navigation";
+import BlogEditor from "@/components/Admin/BlogEditor";
 
-export default function EditAboutPage({ params }) {
+const EditBlogContent = ({ params }) => {
   const router = useRouter();
-  const { docId } = params;
-  const [initialData, setInitialData] = useState<any>(null);
+  const { id } = params;
+  const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch initial data
+  // Fetch document data
   useEffect(() => {
-    const fetchDocument = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const docRef = doc(firestore, "about", docId);
-        const docSnapshot = await getDoc(docRef);
+        const docRef = doc(firestore, "blog", id);
+        const docSnap = await getDoc(docRef);
 
-        if (docSnapshot.exists()) {
-          setInitialData(docSnapshot.data());
+        if (docSnap.exists()) {
+          setData(docSnap.data());
         } else {
-          // If document doesn't exist, initialize with empty data
-          setInitialData({ en: "", id: "" });
+          // Initialize with empty data for new documents
+          setData({ en: "", id: "" });
         }
-      } catch (error) {
-        console.error("Error fetching document:", error);
-        setError("Failed to load document. Please try again.");
+      } catch (err) {
+        console.error("Error fetching document:", err);
+        setError("Failed to load data. Please try again.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDocument();
-  }, [docId]);
+    fetchData();
+  }, [id]);
 
   // Handle form submission
   const handleSubmit = async (data: any) => {
     setIsSaving(true);
     try {
-      await setDoc(doc(firestore, "about", docId), data, { merge: true });
-      router.push("/admin/collections/about");
+      await setDoc(doc(firestore, "blog", id), data, { merge: true });
+      router.push("/admin/collections/blog");
     } catch (error) {
       console.error("Error saving document:", error);
       setError("Failed to save document. Please try again.");
@@ -68,13 +68,15 @@ export default function EditAboutPage({ params }) {
           {error}
         </div>
       )}
-      <AboutEditor
-        collectionName="about"
-        documentId={docId}
-        initialData={initialData}
+      <BlogEditor
+        collectionName="blog"
+        documentId={id}
+        initialData={data}
         onSubmit={handleSubmit}
         isSaving={isSaving}
       />
     </div>
   );
-}
+};
+
+export default EditBlogContent;
