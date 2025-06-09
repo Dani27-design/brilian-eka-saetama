@@ -4,13 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { collection, getDocs, query, limit } from "firebase/firestore";
-import { firestore } from "@/db/firebase/firebaseConfig";
 
 export default function AdminSidebar({ onToggle }) {
   const [isOpen, setIsOpen] = useState(true);
   const [websiteContentExpanded, setWebsiteContentExpanded] = useState(false);
-  const [collections, setCollections] = useState<string[]>([]);
   const pathname = usePathname();
 
   // Toggle sidebar function
@@ -21,65 +18,10 @@ export default function AdminSidebar({ onToggle }) {
   };
 
   useEffect(() => {
-    const fetchCollections = async () => {
-      try {
-        // Known collections from your application
-        const knownCollections = [
-          "header",
-          "hero",
-          "services",
-          "about",
-          "clients",
-          "clientsInfo",
-          "faq",
-          "testimonial",
-          "contact",
-          "blog",
-          "footer",
-        ];
-
-        const availableCollections: string[] = [];
-
-        for (const collectionId of knownCollections) {
-          try {
-            const q = query(collection(firestore, collectionId), limit(1));
-            const querySnapshot = await getDocs(q);
-            if (querySnapshot.size > 0) {
-              availableCollections.push(collectionId);
-            }
-          } catch (error) {
-            console.log(`Collection ${collectionId} not accessible`);
-          }
-        }
-        if (pathname.includes("/admin/collections/")) {
-          setWebsiteContentExpanded(true);
-        }
-        setCollections(availableCollections);
-      } catch (error) {
-        console.error("Error fetching collections:", error);
-      }
-    };
-
-    fetchCollections();
+    if (pathname.includes("/admin/collections/")) {
+      setWebsiteContentExpanded(true);
+    }
   }, []);
-
-  // Generic icon component for menu items
-  const CollectionIcon = () => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-      />
-    </svg>
-  );
 
   return (
     <div
@@ -556,7 +498,7 @@ export default function AdminSidebar({ onToggle }) {
                     {isOpen && <span>Blog Section</span>}
                   </Link>
                 </li>
-                
+
                 {/* Footer Section Editor Link */}
                 <li>
                   <Link
@@ -651,46 +593,6 @@ export default function AdminSidebar({ onToggle }) {
               {isOpen && <span>Checksheet APAR</span>}
             </Link>
           </li>
-
-          {/* Collection Links - Dynamically Generated */}
-          {collections
-            .filter(
-              (collectionId) =>
-                collectionId !== "header" &&
-                collectionId !== "hero" &&
-                collectionId !== "services" &&
-                collectionId !== "about" &&
-                collectionId !== "clients" &&
-                collectionId !== "clientsInfo" &&
-                collectionId !== "faq" &&
-                collectionId !== "testimonial" &&
-                collectionId !== "contact" &&
-                collectionId !== "blog" &&
-                collectionId !== "footer",
-            )
-            .map((collectionId) => (
-              <li key={collectionId}>
-                <Link
-                  href={`/admin/collections/${collectionId}`}
-                  className={`flex items-center rounded-lg px-0 py-3 text-base font-medium transition-colors ${
-                    pathname === `/admin/collections/${collectionId}` ||
-                    pathname.startsWith(`/admin/collections/${collectionId}/`)
-                      ? "bg-primary text-white"
-                      : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
-                  }`}
-                >
-                  <div className="px-3">
-                    <CollectionIcon />
-                  </div>
-                  {isOpen && (
-                    <span className="capitalize">
-                      {collectionId}
-                      {"-under-construction-"}
-                    </span>
-                  )}
-                </Link>
-              </li>
-            ))}
         </ul>
       </nav>
     </div>
