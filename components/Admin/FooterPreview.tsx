@@ -158,7 +158,7 @@ const FooterPreview = ({
                       alt="Logo"
                       className="dark:hidden"
                       priority={true}
-                      quality={80}
+                      quality={50}
                       style={{
                         width: "auto",
                         height: "auto",
@@ -171,7 +171,7 @@ const FooterPreview = ({
                       alt="Logo"
                       className="hidden dark:block"
                       priority={true}
-                      quality={80}
+                      quality={50}
                       style={{
                         width: "auto",
                         height: "auto",
@@ -496,7 +496,7 @@ const FooterPreview = ({
       {/* Preview mode toggle buttons */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-black dark:text-white">
-          Footer Preview
+          Footer Section
         </h2>
         <div className="flex space-x-2">
           <button

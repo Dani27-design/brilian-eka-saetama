@@ -269,3 +269,27 @@ li {
 .blog-details p {
   @apply text-base leading-relaxed text-black dark:text-gray-100;
 }
+
+/* Add this to your globals.css or create a new keyframes section */
+@keyframes progressBar {
+  0% {
+    margin-left: 0%;
+    width: 0%;
+  }
+  20% {
+    margin-left: 0%;
+    width: 30%;
+  }
+  50% {
+    width: 60%;
+    margin-left: 20%;
+  }
+  70% {
+    width: 80%;
+    margin-left: 50%;
+  }
+  100% {
+    width: 20%;
+    margin-left: 100%;
+  }
+}
