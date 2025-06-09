@@ -321,6 +321,43 @@ const BlogEditor = ({
                         aspectRatio="landscape"
                       />
                     </div>
+
+                    {/* Blog Content Editor */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Blog Content
+                      </label>
+                      <textarea
+                        value={blog.content || ""}
+                        onChange={(e) =>
+                          handleBlogItemChange(index, "content", e.target.value)
+                        }
+                        className="h-48 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        placeholder="Write your blog content here..."
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Write the main content of the blog post here.
+                      </p>
+                    </div>
+
+                    {/* Blog Author  */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Blog Author
+                      </label>
+                      <input
+                        type="text"
+                        value={blog.author || ""}
+                        onChange={(e) =>
+                          handleBlogItemChange(index, "author", e.target.value)
+                        }
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        placeholder="Author Name"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Enter the name of the author for this blog post.
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
