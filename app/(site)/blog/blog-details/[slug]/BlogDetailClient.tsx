@@ -143,9 +143,9 @@ const BlogDetailClient = ({ slug, initialBlog }: BlogDetailClientProps) => {
 
           {/* Blog content */}
           <div className="lg:w-2/3">
-            <div className="animate_top rounded-md border border-stroke bg-white p-7.5 shadow-solid-13 dark:border-strokedark dark:bg-blacksection md:p-10">
-              <div className="mb-10 w-full overflow-hidden">
-                <div className="relative aspect-[97/60] w-full sm:aspect-[97/44]">
+            <div className="animate_top rounded-md border border-stroke bg-white p-3 shadow-solid-13 dark:border-strokedark dark:bg-blacksection md:p-10">
+              <div className="w-full overflow-hidden">
+                <div className="relative aspect-[97/60] h-fit w-full sm:aspect-[97/44]">
                   <Image
                     src={currentBlog.mainImage}
                     alt={currentBlog.title}
@@ -157,24 +157,26 @@ const BlogDetailClient = ({ slug, initialBlog }: BlogDetailClientProps) => {
                 </div>
               </div>
 
-              <h2 className="mb-5 mt-11 text-3xl font-semibold text-black dark:text-white 2xl:text-sectiontitle2">
+              <h2 className="mt-3 text-2xl font-semibold text-black dark:text-white 2xl:text-sectiontitle2">
                 {currentBlog.title}
               </h2>
 
-              <ul className="mb-9 flex flex-wrap gap-5 2xl:gap-7.5">
+              <ul className="mb-5 mt-2 flex w-full flex-col justify-between gap-y-1 sm:flex-row md:mb-10 2xl:gap-7.5">
                 {currentBlog.author && (
-                  <li>
-                    <span className="text-black dark:text-white">Author: </span>{" "}
+                  <li className="flex items-start">
+                    <span className="mr-1 font-medium text-black dark:text-white">
+                      Author:
+                    </span>{" "}
                     {currentBlog.author}
                   </li>
                 )}
                 {currentBlog.publishDate && (
-                  <li>
-                    <span className="text-black dark:text-white">
+                  <li className="flex items-start">
+                    <span className="mr-1 font-medium text-black dark:text-white">
                       Published On:{" "}
                     </span>
                     {new Date(currentBlog.publishDate).toLocaleDateString(
-                      "en-US",
+                      "id-ID",
                       {
                         year: "numeric",
                         month: "long",
@@ -183,17 +185,14 @@ const BlogDetailClient = ({ slug, initialBlog }: BlogDetailClientProps) => {
                     )}
                   </li>
                 )}
-                <li>
-                  <span className="text-black dark:text-white">Category: </span>
-                  Blog
-                </li>
               </ul>
 
-              <div className="blog-content">
+              <div className="blog-content blog-details">
                 <div
                   dangerouslySetInnerHTML={{
                     __html: currentBlog.content || "",
                   }}
+                  className="rich-text-content"
                 />
               </div>
 

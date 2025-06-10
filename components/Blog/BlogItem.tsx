@@ -40,7 +40,7 @@ const BlogItem = ({ blog }: { blog: Blog }) => {
           />
         </div>
 
-        <div className="px-4">
+        <div className="">
           {publishDate && (
             <span className="text-body-color mt-5 inline-block text-sm font-medium">
               {new Date(publishDate).toLocaleDateString("en-US", {
@@ -50,8 +50,8 @@ const BlogItem = ({ blog }: { blog: Blog }) => {
               })}
             </span>
           )}
-          <h3 className="mb-3.5 mt-3.5 line-clamp-2 text-lg font-medium text-black dark:text-white">
-            {title.length > 40 ? `${title.slice(0, 40)}...` : title}
+          <h3 className="mb-3.5 mt-3.5 line-clamp-3 text-lg font-medium text-black dark:text-white">
+            {title}
           </h3>
           <p className="text-body-color line-clamp-3 text-base">{metadata}</p>
         </div>

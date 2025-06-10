@@ -81,6 +81,69 @@ html {
     filter: invert(0%) sepia(96%) saturate(15%) hue-rotate(249deg)
       brightness(100%) contrast(105%);
   }
+
+  /* Adjust text sizes using typographic scale (1.2 ratio) - reduced by one level for desktop */
+  .text-xs {
+    font-size: 0.625rem !important; /* 10px */
+    line-height: 0.875rem !important;
+  }
+  .text-sm {
+    font-size: 0.75rem !important; /* 12px */
+    line-height: 1rem !important;
+  }
+  .text-base,
+  .text-regular {
+    font-size: 0.875rem !important; /* 14px */
+    line-height: 1.25rem !important;
+  }
+  .text-lg {
+    font-size: 1rem !important; /* 16px */
+    line-height: 1.5rem !important;
+  }
+  .text-xl {
+    font-size: 1.125rem !important; /* 18px */
+    line-height: 1.625rem !important;
+  }
+  .text-2xl {
+    font-size: 1.25rem !important; /* 20px */
+    line-height: 1.75rem !important;
+  }
+  .text-3xl {
+    font-size: 1.5rem !important; /* 24px */
+    line-height: 2rem !important;
+  }
+  .text-4xl {
+    font-size: 1.875rem !important; /* 30px */
+    line-height: 2.25rem !important;
+  }
+
+  /* Responsive adjustments for mobile - kept the same */
+  @media (max-width: 640px) {
+    .text-3xl,
+    .text-4xl {
+      font-size: 1.25rem !important; /* 20px */
+      line-height: 1.75rem !important;
+    }
+
+    .text-2xl {
+      font-size: 1.125rem !important; /* 18px */
+      line-height: 1.625rem !important;
+    }
+
+    .text-xs {
+      font-size: 0.5rem !important; /* 8px */
+      line-height: 0.75rem !important;
+    }
+    .text-sm {
+      font-size: 0.625rem !important; /* 10px */
+      line-height: 0.875rem !important;
+    }
+    .text-base,
+    .text-regular {
+      font-size: 0.75rem !important; /* 12px */
+      line-height: 1rem !important;
+    }
+  }
 }
 
 @keyframes pulse {
@@ -238,7 +301,8 @@ img {
   --text-secondary: #374151; /* Darker secondary text */
   --link-color: #1d4ed8; /* More accessible link color */
 
-  /* Update your theme colors here with better contrast ratios */
+  /* Web standard base font size for better readability */
+  font-size: 16px;
 }
 
 .dark {
@@ -292,4 +356,64 @@ li {
     width: 20%;
     margin-left: 100%;
   }
+}
+
+/* Blog details specific adjustments */
+.blog-details h1 {
+  @apply mb-4 text-2xl !font-bold !leading-tight text-black dark:text-white sm:text-3xl md:text-3xl lg:text-3xl xl:text-4xl;
+}
+
+.blog-details h2 strong,
+.blog-details h2 {
+  @apply mb-4 text-xl !font-bold !leading-tight text-black dark:text-white sm:text-2xl md:text-3xl;
+}
+
+.blog-details h3 strong,
+.blog-details h3 {
+  @apply mb-8 text-lg !font-semibold leading-tight text-black dark:text-white sm:text-xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-xl xl:leading-tight;
+}
+
+/* Rich text content styling for blog posts */
+.rich-text-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin: 1.5rem 0;
+}
+
+.blog-content.blog-details {
+  @apply mb-8 text-base leading-relaxed;
+}
+
+/* Additional rich text element styling */
+.blog-content.blog-details table {
+  @apply mb-8 w-full border-collapse;
+}
+
+.blog-content.blog-details table th,
+.blog-content.blog-details table td {
+  @apply border border-stroke p-2 text-left dark:border-strokedark;
+}
+
+.blog-content.blog-details table th {
+  @apply bg-stroke/30 font-semibold dark:bg-strokedark/30;
+}
+
+.blog-content.blog-details pre {
+  @apply my-4 overflow-x-auto rounded-lg bg-strokedark/10 p-4 dark:bg-strokedark;
+}
+
+.blog-content.blog-details code {
+  @apply rounded bg-strokedark/10 px-1 py-0.5 text-sm dark:bg-strokedark;
+}
+
+.blog-content.blog-details hr {
+  @apply my-8 border-t border-stroke dark:border-strokedark;
+}
+
+/* Responsive iframe and video embeds */
+.blog-content.blog-details iframe,
+.blog-content.blog-details video {
+  @apply my-4 w-full max-w-full rounded-lg;
+  aspect-ratio: 16 / 9;
 }

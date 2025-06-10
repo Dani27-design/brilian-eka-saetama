@@ -31,7 +31,7 @@ const SharePost: FC<SharePostProps> = ({ title = "", slug = "" }) => {
   return (
     <>
       <div className="mt-11 flex flex-wrap gap-4 md:items-center md:justify-between md:gap-0">
-        <ul className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+        <ul className="flex flex-wrap items-center justify-center gap-1">
           <li className="flex items-center">
             <p className="text-black dark:text-white">Share On:</p>
           </li>
