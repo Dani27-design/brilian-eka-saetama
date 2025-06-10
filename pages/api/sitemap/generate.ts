@@ -60,17 +60,8 @@ export default async function handler(
   }
   try {
     const xml = await generateSitemapXml();
-    const dir = path.join(process.cwd(), "public", "sitemaps");
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    const filePath = path.join(dir, "sitemap.xml");
-    fs.writeFileSync(filePath, xml, "utf8");
-    return res.status(200).json({
-      success: true,
-      message: "Sitemap generated",
-      file: "/sitemaps/sitemap.xml",
-    });
+    res.setHeader("Content-Type", "application/xml");
+    res.status(200).send(xml);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }

@@ -39,6 +39,14 @@ const nextConfig = {
     ],
   },
   output: "standalone",
+  async rewrites() {
+    return [
+      {
+        source: "/sitemap.xml",
+        destination: "/api/sitemap/generate",
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
