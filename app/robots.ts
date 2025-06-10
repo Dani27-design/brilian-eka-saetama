@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/"],
+        disallow: ["/admin/"],
       },
     ],
     sitemap: ["https://brilian-eka-saetama.vercel.app/sitemap.xml"],
