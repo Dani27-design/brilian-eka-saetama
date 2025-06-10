@@ -30,6 +30,34 @@ export async function generateMetadata(
     description:
       blog.metadata ||
       "Temukan wawasan ahli seputar sistem keamanan dan keselamatan kebakaran bersama PT. Brilian Eka Saetama, solusi terpercaya untuk perlindungan gedung dan aset Anda.",
+    applicationName: "PT Brilian Eka Saetama",
+    authors: [
+      {
+        name: blog.author || "PT. Brilian Eka Saetama",
+        url: "https://brilian-eka-saetama.vercel.app",
+      },
+    ],
+    generator: "Next.js",
+    keywords: [
+      blog.metadata || "blog pt brilian eka saetama",
+      "blog keamanan",
+      "blog keselamatan kebakaran",
+      "proteksi kebakaran",
+      "sistem keamanan",
+      "keselamatan gedung",
+      "PT Brilian Eka Saetama",
+      "blog keamanan",
+      "blog keselamatan kebakaran",
+    ],
+    referrer: "origin-when-cross-origin",
+    creator: blog.author || "PT Brilian Eka Saetama",
+    publisher: "PT Brilian Eka Saetama",
+    formatDetection: {
+      email: true,
+      address: true,
+      telephone: true,
+    },
+    category: "safety services",
     openGraph: {
       title: blog.title,
       description:
@@ -62,9 +90,37 @@ export async function generateMetadata(
           "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
       ],
     },
+    icons: {
+      icon: "/images/favicon.ico",
+      apple: "/images/apple-touch-icon.png",
+      shortcut: "/images/favicon.ico",
+    },
+    verification: {
+      google: "4uXsTxUZBjcn1Vifok5UuP1imEhnZn0waWYKMnLG-Nw",
+    },
     alternates: {
       canonical: `https://brilian-eka-saetama.vercel.app/blog/blog-details/${slug}`,
+      languages: {
+        "en-US": `https://brilian-eka-saetama.vercel.app/blog/blog-details/${slug}`,
+        "id-ID": `https://brilian-eka-saetama.vercel.app/blog/blog-details/${slug}`,
+      },
     },
+    robots: {
+      index: true,
+      follow: true,
+      nocache: false,
+      googleBot: {
+        index: true,
+        follow: true,
+        noimageindex: false,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    metadataBase: new URL(
+      `https://brilian-eka-saetama.vercel.app/blog/blog-details/${slug}`,
+    ),
   };
 }
 
