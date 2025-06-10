@@ -18,7 +18,7 @@ export default function AdminSidebar({ onToggle }) {
   };
 
   useEffect(() => {
-    if (pathname.includes("/admin/collections/")) {
+    if (pathname && pathname.includes("/admin/collections/")) {
       setWebsiteContentExpanded(true);
     }
   }, []);
@@ -195,7 +195,8 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/header"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/header" ||
-                      pathname.includes("/admin/collections/header/edit/")
+                      (pathname &&
+                        pathname.includes("/admin/collections/header/edit/"))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -226,7 +227,8 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/hero"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/hero" ||
-                      pathname.includes("/admin/collections/hero/edit/")
+                      (pathname &&
+                        pathname.includes("/admin/collections/hero/edit/"))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -257,7 +259,8 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/services"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/services" ||
-                      pathname.includes("/admin/collections/services/edit/")
+                      (pathname &&
+                        pathname.includes("/admin/collections/services/edit/"))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -288,7 +291,8 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/about"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/about" ||
-                      pathname.includes("/admin/collections/about/edit/")
+                      (pathname &&
+                        pathname.includes("/admin/collections/about/edit/"))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -319,7 +323,8 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/clients"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/clients" ||
-                      pathname.includes("/admin/collections/clients/edit/")
+                      (pathname &&
+                        pathname.includes("/admin/collections/clients/edit/"))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -350,7 +355,10 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/clientsInfo"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/clientsInfo" ||
-                      pathname.includes("/admin/collections/clientsInfo/edit/")
+                      (pathname &&
+                        pathname.includes(
+                          "/admin/collections/clientsInfo/edit/",
+                        ))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -381,7 +389,8 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/faq"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/faq" ||
-                      pathname.includes("/admin/collections/faq/edit/")
+                      (pathname &&
+                        pathname.includes("/admin/collections/faq/edit/"))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -412,7 +421,10 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/testimonial"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/testimonial" ||
-                      pathname.includes("/admin/collections/testimonial/edit/")
+                      (pathname &&
+                        pathname.includes(
+                          "/admin/collections/testimonial/edit/",
+                        ))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -443,7 +455,8 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/contact"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/contact" ||
-                      pathname.includes("/admin/collections/contact/edit/")
+                      (pathname &&
+                        pathname.includes("/admin/collections/contact/edit/"))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -474,7 +487,8 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/blog"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/blog" ||
-                      pathname.includes("/admin/collections/blog/edit/")
+                      (pathname &&
+                        pathname.includes("/admin/collections/blog/edit/"))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -505,7 +519,8 @@ export default function AdminSidebar({ onToggle }) {
                     href="/admin/collections/footer"
                     className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                       pathname === "/admin/collections/footer" ||
-                      pathname.includes("/admin/collections/footer/edit/")
+                      (pathname &&
+                        pathname.includes("/admin/collections/footer/edit/"))
                         ? "bg-primary text-white"
                         : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                     }`}
@@ -569,7 +584,7 @@ export default function AdminSidebar({ onToggle }) {
               href="/admin/checksheet-apar"
               className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                 pathname === "/admin/checksheet-apar" ||
-                pathname.startsWith("/admin/checksheet-apar/")
+                (pathname && pathname.startsWith("/admin/checksheet-apar/"))
                   ? "bg-primary text-white"
                   : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
               }`}
