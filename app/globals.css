@@ -14,7 +14,7 @@ html {
     @apply relative z-1 whitespace-pre-wrap font-inter text-regular font-normal text-waterloo dark:text-manatee;
   } */
 
-  /* Apply to common text elements */
+  /* Apply to common text elements - MODIFY THIS */
   p,
   h1,
   h2,
@@ -26,6 +26,17 @@ html {
   div,
   li,
   blockquote {
+    @apply whitespace-normal; /* Change from whitespace-pre-wrap to prevent text display issues */
+  }
+
+  /* Add exception for hero section */
+  .overflow-hidden p,
+  section h1,
+  section h4,
+  .hero-content p,
+  .hero-title,
+  .hero-subtitle,
+  .hero-slogan {
     @apply whitespace-pre-wrap;
   }
 }
@@ -475,5 +486,207 @@ li {
 
   .rich-text-content > * {
     @apply my-0 !important;
+  }
+}
+
+/* Override whitespace for hero and special sections */
+.overflow-hidden p,
+section h1,
+section h4,
+.hero-content p,
+.hero-title,
+.hero-subtitle,
+.hero-slogan {
+  @apply whitespace-pre-wrap;
+}
+
+/* Fix blog content spacing - provide better readability */
+.blog-content.blog-details {
+  @apply space-y-3 p-2; /* Add container spacing */
+}
+
+/* Better paragraph spacing */
+.blog-content.blog-details p {
+  @apply my-2 text-base leading-relaxed;
+}
+
+/* Better heading spacing */
+.blog-content.blog-details h1 {
+  @apply mb-4 mt-6;
+}
+
+.blog-content.blog-details h2 {
+  @apply mb-3 mt-5;
+}
+
+.blog-content.blog-details h3,
+.blog-content.blog-details h4,
+.blog-content.blog-details h5,
+.blog-content.blog-details h6 {
+  @apply mb-2 mt-4;
+}
+
+/* Better list spacing */
+.blog-content.blog-details ul,
+.blog-content.blog-details ol {
+  @apply mb-3 mt-2 pl-4;
+}
+
+.blog-content.blog-details li {
+  @apply mb-1 py-0.5 leading-normal;
+}
+
+/* Fix rich-text-content spacing */
+.rich-text-content {
+  @apply space-y-3 leading-relaxed; /* Increase spacing between elements */
+}
+
+.rich-text-content > * {
+  @apply my-1; /* Provide minimum spacing */
+}
+
+.rich-text-content p {
+  @apply mb-3;
+}
+
+.rich-text-content h2,
+.rich-text-content h3 {
+  @apply mb-2 mt-4;
+}
+
+/* Adjust for mobile with still readable spacing */
+@media (max-width: 640px) {
+  .blog-content.blog-details {
+    @apply space-y-2 p-1;
+  }
+
+  .blog-content.blog-details p {
+    @apply my-1.5;
+  }
+
+  .blog-content.blog-details h1 {
+    @apply mb-3 mt-4;
+  }
+
+  .blog-content.blog-details h2 {
+    @apply mb-2 mt-3;
+  }
+
+  .blog-content.blog-details h3,
+  .blog-content.blog-details h4,
+  .blog-content.blog-details h5,
+  .blog-content.blog-details h6 {
+    @apply mb-1.5 mt-3;
+  }
+
+  .blog-content.blog-details ul,
+  .blog-content.blog-details ol {
+    @apply mb-1 mt-1.5 pl-2;
+  }
+
+  .blog-content.blog-details li {
+    @apply py-0.5;
+  }
+
+  .rich-text-content {
+    @apply space-y-2;
+  }
+}
+
+/* Override earlier definitions that are causing conflicts */
+
+/* Fix blog content spacing with increased vertical rhythm */
+.blog-content.blog-details {
+  @apply space-y-4 p-4 !important; /* Increase container spacing */
+}
+
+/* Better paragraph spacing */
+.blog-content.blog-details p {
+  @apply my-3 text-base leading-relaxed !important;
+}
+
+/* Better heading spacing */
+.blog-content.blog-details h1 {
+  @apply mb-5 mt-8 !important;
+}
+
+.blog-content.blog-details h2 {
+  @apply mb-4 mt-7 !important;
+}
+
+.blog-content.blog-details h3,
+.blog-content.blog-details h4 {
+  @apply mb-3 mt-6 !important;
+}
+
+.blog-content.blog-details h5,
+.blog-content.blog-details h6 {
+  @apply mb-3 mt-5 !important;
+}
+
+/* Better list spacing */
+.blog-content.blog-details ul,
+.blog-content.blog-details ol {
+  @apply mb-4 mt-3 pl-6 !important;
+}
+
+.blog-content.blog-details li {
+  @apply mb-2 py-1 leading-relaxed !important;
+}
+
+/* Fix rich-text-content spacing */
+.rich-text-content {
+  @apply space-y-4 leading-relaxed !important; /* Increase spacing between elements */
+}
+
+.rich-text-content > * {
+  @apply my-2 !important;
+}
+
+.rich-text-content p {
+  @apply mb-4 !important;
+}
+
+.rich-text-content h2,
+.rich-text-content h3 {
+  @apply mb-3 mt-6 !important;
+}
+
+/* Adjust for mobile with better spacing */
+@media (max-width: 640px) {
+  .blog-content.blog-details {
+    @apply space-y-3 p-2 !important;
+  }
+
+  .blog-content.blog-details p {
+    @apply my-2 !important;
+  }
+
+  .blog-content.blog-details h1 {
+    @apply mb-4 mt-6 !important;
+  }
+
+  .blog-content.blog-details h2 {
+    @apply mb-3 mt-5 !important;
+  }
+
+  .blog-content.blog-details h3,
+  .blog-content.blog-details h4,
+  .blog-content.blog-details h5,
+  .blog-content.blog-details h6 {
+    @apply mb-2 mt-4 !important;
+  }
+
+  .blog-content.blog-details ul,
+  .blog-content.blog-details ol {
+    @apply my-1 py-0 pl-4 !important;
+  }
+
+  .blog-content.blog-details li {
+    @apply mb-0 p-0 pb-0.5 !important;
+  }
+
+  .rich-text-content {
+    @apply space-y-3 !important;
   }
 }
