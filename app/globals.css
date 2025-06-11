@@ -492,11 +492,11 @@ li {
 }
 
 .rich-text-content ul {
-  @apply mb-1 list-disc pl-6 text-black dark:text-white;
+  @apply mb-1 list-disc pl-2 text-black dark:text-white;
 }
 
 .rich-text-content ol {
-  @apply mb-1 list-decimal pl-6 text-black dark:text-white;
+  @apply mb-1 list-decimal pl-2 text-black dark:text-white;
 }
 
 .rich-text-content a {
@@ -504,11 +504,11 @@ li {
 }
 
 .rich-text-content blockquote {
-  @apply my-1 border-l-4 border-gray-300 pl-2 italic text-black dark:text-white;
+  @apply border-l-4 border-gray-300 pl-1 italic text-black dark:text-white;
 }
 
 .rich-text-content p {
-  @apply mb-1 text-black dark:text-white;
+  @apply text-black dark:text-white;
 }
 
 .blog-details strong {
