@@ -21,6 +21,7 @@ interface BlogItemEditorProps {
   onTextChange: (index: number, field: string, value: string) => void;
   onContentChange: (index: number, field: string, value: string) => void;
   activeTab: string;
+  disableRemove?: boolean; // Optional prop to disable remove button
 }
 
 const BlogItemEditor = memo(
@@ -31,6 +32,7 @@ const BlogItemEditor = memo(
     onTextChange,
     onContentChange,
     activeTab,
+    disableRemove = false, // Default to false if not provided
   }: BlogItemEditorProps) => {
     // Local state for text inputs to prevent re-renders of parent
     const [localFields, setLocalFields] = useState({
@@ -80,18 +82,20 @@ const BlogItemEditor = memo(
 
     return (
       <div className="mb-8 rounded-lg border border-gray-300 bg-white p-6 dark:border-gray-600 dark:bg-gray-700">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-medium text-black dark:text-white">
-            Blog Post {index + 1}
-          </h3>
-          <button
-            type="button"
-            onClick={() => onRemove(index)}
-            className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-          >
-            Remove Post
-          </button>
-        </div>
+        {!disableRemove && (
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-medium text-black dark:text-white">
+              #{index + 1}
+            </h3>
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+            >
+              Remove Post
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-4">
           {/* Blog Title */}
