@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -26,6 +27,7 @@
     "firebase": "^9.22.0",
     "framer-motion": "^10.12.16",
     "html-to-draftjs": "^1.5.0",
+    "immutable": "^5.1.2",
     "jsoneditor": "^9.10.5",
     "jsoneditor-react": "^3.1.2",
     "lodash": "^4.17.21",

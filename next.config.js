@@ -39,15 +39,6 @@ const nextConfig = {
     ],
   },
   output: "standalone",
-  async redirects() {
-    return [
-      {
-        source: "/sitemap.xml",
-        destination: "/api/sitemap",
-        permanent: true,
-      },
-    ];
-  },
 };
 
 module.exports = nextConfig;

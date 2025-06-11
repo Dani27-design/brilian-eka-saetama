@@ -1,0 +1,12 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# Host
+Host: https://brilian-eka-saetama.vercel.app
+
+# Sitemaps
+Sitemap: https://brilian-eka-saetama.vercel.app/sitemap.xml
+Sitemap: https://brilian-eka-saetama.vercel.app/server-sitemap-index.xml
