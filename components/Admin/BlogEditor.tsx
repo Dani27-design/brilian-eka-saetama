@@ -1,12 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import BlogPreview from "./BlogPreview";
 import ImageUploader from "./ImageUploader";
 import { Blog } from "@/types/blog";
+import { EditorState } from "draft-js";
+import { stateFromHTML } from "draft-js-import-html";
+import debounce from "lodash/debounce";
+import BlogItemEditor from "./BlogItemEditor";
+
+// Dynamically import our SimpleBlogEditor component with SSR disabled
+const SimpleBlogEditor = dynamic(() => import("./SimpleBlogEditor"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[250px] items-center justify-center bg-gray-50 dark:bg-gray-800">
+      <p className="text-gray-500">Loading editor...</p>
+    </div>
+  ),
+});
 
 interface BlogEditorProps {
   collectionName: string;
@@ -28,13 +43,18 @@ const BlogEditor = ({
     initialData || { en: "", id: "" },
   );
   const [fullBlogData, setFullBlogData] = useState<any>({});
-  const [activeTab, setActiveTab] = useState<string>(language || "en");
+  const [activeTab, setActiveTab] = useState<string>(language || "id");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
     "desktop",
   );
   const [blogItems, setBlogItems] = useState<Blog[]>([]);
+  const [editorStates, setEditorStates] = useState<{
+    [key: string]: EditorState;
+  }>({});
 
-  // Load all blog-related data for the preview
+  // Modify this useEffect to be less aggressive with updates
+
+  // Replace this useEffect:
   useEffect(() => {
     const fetchBlogData = async () => {
       try {
@@ -78,6 +98,61 @@ const BlogEditor = ({
     fetchBlogData();
   }, [documentId, formData, activeTab]);
 
+  // With this debounced version:
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      // Only update preview data when typing has stopped
+      const updatedData = { ...fullBlogData };
+
+      // Just update the current document
+      if (documentId) {
+        updatedData[documentId] = formData;
+      }
+
+      setFullBlogData(updatedData);
+    }, 500); // Longer delay for preview updates
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
+
+  // Add a separate effect for initial data loading that doesn't run on every change
+  useEffect(() => {
+    const fetchBlogData = async () => {
+      try {
+        const docTypes = [
+          "blog_title",
+          "blog_subtitle",
+          "blog_description",
+          "blogs",
+        ];
+        const data = {};
+
+        for (const docType of docTypes) {
+          const docRef = doc(firestore, "blog", docType);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            data[docType] = docSnap.data();
+          }
+        }
+
+        setFullBlogData(data);
+      } catch (error) {
+        console.error("Error fetching blog data:", error);
+      }
+    };
+
+    fetchBlogData();
+  }, [documentId, activeTab]); // Only reload when document or language changes
+
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
@@ -95,7 +170,45 @@ const BlogEditor = ({
     }
   }, [initialData, documentId, activeTab]);
 
-  // Handle form data change
+  // Initialize editor states from HTML content
+  useEffect(() => {
+    let mounted = true;
+
+    if (blogItems.length > 0) {
+      // Use setTimeout to ensure component is mounted
+      setTimeout(() => {
+        if (!mounted) return;
+
+        const states = {};
+        blogItems.forEach((blog, index) => {
+          // Only update if we don't already have an editor state for this index
+          if (!editorStates[index]) {
+            if (blog.content) {
+              try {
+                const contentState = stateFromHTML(blog.content);
+                states[index] = EditorState.createWithContent(contentState);
+              } catch (e) {
+                console.error("Failed to parse HTML content:", e);
+                states[index] = EditorState.createEmpty();
+              }
+            } else {
+              states[index] = EditorState.createEmpty();
+            }
+          }
+        });
+
+        if (Object.keys(states).length > 0) {
+          setEditorStates((prev) => ({ ...prev, ...states }));
+        }
+      }, 0);
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [blogItems]); // Remove editorStates from dependency to prevent loops
+
+  // Optimized form change handler with direct updates for typing
   const handleFormChange = (value: any) => {
     setFormData((prev) => ({
       ...prev,
@@ -103,13 +216,63 @@ const BlogEditor = ({
     }));
   };
 
-  // Handle blog item changes
-  const handleBlogItemChange = (index: number, field: string, value: any) => {
+  // For blog items, separate immediate and debounced updates
+  const handleBlogItemChangeImmediate = (
+    index: number,
+    field: string,
+    value: any,
+  ) => {
+    // Fields that need immediate feedback but don't affect the preview much
     const newBlogItems = [...blogItems];
     newBlogItems[index] = { ...newBlogItems[index], [field]: value };
     setBlogItems(newBlogItems);
-    handleFormChange(newBlogItems);
   };
+
+  // Debounced update for preview and other components
+  const debouncedBlogUpdate = useCallback(
+    debounce((items) => {
+      handleFormChange(items);
+    }, 500),
+    [activeTab],
+  );
+
+  const handleBlogItemChange = (index: number, field: string, value: any) => {
+    const newBlogItems = [...blogItems];
+    newBlogItems[index] = { ...newBlogItems[index], [field]: value };
+
+    // Always update local state immediately for responsive UI
+    setBlogItems(newBlogItems);
+
+    // For text fields, use the debounced update to prevent lag
+    if (["title", "slug", "metadata", "author"].includes(field)) {
+      debouncedBlogUpdate(newBlogItems);
+    } else {
+      // For other fields like images or content, update immediately
+      handleFormChange(newBlogItems);
+    }
+  };
+
+  // Add this new optimized handler specifically for text input fields
+  const handleTextInputChange = (index: number, field: string, value: any) => {
+    // Direct DOM update for immediate feedback without re-rendering the whole component
+    const newBlogItems = [...blogItems];
+    newBlogItems[index] = { ...newBlogItems[index], [field]: value };
+
+    // Update local state only
+    setBlogItems(newBlogItems);
+
+    // Use a more aggressive debounce for text fields
+    textUpdateDebounce(index, field, value, newBlogItems);
+  };
+
+  // Create a more aggressive debounce specifically for text typing
+  const textUpdateDebounce = useCallback(
+    debounce((index, field, value, items) => {
+      // Only after typing stops, update parent state
+      handleFormChange(items);
+    }, 300), // shorter delay for better responsiveness
+    [activeTab],
+  );
 
   const addBlogItem = () => {
     const newBlogItem: Blog = {
@@ -236,130 +399,15 @@ const BlogEditor = ({
               )}
 
               {blogItems.map((blog, index) => (
-                <div
+                <BlogItemEditor
                   key={blog._id || index}
-                  className="mb-8 rounded-lg border border-gray-300 bg-white p-6 dark:border-gray-600 dark:bg-gray-700"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="font-medium text-black dark:text-white">
-                      Blog Post {index + 1}
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => removeBlogItem(index)}
-                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-                    >
-                      Remove Post
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
-                    {/* Blog Title */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Blog Title
-                      </label>
-                      <input
-                        type="text"
-                        value={blog.title || ""}
-                        onChange={(e) =>
-                          handleBlogItemChange(index, "title", e.target.value)
-                        }
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                      />
-                    </div>
-
-                    {/* Blog Slug */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Blog Slug (URL)
-                      </label>
-                      <input
-                        type="text"
-                        value={blog.slug || ""}
-                        onChange={(e) =>
-                          handleBlogItemChange(index, "slug", e.target.value)
-                        }
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                        placeholder="my-blog-post"
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        URL-friendly version of the title (no spaces, use
-                        hyphens)
-                      </p>
-                    </div>
-
-                    {/* Blog Description */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Blog Description
-                      </label>
-                      <textarea
-                        value={blog.metadata || ""}
-                        onChange={(e) =>
-                          handleBlogItemChange(
-                            index,
-                            "metadata",
-                            e.target.value,
-                          )
-                        }
-                        className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                      />
-                    </div>
-
-                    {/* Blog Image */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Blog Image
-                      </label>
-                      <ImageUploader
-                        value={blog.mainImage || ""}
-                        onChange={(url) =>
-                          handleBlogItemChange(index, "mainImage", url)
-                        }
-                        folder={`blog/${activeTab}/images`}
-                        aspectRatio="landscape"
-                      />
-                    </div>
-
-                    {/* Blog Content Editor */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Blog Content
-                      </label>
-                      <textarea
-                        value={blog.content || ""}
-                        onChange={(e) =>
-                          handleBlogItemChange(index, "content", e.target.value)
-                        }
-                        className="h-48 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                        placeholder="Write your blog content here..."
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        Write the main content of the blog post here.
-                      </p>
-                    </div>
-
-                    {/* Blog Author  */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Blog Author
-                      </label>
-                      <input
-                        type="text"
-                        value={blog.author || ""}
-                        onChange={(e) =>
-                          handleBlogItemChange(index, "author", e.target.value)
-                        }
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                        placeholder="Author Name"
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        Enter the name of the author for this blog post.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  blog={blog}
+                  index={index}
+                  onRemove={removeBlogItem}
+                  onTextChange={handleBlogItemChange}
+                  onContentChange={handleBlogItemChange}
+                  activeTab={activeTab}
+                />
               ))}
 
               <button
@@ -382,16 +430,26 @@ const BlogEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [documentId, activeTab, blogItems]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
       {/* Blog preview component */}
-      <BlogPreview
-        data={fullBlogData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {useMemo(
+        () => (
+          <BlogPreview
+            data={fullBlogData}
+            activeSection={documentId}
+            onEditSection={handleEditSection}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
+          />
+        ),
+        [fullBlogData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -427,7 +485,7 @@ const BlogEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

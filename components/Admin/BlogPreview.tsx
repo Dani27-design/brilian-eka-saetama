@@ -47,12 +47,12 @@ const BlogPreview = ({
 
   // Process the blog data for the current language
   const processBlogData = () => {
-    const currentLang = language || "en";
+    const currentLang = language || "id";
 
     // Get blog title
     const getBlogTitle = () => {
       if (!data.blog_title || !data.blog_title[currentLang]) {
-        return currentLang === "en" ? "NEWS & BLOGS" : "BERITA & BLOG";
+        return currentLang === "id" ? "NEWS & BLOGS" : "BERITA & BLOG";
       }
       return data.blog_title[currentLang];
     };

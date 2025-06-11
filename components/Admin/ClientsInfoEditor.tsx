@@ -27,7 +27,7 @@ const ClientsInfoEditor = ({
     initialData || { en: [], id: [] },
   );
   const [fullClientsInfoData, setFullClientsInfoData] = useState<any>({});
-  const [activeTab, setActiveTab] = useState<string>(language || "en");
+  const [activeTab, setActiveTab] = useState<string>(language || "id");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
     "desktop",
   );

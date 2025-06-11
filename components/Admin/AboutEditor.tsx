@@ -27,7 +27,7 @@ const AboutEditor = ({
     initialData || { en: "", id: "" },
   );
   const [fullAboutData, setFullAboutData] = useState<any>({});
-  const [activeTab, setActiveTab] = useState<string>(language || "en");
+  const [activeTab, setActiveTab] = useState<string>(language || "id");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
     "desktop",
   );

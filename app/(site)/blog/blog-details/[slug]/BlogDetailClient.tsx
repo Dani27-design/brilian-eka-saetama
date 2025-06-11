@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { marked } from "marked"; // Add this import
 import RelatedPost from "@/components/Blog/RelatedPost";
 import SharePost from "@/components/Blog/SharePost";
 import Image from "next/image";
@@ -76,6 +77,24 @@ const BlogDetailClient = ({ slug, initialBlog }: BlogDetailClientProps) => {
       </section>
     );
   }
+
+  // Add this function to convert Markdown to HTML
+  const renderContent = (content: string) => {
+    if (!content) return "";
+
+    try {
+      // Check if content is already HTML
+      if (content.includes("<") && content.includes(">")) {
+        return content; // Already HTML, return as is
+      }
+
+      // Convert Markdown to HTML
+      return marked.parse(content);
+    } catch (error) {
+      console.error("Error parsing blog content:", error);
+      return content; // Return original content if parsing fails
+    }
+  };
 
   return (
     <section className="pb-10 pt-25 xl:pt-30">
@@ -190,7 +209,7 @@ const BlogDetailClient = ({ slug, initialBlog }: BlogDetailClientProps) => {
               <div className="blog-content blog-details">
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: currentBlog.content || "",
+                    __html: renderContent(currentBlog.content || ""),
                   }}
                   className="rich-text-content"
                 />

@@ -46,7 +46,7 @@ const AboutPreview = ({
 
   // Process the about data for the current language
   const processAboutData = () => {
-    const currentLang = language || "en";
+    const currentLang = language || "id";
 
     // Get about title
     const getAboutTitle = () => {

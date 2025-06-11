@@ -55,7 +55,7 @@ export default function AdminLayout({
   // Special case for login page - render without admin components
   if (isLoginPage) {
     return (
-      <html lang="en">
+      <html lang="id">
         <body className={inter.className}>
           <ThemeProvider attribute="class">
             <LanguageProvider>{children}</LanguageProvider>
@@ -68,7 +68,7 @@ export default function AdminLayout({
   // Show loading state
   if (isLoading) {
     return (
-      <html lang="en">
+      <html lang="id">
         <body className={inter.className}>
           <div className="flex h-screen w-full items-center justify-center">
             <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -80,7 +80,7 @@ export default function AdminLayout({
 
   // Admin layout with sidebar and header
   return (
-    <html lang="en">
+    <html lang="id">
       <body className={inter.className}>
         {isAuthenticated && (
           <ThemeProvider attribute="class">
