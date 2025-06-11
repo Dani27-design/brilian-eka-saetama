@@ -179,7 +179,7 @@ export default function Home() {
         <h2 id="hero-heading" className="sr-only">
           Solusi Keamanan Kebakaran Terpercaya
         </h2>
-        <Hero language={language} />
+        <Hero />
       </section>
 
       <section
