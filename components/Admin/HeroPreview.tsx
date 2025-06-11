@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { trimByParentheses } from "@/utils/trimText";
-import { HeroForm, HeroVideo } from "../Hero/HeroClient";
+import { HeroVideo } from "../Hero";
 
 // Custom implementation of HeroForm that supports separate editing regions
 const EditableHeroForm = ({

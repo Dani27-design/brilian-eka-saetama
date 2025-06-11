@@ -597,7 +597,7 @@ section h4,
 
 /* Fix blog content spacing with increased vertical rhythm */
 .blog-content.blog-details {
-  @apply space-y-4 p-4 !important; /* Increase container spacing */
+  @apply space-y-4 p-0 !important; /* Increase container spacing */
 }
 
 /* Better paragraph spacing */
@@ -655,7 +655,7 @@ section h4,
 /* Adjust for mobile with better spacing */
 @media (max-width: 640px) {
   .blog-content.blog-details {
-    @apply space-y-3 p-2 !important;
+    @apply space-y-3 p-0 !important;
   }
 
   .blog-content.blog-details p {

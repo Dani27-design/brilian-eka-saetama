@@ -7,6 +7,7 @@ import { useLanguage } from "@/app/context/LanguageContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getData } from "@/actions/read/hero";
 import type { Blog } from "@/types/blog";
+import Link from "next/link";
 
 // Create a hook for fetching blog data from Firestore
 const useBlogData = (lang: string, collectionId: string, docId: string) => {
@@ -113,9 +114,21 @@ const Blog = () => {
           <div className="py-10 text-center">Loading blog posts...</div>
         ) : (
           <div className="grid grid-cols-1 gap-7.5 md:grid-cols-2 lg:grid-cols-3 xl:gap-10">
-            {blogs.map((blog, key) => (
-              <BlogItem blog={blog} key={blog._id || key} />
-            ))}
+            {blogs
+              ?.slice(0, 3)
+              ?.map((blog, key) => (
+                <BlogItem blog={blog} key={blog._id || key} />
+              ))}
+          </div>
+        )}
+        {blogs?.length > 3 && (
+          <div className="mt-5 text-center">
+            <Link
+              href="/blog"
+              className="inline-block rounded-lg bg-[#006bff] px-6 py-3 text-white transition-colors duration-300 dark:hover:bg-[#0056d2] dark:hover:text-white"
+            >
+              More Blogs
+            </Link>
           </div>
         )}
       </div>

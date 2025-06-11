@@ -34,12 +34,13 @@ const BlogDetailClient = ({ slug, initialBlog }: BlogDetailClientProps) => {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-    initialData: [initialBlog], // Provide initial data to prevent loading state
+    // initialData: [initialBlog], // Provide initial data to prevent loading state
   });
 
   // Find the current blog and related posts based on slug
   useEffect(() => {
     if (blogsData && slug) {
+      console.log("Blogs data:", blogsData);
       const foundBlog = blogsData.find((blog) => blog.slug === slug);
       if (foundBlog) {
         setCurrentBlog(foundBlog);

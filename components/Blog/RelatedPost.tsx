@@ -34,31 +34,34 @@ const RelatedPost: React.FC<RelatedPostProps> = ({ relatedPosts = [] }) => {
           <div>
             {relatedPosts.map((post, key) => (
               <div
-                className="mb-5 flex flex-wrap gap-2 border-b border-stroke pb-5 last:border-0 last:pb-0 xl:flex-nowrap 2xl:gap-4"
+                className="mb-5 border-b border-stroke pb-5 last:border-0 last:pb-0"
                 key={post._id || key}
               >
-                <div className="max-w-45 relative h-18 w-45">
-                  {post.mainImage ? (
-                    <Image
-                      fill
-                      src={post.mainImage}
-                      alt={post.title}
-                      loading="lazy"
-                      quality={70}
-                      sizes="180px"
-                      className="rounded-lg object-cover transition-transform duration-300 hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-800">
-                      No image
-                    </div>
-                  )}
-                </div>
-                <h5 className="text-md w-full font-medium text-black transition-all duration-300 hover:text-primary dark:text-white dark:hover:text-primary">
-                  <Link href={`/blog/blog-details/${post.slug || ""}`}>
+                <Link
+                  href={`/blog/blog-details/${post.slug || ""}`}
+                  className="block flex flex-wrap gap-2 xl:flex-nowrap 2xl:gap-4"
+                >
+                  <div className="max-w-45 relative h-18 w-45">
+                    {post.mainImage ? (
+                      <Image
+                        fill
+                        src={post.mainImage}
+                        alt={post.title}
+                        loading="lazy"
+                        quality={70}
+                        sizes="180px"
+                        className="rounded-lg object-cover transition-transform duration-300 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-800">
+                        No image
+                      </div>
+                    )}
+                  </div>
+                  <h5 className="text-md w-full font-medium text-black transition-all duration-300 hover:text-primary dark:text-white dark:hover:text-primary">
                     {post.title}
-                  </Link>
-                </h5>
+                  </h5>
+                </Link>
               </div>
             ))}
           </div>

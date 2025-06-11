@@ -1,53 +1,368 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { trimByParentheses } from "@/utils/trimText";
-import { HeroForm, HeroVideo } from "./HeroClient";
+import emailjs from "@emailjs/browser";
+import { useLanguage } from "@/app/context/LanguageContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getData } from "@/actions/read/hero";
 
-// Server component to fetch data
-async function getHeroData(language) {
-  const fetchData = async (key) => {
-    // Import the getData function directly to avoid client-side import
-    const { getData } = await import("@/actions/read/hero");
-    return getData(language, "hero", key);
+// Custom hook to fetch Hero data from Firestore
+const useHeroData = (lang: string, collectionId: string, docId: string) => {
+  const queryClient = useQueryClient();
+  return useQuery({
+    queryKey: [`${collectionId}-${docId}-${lang}`],
+    queryFn: () => getData(lang, collectionId, docId),
+    staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes
+    gcTime: 1000 * 60 * 5, // Data will stay in cache for 5 minutes after it becomes inactive
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    refetchIntervalInBackground: true,
+    retry: false,
+    initialData: () => {
+      return queryClient.getQueryData([`${collectionId}-${docId}-${lang}`]);
+    },
+  });
+};
+
+// Hero Form Component
+function HeroForm({ emailPlaceholder, buttonText }) {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: null | "error" | "success";
+    message: string;
+  }>({
+    type: null,
+    message: "",
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setSubmitStatus({
+        type: "error",
+        message: "Please enter a valid email address",
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+      const templateIdInboundConsultation =
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_INBOUND_CONSULTATION;
+      const templateIdOutbondWelcome =
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_OUTBOUND_WELCOME;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+      // Validate EmailJS credentials exist
+      if (
+        !serviceId ||
+        !templateIdInboundConsultation ||
+        !publicKey ||
+        !templateIdOutbondWelcome
+      ) {
+        throw new Error("EmailJS credentials are not properly configured");
+      }
+
+      // Prepare template parameters for EmailJS
+      const templateParams = {
+        to_email: "ptbrilianekasaetama@gmail.com",
+        from_name: email.replace(/@.*/, ""),
+        from_email: email,
+        subject: "Ingin Terhubung",
+        message: `Pengunjung Website '${email.replace(
+          /@.*/,
+          "",
+        )}' dari email '${email}' ingin terhubung dan konsultasi lebih lanjut.`,
+      };
+
+      // Send email using EmailJS
+      await emailjs.send(
+        serviceId,
+        templateIdInboundConsultation,
+        templateParams,
+        publicKey,
+      );
+
+      await emailjs.send(
+        serviceId,
+        templateIdOutbondWelcome,
+        {
+          email: email,
+        },
+        publicKey,
+      );
+
+      // Reset form after successful submission
+      setEmail("");
+
+      // Show success message
+      setSubmitStatus({
+        type: "success",
+        message: "Thank you for subscribing! We'll be in touch soon.",
+      });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setSubmitStatus({
+        type: "error",
+        message: "Failed to submit your email. Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Fetch all data in parallel
-  const [title, subtitle, slogan, emailPlaceholder, buttonText] =
-    await Promise.all([
-      fetchData("hero_title"),
-      fetchData("hero_subtitle"),
-      fetchData("hero_slogan"),
-      fetchData("email_placeholder"),
-      fetchData("button_text"),
-    ]);
+  // Clear status message after 5 seconds
+  useEffect(() => {
+    if (submitStatus.type) {
+      const timer = setTimeout(() => {
+        setSubmitStatus({ type: null, message: "" });
+      }, 5000);
 
-  // Process hero title to extract highlight
-  let highlight = "";
-  let processedTitle = title || "";
+      return () => clearTimeout(timer);
+    }
+  }, [submitStatus]);
 
-  if (title) {
-    const parsed = trimByParentheses(title);
-    processedTitle = parsed.a;
-    highlight = parsed.b;
-  }
+  return (
+    <div className="w-full">
+      <form onSubmit={handleSubmit}>
+        <div className="flex flex-wrap gap-5">
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder={emailPlaceholder}
+            className="w-fit rounded-full border border-stroke px-6 py-2.5 focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:focus:border-primary"
+            disabled={isSubmitting}
+          />
+          <button
+            aria-label="get started button"
+            className={`rounded-full bg-black px-7.5 py-2.5 text-white dark:bg-btndark ${
+              isSubmitting ? "cursor-not-allowed opacity-70" : ""
+            }`}
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Sending..." : buttonText}
+          </button>
+        </div>
+      </form>
 
-  // Default values if data is missing
-  return {
-    heroTitle: processedTitle,
-    highlight,
-    heroSubtitle: subtitle || "",
-    heroSlogan: slogan || "",
-    emailPlaceholder:
-      emailPlaceholder ||
-      (language === "id" ? "Masukkan alamat email" : "Enter email address"),
-    buttonText:
-      buttonText || (language === "id" ? "Mari Terhubung" : "Connect with us"),
-  };
+      {submitStatus.type && (
+        <div
+          className={`mt-3 rounded-md p-3 text-sm ${
+            submitStatus.type === "success"
+              ? "bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+              : "bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          }`}
+        >
+          {submitStatus.message}
+        </div>
+      )}
+    </div>
+  );
 }
 
-// Server component - no "use client" directive
-export default async function Hero({ language = "id" }) {
-  // Fetch data on the server
-  const heroContent = await getHeroData(language);
+// Hero Video Component
+export function HeroVideo() {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoSrc = "/videos/company_profile_bes_hero.mp4";
+
+  const handleVideoLoad = () => {
+    if (videoRef.current && videoRef.current.readyState >= 3) {
+      setVideoLoaded(true);
+    }
+  };
+
+  const handleVideoError = () => {
+    console.error("Failed to load video");
+    setVideoError(true);
+  };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const timer = setTimeout(() => {
+      if (!videoLoaded && video) {
+        handleVideoLoad();
+      }
+    }, 1000);
+
+    if (video) {
+      if (video.readyState >= 3) {
+        setVideoLoaded(true);
+      }
+
+      video.addEventListener("loadeddata", handleVideoLoad);
+      video.addEventListener("error", handleVideoError);
+    }
+
+    return () => {
+      if (video) {
+        video.removeEventListener("loadeddata", handleVideoLoad);
+        video.removeEventListener("error", handleVideoError);
+      }
+      clearTimeout(timer);
+    };
+  }, [videoLoaded]);
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl"
+      style={{
+        aspectRatio: "3/4",
+        width: "100%",
+        height: "auto",
+        minHeight: "400px",
+        maxHeight: "600px",
+        backgroundColor: "rgba(0,0,0,0.05)",
+      }}
+    >
+      {!videoLoaded && (
+        <div
+          className="absolute inset-0 h-full w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700"
+          style={{ zIndex: 1 }}
+        />
+      )}
+
+      <video
+        ref={videoRef}
+        className={`h-full w-full object-cover shadow-solid-l ${
+          videoLoaded ? "opacity-100" : "opacity-0"
+        }`}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          transition: "opacity 0.5s ease",
+          zIndex: videoLoaded ? 2 : 0,
+        }}
+        src={videoSrc}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+      />
+    </div>
+  );
+}
+
+// Main Hero Component as Client Component
+export default function Hero() {
+  const { language } = useLanguage();
+
+  // Fetch data from Firestore using the custom hook
+  const {
+    data: heroTitleData,
+    isLoading: isLoadingTitle,
+    error: errorTitle,
+  } = useHeroData(language, "hero", "hero_title");
+
+  const {
+    data: heroHighlightData,
+    isLoading: isLoadingHighlight,
+    error: errorHighlight,
+  } = useHeroData(language, "hero", "hero_highlight");
+
+  const {
+    data: heroSubtitleData,
+    isLoading: isLoadingSubtitle,
+    error: errorSubtitle,
+  } = useHeroData(language, "hero", "hero_subtitle");
+
+  const {
+    data: heroSloganData,
+    isLoading: isLoadingSlogan,
+    error: errorSlogan,
+  } = useHeroData(language, "hero", "hero_slogan");
+
+  const {
+    data: emailPlaceholderData,
+    isLoading: isLoadingEmail,
+    error: errorEmail,
+  } = useHeroData(language, "hero", "email_placeholder");
+
+  const {
+    data: buttonTextData,
+    isLoading: isLoadingButton,
+    error: errorButton,
+  } = useHeroData(language, "hero", "button_text");
+
+  // Handle errors
+  useEffect(() => {
+    if (errorTitle)
+      console.error("Error fetching hero title data:", errorTitle);
+    if (errorHighlight)
+      console.error("Error fetching hero highlight data:", errorHighlight);
+    if (errorSubtitle)
+      console.error("Error fetching hero subtitle data:", errorSubtitle);
+    if (errorSlogan)
+      console.error("Error fetching hero slogan data:", errorSlogan);
+    if (errorEmail)
+      console.error("Error fetching email placeholder data:", errorEmail);
+    if (errorButton)
+      console.error("Error fetching button text data:", errorButton);
+  }, [
+    errorTitle,
+    errorHighlight,
+    errorSubtitle,
+    errorSlogan,
+    errorEmail,
+    errorButton,
+  ]);
+
+  // Check if any data is still loading
+  const isLoading =
+    isLoadingTitle ||
+    isLoadingHighlight ||
+    isLoadingSubtitle ||
+    isLoadingSlogan ||
+    isLoadingEmail ||
+    isLoadingButton;
+
+  // Set default values if data isn't loaded yet
+  const heroContent = {
+    heroTitle: heroTitleData || "",
+    highlight: heroHighlightData || "",
+    heroSubtitle: heroSubtitleData || "",
+    heroSlogan: heroSloganData || "",
+    emailPlaceholder:
+      emailPlaceholderData ||
+      (language === "id" ? "Masukkan alamat email" : "Enter email address"),
+    buttonText:
+      buttonTextData ||
+      (language === "id" ? "Mari Terhubung" : "Connect with us"),
+  };
+
+  if (isLoading) {
+    return (
+      <section className="overflow-hidden pb-20 pt-25 md:pt-25 xl:pb-25 xl:pt-36">
+        <div className="mx-auto max-w-c-1280 px-4 md:px-8 2xl:px-0">
+          <div className="flex flex-col items-center gap-8 md:flex-row md:items-start lg:gap-12 xl:gap-16">
+            <div className="w-full md:w-3/5">
+              <div className="mb-4.5 h-6 w-1/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div className="mb-4 h-10 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div className="mb-8 h-20 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div className="mt-5 h-10 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div className="w-full md:w-2/5">
+              <div className="h-[500px] w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="overflow-hidden pb-20 pt-25 md:pt-25 xl:pb-25 xl:pt-36">
@@ -106,7 +421,6 @@ export default async function Hero({ language = "id" }) {
                 priority={true}
                 quality={80}
               />
-
               <HeroVideo />
             </div>
           </div>

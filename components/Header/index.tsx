@@ -144,27 +144,101 @@ const Header = () => {
     }
   };
 
-  // Function to handle initial scroll to hash when page loads/refreshes
+  // Completely revised smooth scrolling function with retry mechanism
+  const scrollToElement = (targetId: string, closeMenu = true) => {
+    // Remove leading slash and hash if exists
+    const id = targetId.replace(/^\/?(#)?/, "");
+
+    if (!id) return;
+
+    // Close mobile menu if open and requested
+    if (closeMenu && navigationOpen) {
+      setNavigationOpen(false);
+    }
+
+    // Update URL and state
+    const newHash = `#${id}`;
+    if (window.location.hash !== newHash) {
+      window.history.pushState(null, "", newHash);
+      setHashUrl(newHash);
+    }
+
+    // Implementation with retry mechanism
+    let attempts = 0;
+    const maxAttempts = 5;
+    const attemptInterval = 100; // ms
+
+    const scrollWithRetry = () => {
+      attempts++;
+      const element = document.getElementById(id);
+
+      if (!element) {
+        if (attempts < maxAttempts) {
+          setTimeout(scrollWithRetry, attemptInterval);
+        }
+        return;
+      }
+
+      // Calculate header height plus extra margin
+      const headerElement = document.querySelector("header");
+      const headerHeight = headerElement ? headerElement.offsetHeight : 120;
+      const extraMargin = 50; // Increased extra margin for better positioning
+
+      // First - ensure browser is not in middle of layout calculation
+      requestAnimationFrame(() => {
+        // Then - force a complete layout calculation before measuring
+        document.body.offsetHeight;
+
+        // Get the position with high accuracy
+        const rect = element.getBoundingClientRect();
+        const absoluteTop = rect.top + window.pageYOffset;
+        const scrollTarget = absoluteTop - headerHeight - extraMargin;
+
+        // Use two-step scrolling for better browser compatibility
+        // First, jump close to target without animation
+        window.scrollTo(0, scrollTarget - 10);
+
+        // Short delay, then smooth scroll to final position
+        setTimeout(() => {
+          window.scrollTo({
+            top: scrollTarget,
+            behavior: "smooth",
+          });
+        }, 10);
+      });
+    };
+
+    // Allow DOM to settle before beginning scroll attempts
+    setTimeout(scrollWithRetry, 100);
+  };
+
+  // Function for smooth scrolling on link click
+  const handleSmoothScroll = (e: React.MouseEvent, targetId: string) => {
+    e.preventDefault();
+    scrollToElement(targetId);
+  };
+
+  // Improved function to scroll to initial hash when page loads/refreshes
   const scrollToInitialHash = () => {
     if (typeof window !== "undefined" && window.location.hash) {
       const id = window.location.hash.replace("#", "");
-      const element = document.getElementById(id);
+      setHashUrl(window.location.hash);
 
-      if (element) {
-        // Also update hashUrl state
-        setHashUrl(window.location.hash);
-        setTimeout(() => {
-          const headerOffset = 100;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition =
-            elementPosition + window.scrollY - headerOffset;
+      // Use longer delay on initial page load
+      setTimeout(() => {
+        scrollToElement(id, false);
+      }, 500);
+    }
+  };
 
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth",
-          });
-        }, 100); // Small delay to ensure DOM is fully loaded
-      }
+  // Function to handle URL change
+  const handleURLChange = () => {
+    updateHashFromUrl();
+
+    // Auto scroll to hash if present
+    if (window.location.hash) {
+      const id = window.location.hash.replace("#", "");
+      scrollToElement(id, false);
     }
   };
 
@@ -174,49 +248,12 @@ const Header = () => {
     setHashUrl(customEvent.detail?.hash || "");
   };
 
-  // Function for smooth scrolling
-  const handleSmoothScroll = (e: React.MouseEvent, targetId: string) => {
-    e.preventDefault();
-
-    // Remove leading slash and hash if exists
-    const id = targetId.replace(/^\/?(#)?/, "");
-
-    if (id) {
-      // Close mobile menu if open
-      if (navigationOpen) {
-        setNavigationOpen(false);
-      }
-
-      // Small delay to ensure DOM is ready and menu is closed
-      setTimeout(() => {
-        const element = document.getElementById(id);
-
-        if (element) {
-          // Calculate header offset
-          const headerOffset = 100;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition =
-            elementPosition + window.scrollY - headerOffset;
-
-          // Smooth scroll with offset
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth",
-          });
-
-          // Update URL and state
-          const newHash = `#${id}`;
-          if (window.location.hash !== newHash) {
-            window.history.pushState(null, "", newHash);
-            setHashUrl(newHash);
-          }
-        }
-      }, 100);
-    }
-  };
-
   // Function to scroll to top
   const scrollToTop = () => {
+    if (window.location.pathname.includes("/blog")) {
+      window.location.href = "/";
+      return;
+    }
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -245,7 +282,11 @@ const Header = () => {
 
     // Initial setup - handle hash in URL when page loads
     updateHashFromUrl();
-    scrollToInitialHash();
+
+    // Use a small timeout to ensure the DOM is fully ready
+    const initialScrollTimer = setTimeout(() => {
+      scrollToInitialHash();
+    }, 300);
 
     // Event handlers
     const handleScroll = () => {
@@ -254,28 +295,6 @@ const Header = () => {
 
     const handleHashChangeEvent = () => {
       updateHashFromUrl();
-    };
-
-    const handleURLChange = () => {
-      updateHashFromUrl();
-
-      // Auto scroll to hash if present
-      if (window.location.hash) {
-        const id = window.location.hash.replace("#", "");
-        const element = document.getElementById(id);
-
-        if (element) {
-          const headerOffset = 100;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition =
-            elementPosition + window.scrollY - headerOffset;
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth",
-          });
-        }
-      }
     };
 
     // Add event listeners
@@ -290,6 +309,7 @@ const Header = () => {
       window.removeEventListener("hashchange", handleHashChangeEvent);
       window.removeEventListener("popstate", handleURLChange);
       window.removeEventListener("resetHashUrl", handleResetHashUrl);
+      clearTimeout(initialScrollTimer);
     };
   }, []);
 
@@ -314,13 +334,6 @@ const Header = () => {
           if (window.location.hash) {
             // Remove the hash and reload to the same page without hash
             window.location.href = window.location.pathname;
-            return;
-          }
-
-          // If not already on home page (no hash case)
-          if (window.location.pathname !== "/") {
-            // Redirect to home page
-            window.location.href = window.location.origin;
             return;
           }
 
