@@ -81,7 +81,7 @@ const BlogItemEditor = memo(
     };
 
     return (
-      <div className="mb-8 rounded-lg border border-gray-300 bg-white p-6 dark:border-gray-600 dark:bg-gray-700">
+      <div className="mb-8 rounded-lg border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 lg:p-6">
         {!disableRemove && (
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-medium text-black dark:text-white">

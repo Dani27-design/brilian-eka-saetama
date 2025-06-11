@@ -94,7 +94,7 @@ export default function CreateBlogPage() {
   };
 
   return (
-    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-4 dark:border-strokedark md:p-6 xl:p-7.5">
+    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-2 dark:border-strokedark md:p-6 xl:p-7.5">
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-black dark:text-white">
           Create New Blog Post
@@ -133,7 +133,7 @@ export default function CreateBlogPage() {
       )}
 
       <form onSubmit={handleSubmit}>
-        <div className="mb-6">
+        <div className="mb-6 p-0">
           <BlogItemEditor
             blog={blog}
             index={0}
