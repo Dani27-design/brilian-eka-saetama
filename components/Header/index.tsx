@@ -513,45 +513,50 @@ const Header = () => {
                 </ul>
               </nav>
 
-              <div className="mt-7 flex items-center gap-6 xl:mt-0">
+              <div className="mt-7 flex w-fit items-center gap-6 xl:mt-0">
                 <ThemeToggler />
 
-                <div className="relative inline-block text-left">
-                  <div>
-                    <button
-                      onClick={toggleDropdown}
-                      type="button"
-                      className="flex items-center justify-center rounded-full bg-primary px-4 py-2.5 text-regular text-white duration-300 ease-in-out hover:bg-primaryho focus:outline-none"
-                      aria-expanded={isOpen}
-                    >
-                      {language === "en" ? enText : idText}
-                    </button>
-                  </div>
-
-                  {isOpen && (
-                    <div className="absolute right-0 mt-2 w-36 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <div
-                        className="py-1"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="options-menu"
+                {/* language switcher  */}
+                {!window.location.pathname.includes("/blog/blog-details") ? (
+                  <div className="relative inline-block text-left">
+                    <div>
+                      <button
+                        onClick={toggleDropdown}
+                        type="button"
+                        className="flex items-center justify-center rounded-full bg-primary px-4 py-2.5 text-regular text-white duration-300 ease-in-out hover:bg-primaryho focus:outline-none"
+                        aria-expanded={isOpen}
                       >
-                        <button
-                          onClick={() => handleLanguageChange("id")}
-                          className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          {idText}
-                        </button>
-                        <button
-                          onClick={() => handleLanguageChange("en")}
-                          className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          {enText}
-                        </button>
-                      </div>
+                        {language === "en" ? enText : idText}
+                      </button>
                     </div>
-                  )}
-                </div>
+
+                    {isOpen && (
+                      <div className="absolute right-0 mt-2 w-36 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <div
+                          className="py-1"
+                          role="menu"
+                          aria-orientation="vertical"
+                          aria-labelledby="options-menu"
+                        >
+                          <button
+                            onClick={() => handleLanguageChange("id")}
+                            className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            {idText}
+                          </button>
+                          <button
+                            onClick={() => handleLanguageChange("en")}
+                            className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            {enText}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <></>
+                )}
               </div>
             </div>
           </>
