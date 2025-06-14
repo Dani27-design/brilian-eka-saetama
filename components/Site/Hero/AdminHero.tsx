@@ -5,7 +5,7 @@ export function HeroVideo() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const videoSrc = "/videos/company_profile_bes_hero.mp4";
+  const videoSrc = "/videos/company_profile_bes_hero.webm";
 
   const handleVideoLoad = () => {
     if (videoRef.current && videoRef.current.readyState >= 3) {

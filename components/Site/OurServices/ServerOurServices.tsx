@@ -54,7 +54,6 @@ async function getServicesData(language: string): Promise<ServicesServerData> {
     });
 
     await Promise.all(fetchPromises);
-    console.log("Services data fetched from server:", servicesData);
     return servicesData;
   } catch (error) {
     console.error("Error fetching services data:", error);

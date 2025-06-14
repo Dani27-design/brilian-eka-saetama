@@ -63,7 +63,6 @@ async function getHeroData(language: string): Promise<HeroServerData> {
     });
 
     await Promise.all(fetchPromises);
-    console.log("Hero data fetched from server:", heroData);
     return heroData;
   } catch (error) {
     console.error("Error fetching hero data:", error);

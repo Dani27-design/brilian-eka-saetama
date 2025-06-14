@@ -39,7 +39,6 @@ async function getClientsInfoData(
       }
     }
 
-    console.log("Clients info data fetched from server:", clientsData);
     return clientsData;
   } catch (error) {
     console.error("Error fetching clients info data:", error);

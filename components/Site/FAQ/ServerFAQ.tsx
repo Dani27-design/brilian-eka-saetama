@@ -60,7 +60,6 @@ async function getFAQData(language: string): Promise<FAQServerData> {
     });
 
     await Promise.all(fetchPromises);
-    console.log("FAQ data fetched from server:", faqData);
     return faqData;
   } catch (error) {
     console.error("Error fetching FAQ data:", error);

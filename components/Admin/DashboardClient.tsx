@@ -53,7 +53,7 @@ export default function AdminDashboard() {
               sampleDocuments: documents,
             });
           } catch (error) {
-            console.log(`Collection ${collectionId} might not exist`);
+            console.error(`Collection ${collectionId} might not exist`);
           }
         }
 

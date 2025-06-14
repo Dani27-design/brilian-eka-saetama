@@ -61,7 +61,6 @@ async function getTestimonialData(
     });
 
     await Promise.all(fetchPromises);
-    console.log("Testimonial data fetched from server:", testimonialData);
     return testimonialData;
   } catch (error) {
     console.error("Error fetching testimonial data:", error);

@@ -76,7 +76,6 @@ async function getBlogData(language: string): Promise<BlogServerData> {
 
     // Wait for all fetch operations to complete
     await Promise.all(fetchPromises);
-    console.log("Blog data fetched from server:", blogData);
     return blogData;
   } catch (error) {
     console.error("Error fetching blog data:", error);

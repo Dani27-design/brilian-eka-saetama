@@ -53,7 +53,6 @@ async function getAboutData(language: string): Promise<AboutServerData> {
     });
 
     await Promise.all(fetchPromises);
-    console.log("About data fetched from server:", aboutData);
     return aboutData;
   } catch (error) {
     console.error("Error fetching about data:", error);

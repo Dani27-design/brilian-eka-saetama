@@ -21,8 +21,6 @@ export async function initializeAnalytics() {
     if (analyticsSupported) {
       analyticsInstance = getFirebaseAnalytics(app);
       return analyticsInstance;
-    } else {
-      console.log("Analytics not supported in this environment");
     }
   } catch (error) {
     console.error("Failed to initialize analytics:", error);

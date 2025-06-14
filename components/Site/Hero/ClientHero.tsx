@@ -168,7 +168,30 @@ function HeroVideo() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const videoSrc = "/videos/company_profile_bes_hero.mp4";
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  // Use a poster image that's shown while video loads
+  const posterImage = "/videos/company_profile_poster.png"; // Create a preview image from your video
+
+  useEffect(() => {
+    // Intersection Observer to only load video when in viewport
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }, // Start loading when 10% visible
+    );
+
+    if (videoContainerRef.current) {
+      observer.observe(videoContainerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleVideoLoad = () => {
     if (videoRef.current && videoRef.current.readyState >= 3) {
@@ -183,19 +206,20 @@ function HeroVideo() {
 
   useEffect(() => {
     const video = videoRef.current;
-    const timer = setTimeout(() => {
-      if (!videoLoaded && video) {
-        handleVideoLoad();
-      }
-    }, 100);
 
-    if (video) {
+    if (video && isInView) {
+      // Only attach events when in view
       if (video.readyState >= 3) {
         setVideoLoaded(true);
       }
 
       video.addEventListener("loadeddata", handleVideoLoad);
       video.addEventListener("error", handleVideoError);
+
+      // Pre-load video
+      if (video.preload !== "auto") {
+        video.preload = "auto";
+      }
     }
 
     return () => {
@@ -203,12 +227,12 @@ function HeroVideo() {
         video.removeEventListener("loadeddata", handleVideoLoad);
         video.removeEventListener("error", handleVideoError);
       }
-      clearTimeout(timer);
     };
-  }, [videoLoaded]);
+  }, [isInView]);
 
   return (
     <div
+      ref={videoContainerRef}
       className="relative overflow-hidden rounded-xl"
       style={{
         aspectRatio: "3/4",
@@ -221,30 +245,85 @@ function HeroVideo() {
     >
       {!videoLoaded && (
         <div
-          className="absolute inset-0 h-full w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700"
+          className="absolute inset-0 flex h-full w-full items-center justify-center bg-gray-200 dark:bg-gray-700"
           style={{ zIndex: 1 }}
-        />
+        >
+          {/* Show poster image instead of gray placeholder */}
+          <img
+            src={posterImage}
+            alt="Video preview"
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              // Fallback if poster image fails to load
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="rounded-full bg-black bg-opacity-50 p-4 dark:bg-white dark:bg-opacity-20">
+              <svg
+                className="h-8 w-8 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M8 5v10l8-5-8-5z" />
+              </svg>
+            </div>
+          </div>
+        </div>
       )}
 
-      <video
-        ref={videoRef}
-        className={`h-full w-full object-cover shadow-solid-l ${
-          videoLoaded ? "opacity-100" : "opacity-0"
-        }`}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          transition: "opacity 0.5s ease",
-          zIndex: videoLoaded ? 2 : 0,
-        }}
-        src={videoSrc}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-      />
+      {isInView && (
+        <>
+          {/* Low quality video first for quick loading */}
+          <video
+            className={`h-full w-full object-cover shadow-solid-l ${
+              videoLoaded ? "hidden" : "opacity-70"
+            }`}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: videoLoaded ? 0 : 2,
+            }}
+            poster={posterImage}
+            muted
+            playsInline
+            preload="metadata"
+          >
+            <source
+              src="/videos/company_profile_bes_hero_preview.webm"
+              type="video/mp4"
+            />
+          </video>
+
+          {/* Full quality video */}
+          <video
+            ref={videoRef}
+            className={`h-full w-full object-cover shadow-solid-l ${
+              videoLoaded ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              transition: "opacity 0.5s ease",
+              zIndex: videoLoaded ? 2 : 0,
+            }}
+            poster={posterImage}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+          >
+            {/* Provide multiple sources for better browser compatibility */}
+            <source
+              src="/videos/company_profile_bes_hero.webm"
+              type="video/mp4"
+            />
+          </video>
+        </>
+      )}
     </div>
   );
 }

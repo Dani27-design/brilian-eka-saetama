@@ -69,7 +69,6 @@ async function getClientsData(language: string): Promise<ClientsServerData> {
     });
 
     await Promise.all(fetchPromises);
-    console.log("Clients data fetched from server:", clientsData);
     return clientsData;
   } catch (error) {
     console.error("Error fetching clients data:", error);

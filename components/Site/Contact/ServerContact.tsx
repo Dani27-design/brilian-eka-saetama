@@ -102,7 +102,6 @@ async function getContactData(language: string): Promise<ContactServerData> {
       }
     }
 
-    console.log("Contact data fetched from server:", contactData);
     return contactData;
   } catch (error) {
     console.error("Error fetching contact data:", error);
