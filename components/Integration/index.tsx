@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import SectionHeader from "../Common/SectionHeader";
+import SectionHeader from "../Site/Common/SectionHeader";
 
 const Integration = () => {
   return (

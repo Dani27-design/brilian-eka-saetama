@@ -1,11 +1,41 @@
 import { Metadata, ResolvingMetadata } from "next";
+import { cookies } from "next/headers";
+import { adminFirestore } from "@/db/firebase/firebaseAdmin";
 import BlogDetailClient from "./BlogDetailClient";
-import { getData } from "@/actions/read/hero";
 import { notFound } from "next/navigation";
+import type { Blog } from "@/types/blog";
 
 type Props = {
   params: { slug: string };
 };
+
+// Function to fetch blog data from Firestore Admin
+async function getBlogData(language: string): Promise<Blog[]> {
+  if (!adminFirestore) {
+    console.error("Admin Firestore is not available");
+    return [];
+  }
+
+  try {
+    // Fetch the blog posts
+    const blogsSnapshot = await adminFirestore
+      .collection("blog")
+      .doc("blogs")
+      .get();
+
+    if (blogsSnapshot.exists) {
+      const data = blogsSnapshot.data();
+      if (data && data[language]) {
+        return data[language];
+      }
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching blog data:", error);
+    return [];
+  }
+}
 
 // Generate dynamic metadata based on the blog post content
 export async function generateMetadata(
@@ -14,7 +44,11 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const slug = params.slug;
 
-  const blogsData = await getData("id", "blog", "blogs");
+  // Get language from cookies
+  const cookieStore = cookies();
+  const locale = cookieStore.get("NEXT_LOCALE")?.value || "id";
+
+  const blogsData = await getBlogData(locale);
   const blog = blogsData.find((blog) => blog.slug === slug);
 
   // If blog not found, return default metadata
@@ -127,14 +161,23 @@ export async function generateMetadata(
 export default async function BlogDetailPage({ params }: Props) {
   const slug = params.slug;
 
+  // Get language from cookies
+  const cookieStore = cookies();
+  const locale = cookieStore.get("NEXT_LOCALE")?.value || "id";
+
   // Pre-fetch the blog data for initial render
-  const blogsData = await getData("id", "blog", "blogs");
+  const blogsData = await getBlogData(locale);
   const initialBlog = blogsData.find((blog) => blog.slug === slug) || null;
 
   // If blog not found in server component, return 404
   if (!initialBlog) {
     notFound();
   }
+
+  // Fetch all blogs for related posts
+  const relatedPosts = blogsData
+    .filter((blog) => blog.slug !== slug)
+    .slice(0, 3);
 
   return (
     <>
@@ -169,7 +212,12 @@ export default async function BlogDetailPage({ params }: Props) {
           }),
         }}
       />
-      <BlogDetailClient slug={slug} initialBlog={initialBlog} />
+      <BlogDetailClient
+        slug={slug}
+        initialBlog={initialBlog}
+        initialRelatedPosts={relatedPosts}
+        initialLanguage={locale}
+      />
     </>
   );
 }

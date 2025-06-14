@@ -1,40 +1,12 @@
-"use client";
-
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
+import Footer from "@/components/Site/Footer";
+import Header from "@/components/Site/Header"; // This will use the ServerHeader component
 import Lines from "@/components/Lines";
-import ScrollToTop from "@/components/ScrollToTop";
-import { ThemeProvider } from "next-themes";
+import ScrollToTop from "@/components/Site/ScrollToTop";
 import { Inter, Roboto } from "next/font/google";
 import "../globals.css";
-import dynamic from "next/dynamic";
-import { useEffect } from "react";
-import { usePathname } from "next/navigation";
-
-import ToasterContext from "../context/ToastContext";
-import { Providers } from "../providers";
-import { LanguageProvider } from "../context/LanguageContext";
+import { cookies } from "next/headers";
 import SchemaMarkup from "@/components/SchemaMarkup";
-
-// Dynamically import browser-only components
-const CriticalPreload = dynamic(() => import("@/components/CriticalPreload"), {
-  ssr: false,
-});
-
-const PerformanceOptimizer = dynamic(
-  () => import("@/components/PerformanceOptimizer"),
-  {
-    ssr: false,
-  },
-);
-
-const Analytics = dynamic(() => import("@/components/Analytics"), {
-  ssr: false,
-});
-
-const LazyLoadScript = dynamic(() => import("@/components/LazyLoadScript"), {
-  ssr: false,
-});
+import { ClientLayoutWrapper } from "./ClientLayoutWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -51,8 +23,7 @@ const roboto = Roboto({
   variable: "--font-roboto",
 });
 
-// Add inline critical CSS to the <head> section
-// Extract critical CSS from your CSS files
+// Add inline critical CSS
 const criticalCSS = `
   /* Essential styles for above-the-fold content */
   body { 
@@ -63,31 +34,18 @@ const criticalCSS = `
   /* Add more critical styles here */
 `;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-
-  useEffect(() => {
-    // Avoid using unload event
-    window.addEventListener("pagehide", () => {
-      // Clean up operations that would otherwise use unload or beforeunload
-    });
-
-    // Clear all beforeunload listeners that might exist
-    window.onbeforeunload = null;
-
-    // Close any open connections on navigation
-    return () => {
-      // Clean up open connections
-    };
-  }, [pathname]);
+  // Ambil bahasa dari cookie saat server rendering
+  const cookieStore = cookies();
+  const locale = cookieStore.get("NEXT_LOCALE")?.value || "id";
 
   return (
     <html
-      lang="id"
+      lang={locale}
       suppressHydrationWarning
       className={`${inter.variable} ${roboto.variable}`}
     >
@@ -102,47 +60,20 @@ export default function RootLayout({
 
         {/* DNS prefetch for third-party domains */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        <CriticalPreload
-          assets={["/images/logo/logo-light.png", "/images/logo/logo-dark.png"]}
-        />
         <style dangerouslySetInnerHTML={{ __html: criticalCSS }} />
       </head>
       <body className={`dark:bg-black ${inter.className} preload`}>
-        <Providers>
-          <ThemeProvider
-            enableSystem={false}
-            attribute="class"
-            defaultTheme="light"
-          >
-            <LanguageProvider>
-              <Lines />
-              <Header />
-              <ToasterContext />
-              <PerformanceOptimizer />
-              <Analytics />
-              {/* Skip to content link for accessibility */}
-              <a href="#main-content" className="sr-only focus:not-sr-only">
-                Skip to content
-              </a>
-              <main id="main-content">{children}</main>
-              <Footer />
-              <ScrollToTop />
-            </LanguageProvider>
-          </ThemeProvider>
-        </Providers>
-        {/* Third-party scripts loaded only when needed */}
-        <LazyLoadScript
-          src="https://www.googletagmanager.com/gtag/js?id=YOUR-ID"
-          async={true}
-          defer={true}
-        />
-
-        {/* Any other non-critical scripts */}
-        <LazyLoadScript
-          src="/js/non-critical-functionality.js"
-          async={true}
-          defer={true}
-        />
+        <ClientLayoutWrapper locale={locale}>
+          <Lines />
+          <Header />
+          {/* Skip to content link for accessibility */}
+          <a href="#main-content" className="sr-only focus:not-sr-only">
+            Skip to content
+          </a>
+          <main id="main-content">{children}</main>
+          <Footer />
+          <ScrollToTop />
+        </ClientLayoutWrapper>
       </body>
     </html>
   );

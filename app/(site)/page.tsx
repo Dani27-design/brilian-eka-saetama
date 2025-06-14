@@ -2,10 +2,11 @@ import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { cookies } from "next/headers";
+import { adminFirestore } from "@/db/firebase/firebaseAdmin";
 
 // Import critical components directly instead of lazy-loading
-import Hero from "@/components/Hero";
-import Services from "@/components/OurServices";
+import Hero from "@/components/Site/Hero";
+import Services from "@/components/Site/OurServices";
 
 // Simple loading components with proper ARIA attributes
 const SectionLoader = () => (
@@ -32,37 +33,37 @@ const SectionLoader = () => (
 );
 
 // Lazy load below-fold components only
-const About = dynamic(() => import("@/components/About"), {
+const About = dynamic(() => import("@/components/Site/About"), {
   loading: () => <SectionLoader />,
   ssr: true,
 });
 
-const OurClients = dynamic(() => import("@/components/OurClients"), {
+const OurClients = dynamic(() => import("@/components/Site/OurClients"), {
   loading: () => <SectionLoader />,
   ssr: true,
 });
 
-const ClientsInfo = dynamic(() => import("@/components/OurClientsInfo"), {
+const ClientsInfo = dynamic(() => import("@/components/Site/OurClientsInfo"), {
   loading: () => <SectionLoader />,
   ssr: true,
 });
 
-const FAQ = dynamic(() => import("@/components/FAQ"), {
-  loading: () => <SectionLoader />,
-  ssr: true, // Important for SEO - FAQ schema
-});
-
-const Testimonial = dynamic(() => import("@/components/Testimonial"), {
-  loading: () => <SectionLoader />,
-  ssr: true, // Important for social proof in SEO
-});
-
-const Contact = dynamic(() => import("@/components/Contact"), {
+const FAQ = dynamic(() => import("@/components/Site/FAQ"), {
   loading: () => <SectionLoader />,
   ssr: true,
 });
 
-const Blog = dynamic(() => import("@/components/Blog"), {
+const Testimonial = dynamic(() => import("@/components/Site/Testimonial"), {
+  loading: () => <SectionLoader />,
+  ssr: true,
+});
+
+const Contact = dynamic(() => import("@/components/Site/Contact"), {
+  loading: () => <SectionLoader />,
+  ssr: true,
+});
+
+const Blog = dynamic(() => import("@/components/Site/Blog"), {
   loading: () => <SectionLoader />,
   ssr: true,
 });
@@ -162,15 +163,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://brilian-eka-saetama.vercel.app"),
 };
 
-export default function Home() {
-  // Get language from cookies on the server
-  const cookieStore = cookies();
-  const langCookie = cookieStore.get("NEXT_LOCALE");
-  const language = langCookie?.value || "id";
-
+export default async function Home() {
   return (
-    <main className="min-h-screen w-full overflow-x-hidden">
-      {/* Render critical above-fold content immediately */}
+    <>
+      {/* Hero section with SSR */}
       <section
         data-section-name="hero"
         aria-labelledby="hero-heading"
@@ -284,6 +280,6 @@ export default function Home() {
           <Blog />
         </section>
       </Suspense>
-    </main>
+    </>
   );
 }

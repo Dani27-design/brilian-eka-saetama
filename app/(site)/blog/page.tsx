@@ -1,5 +1,36 @@
 import { Metadata } from "next";
+import { cookies } from "next/headers";
+import { adminFirestore } from "@/db/firebase/firebaseAdmin";
 import BlogPageClient from "./BlogPageClient";
+import type { Blog } from "@/types/blog";
+
+// Function to fetch blog data from Firestore Admin
+async function getBlogData(language: string): Promise<Blog[]> {
+  if (!adminFirestore) {
+    console.error("Admin Firestore is not available");
+    return [];
+  }
+
+  try {
+    // Fetch the blog posts
+    const blogsSnapshot = await adminFirestore
+      .collection("blog")
+      .doc("blogs")
+      .get();
+
+    if (blogsSnapshot.exists) {
+      const data = blogsSnapshot.data();
+      if (data && data[language]) {
+        return data[language];
+      }
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching blog data:", error);
+    return [];
+  }
+}
 
 export const metadata: Metadata = {
   title: "Blog | PT. Brilian Eka Saetama",
@@ -89,7 +120,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(`https://brilian-eka-saetama.vercel.app/blog`),
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  // Get language from cookies
+  const cookieStore = cookies();
+  const locale = cookieStore.get("NEXT_LOCALE")?.value || "id";
+
+  // Fetch blog data from server
+  const blogsData = await getBlogData(locale);
+
   return (
     <>
       {/* Add JSON-LD structured data for blog list */}
@@ -114,7 +152,7 @@ export default function BlogPage() {
           }),
         }}
       />
-      <BlogPageClient />
+      <BlogPageClient initialData={blogsData} initialLanguage={locale} />
     </>
   );
 }
