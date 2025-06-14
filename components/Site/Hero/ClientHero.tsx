@@ -164,7 +164,7 @@ function HeroForm({ emailPlaceholder, buttonText }) {
 }
 
 // Hero Video Component
-export function HeroVideo() {
+function HeroVideo() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
