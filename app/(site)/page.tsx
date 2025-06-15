@@ -1,9 +1,6 @@
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
-import { cookies } from "next/headers";
-import { adminFirestore } from "@/db/firebase/firebaseAdmin";
-
 // Import critical components directly instead of lazy-loading
 import Hero from "@/components/Site/Hero";
 import Services from "@/components/Site/OurServices";
