@@ -26,11 +26,77 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { useLanguage } from "@/app/context/LanguageContext"; // Import language context
+
+// Define translations
+const translations = {
+  id: {
+    analyticsTitle: "Dasbor Analitik",
+    analyticsSubtitle:
+      "Pantau kinerja website dan perilaku pengunjung (30 hari terakhir)",
+    logout: "Keluar",
+    errorTitle: "Kesalahan saat mengambil data analitik:",
+    errorRetry: "Silakan periksa API endpoint dan coba lagi.",
+    overview: "Ikhtisar",
+    pageViews: "Tampilan Halaman",
+    uniqueVisitors: "Pengunjung Unik",
+    avgTimeOnSite: "Rata-rata Waktu di Situs",
+    minutesSeconds: "Menit:Detik",
+    bounceRate: "Tingkat Pentalan",
+    siteAverage: "Rata-rata situs",
+    trafficTrends: "Tren Lalu Lintas (30 Hari Terakhir)",
+    topPages: "Halaman Teratas",
+    deviceDistribution: "Distribusi Perangkat",
+    trafficSources: "Sumber Lalu Lintas",
+    userBehaviorInsights: "Wawasan Perilaku Pengguna",
+    avgSessionDuration: "Durasi Sesi Rata-rata",
+    pagesPerSession: "Halaman per Sesi",
+    last30Days: "30 hari terakhir",
+    noDataAvailable: "Tidak ada data tersedia",
+    date: "Tanggal",
+    loading: "Memuat...",
+    visitors: "Pengunjung",
+    views: "Tampilan",
+    unknown: "Tidak diketahui",
+  },
+  en: {
+    analyticsTitle: "Analytics Dashboard",
+    analyticsSubtitle:
+      "Monitor website performance and visitor behavior (last 30 days)",
+    logout: "Logout",
+    errorTitle: "Error fetching analytics data:",
+    errorRetry: "Please check your API endpoints and try again.",
+    overview: "Overview",
+    pageViews: "Page Views",
+    uniqueVisitors: "Unique Visitors",
+    avgTimeOnSite: "Avg. Time on Site",
+    minutesSeconds: "Minutes:Seconds",
+    bounceRate: "Bounce Rate",
+    siteAverage: "Site average",
+    trafficTrends: "Traffic Trends (Last 30 Days)",
+    topPages: "Top Pages",
+    deviceDistribution: "Device Distribution",
+    trafficSources: "Traffic Sources",
+    userBehaviorInsights: "User Behavior Insights",
+    avgSessionDuration: "Average Session Duration",
+    pagesPerSession: "Pages Per Session",
+    last30Days: "Last 30 days",
+    noDataAvailable: "No data available",
+    date: "Date",
+    loading: "Loading...",
+    visitors: "Visitors",
+    views: "Views",
+    unknown: "Unknown",
+  },
+};
 
 export default function AdminDashboard() {
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { language } = useLanguage(); // Get current language
+  const t =
+    translations[language as keyof typeof translations] || translations.en;
 
   // Analytics data states
   const [overviewData, setOverviewData] = useState({
@@ -83,15 +149,15 @@ export default function AdminDashboard() {
       setError(null);
 
       try {
-        // Get date 6 months ago for analytics period
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-        const startDate = sixMonthsAgo.toISOString().split("T")[0];
+        // Get date 30 days ago for analytics period (changed from 6 months)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const startDate = thirtyDaysAgo.toISOString().split("T")[0];
         const endDate = new Date().toISOString().split("T")[0];
 
-        // Fetch overview data with date range
+        // Fetch overview data with date range and language
         const overviewResponse = await fetch(
-          `/api/analytics?startDate=${startDate}&endDate=${endDate}`,
+          `/api/analytics?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
         );
         if (!overviewResponse.ok) {
           throw new Error(`Overview API failed: ${overviewResponse.status}`);
@@ -99,9 +165,9 @@ export default function AdminDashboard() {
         const overviewResult = await overviewResponse.json();
         setOverviewData(overviewResult);
 
-        // Fetch traffic trend data for 6 months
+        // Fetch traffic trend data for 30 days
         const trafficResponse = await fetch(
-          `/api/analytics/traffic?startDate=${startDate}&endDate=${endDate}`,
+          `/api/analytics/traffic?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
         );
         if (!trafficResponse.ok) {
           throw new Error(`Traffic API failed: ${trafficResponse.status}`);
@@ -109,9 +175,9 @@ export default function AdminDashboard() {
         const trafficResult = await trafficResponse.json();
         setTrafficData(trafficResult);
 
-        // Fetch top pages data for 6 months
+        // Fetch top pages data for 30 days
         const pagesResponse = await fetch(
-          `/api/analytics/pages?startDate=${startDate}&endDate=${endDate}`,
+          `/api/analytics/pages?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
         );
         if (!pagesResponse.ok) {
           throw new Error(`Pages API failed: ${pagesResponse.status}`);
@@ -119,9 +185,9 @@ export default function AdminDashboard() {
         const pagesResult = await pagesResponse.json();
         setPageViewsData(pagesResult);
 
-        // Fetch device breakdown data for 6 months
+        // Fetch device breakdown data for 30 days
         const deviceResponse = await fetch(
-          `/api/analytics/devices?startDate=${startDate}&endDate=${endDate}`,
+          `/api/analytics/devices?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
         );
         if (!deviceResponse.ok) {
           throw new Error(`Devices API failed: ${deviceResponse.status}`);
@@ -129,9 +195,9 @@ export default function AdminDashboard() {
         const deviceResult = await deviceResponse.json();
         setDeviceData(deviceResult);
 
-        // Fetch traffic sources data for 6 months
+        // Fetch traffic sources data for 30 days
         const sourcesResponse = await fetch(
-          `/api/analytics/sources?startDate=${startDate}&endDate=${endDate}`,
+          `/api/analytics/sources?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
         );
         if (!sourcesResponse.ok) {
           throw new Error(`Sources API failed: ${sourcesResponse.status}`);
@@ -151,19 +217,15 @@ export default function AdminDashboard() {
     };
 
     fetchAnalyticsData();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
-  // Format the traffic data for display - group by week if showing 6 months
+  // Format the traffic data for display - adjust for daily display in 30 day period
   const formatTrafficData = () => {
     if (!trafficData.length) return [];
-    if (trafficData.length <= 30) return trafficData;
 
-    // For 6 months data, group by week to avoid overcrowding
-    const weeklyData: { date: string; visitors: number; pageViews: number }[] =
-      [];
-
+    // For 30 days, we can show daily data directly
     // Create a copy of the data to avoid modifying the original
-    const sortedData = [...trafficData].sort((a, b) => {
+    return [...trafficData].sort((a, b) => {
       // Safer date parsing
       const dateA = parseDate(a.date);
       const dateB = parseDate(b.date);
@@ -171,51 +233,6 @@ export default function AdminDashboard() {
       if (!dateA || !dateB) return 0;
       return dateA.getTime() - dateB.getTime();
     });
-
-    let currentWeek = {
-      date: "",
-      visitors: 0,
-      pageViews: 0,
-      count: 0,
-    };
-
-    sortedData.forEach((day, index) => {
-      // Start new week every 7 days or if it's the first entry
-      if (index === 0 || index % 7 === 0) {
-        // Add the previous week to the result if not empty
-        if (currentWeek.count > 0) {
-          weeklyData.push({
-            date: currentWeek.date,
-            visitors: Math.round(currentWeek.visitors / currentWeek.count),
-            pageViews: Math.round(currentWeek.pageViews / currentWeek.count),
-          });
-        }
-
-        // Start a new week
-        currentWeek = {
-          date: day.date,
-          visitors: day.visitors,
-          pageViews: day.pageViews,
-          count: 1,
-        };
-      } else {
-        // Add to current week
-        currentWeek.visitors += day.visitors;
-        currentWeek.pageViews += day.pageViews;
-        currentWeek.count += 1;
-      }
-    });
-
-    // Add the last week if not empty
-    if (currentWeek.count > 0) {
-      weeklyData.push({
-        date: currentWeek.date,
-        visitors: Math.round(currentWeek.visitors / currentWeek.count),
-        pageViews: Math.round(currentWeek.pageViews / currentWeek.count),
-      });
-    }
-
-    return weeklyData;
   };
 
   const handleLogout = async () => {
@@ -234,10 +251,13 @@ export default function AdminDashboard() {
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
         const date = new Date(dateStr);
         if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          });
+          return date.toLocaleDateString(
+            language === "id" ? "id-ID" : "en-US",
+            {
+              month: "short",
+              day: "numeric",
+            },
+          );
         }
       }
 
@@ -248,17 +268,20 @@ export default function AdminDashboard() {
         const day = dateStr.substring(6, 8);
         const date = new Date(`${year}-${month}-${day}`);
         if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          });
+          return date.toLocaleDateString(
+            language === "id" ? "id-ID" : "en-US",
+            {
+              month: "short",
+              day: "numeric",
+            },
+          );
         }
       }
 
       // Try standard Date parsing as fallback
       const date = new Date(dateStr);
       if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString("en-US", {
+        return date.toLocaleDateString(language === "id" ? "id-ID" : "en-US", {
           month: "short",
           day: "numeric",
         });
@@ -310,83 +333,81 @@ export default function AdminDashboard() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="mb-2 text-3xl font-bold text-black dark:text-white">
-            Analytics Dashboard
+            {t.analyticsTitle}
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Monitor website performance and visitor behavior (last 6 months)
+            {t.analyticsSubtitle}
           </p>
         </div>
         <button
           onClick={handleLogout}
           className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
         >
-          Logout
+          {t.logout}
         </button>
       </div>
 
       {/* Error display */}
       {error && (
         <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
-          <p className="font-medium">Error fetching analytics data:</p>
+          <p className="font-medium">{t.errorTitle}</p>
           <p>{error}</p>
-          <p className="mt-2 text-sm">
-            Please check your API endpoints and try again.
-          </p>
+          <p className="mt-2 text-sm">{t.errorRetry}</p>
         </div>
       )}
 
       {/* Overview Section */}
       <div className="mb-8">
         <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-          Overview
+          {t.overview}
         </h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border border-stroke bg-white p-5 shadow-sm dark:border-strokedark dark:bg-black">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Page Views
+                {t.pageViews}
               </span>
             </div>
             <h3 className="mt-2 text-2xl font-bold text-black dark:text-white">
-              {isLoadingAnalytics ? "..." : overviewData.pageViews}
+              {isLoadingAnalytics ? t.loading : overviewData.pageViews}
             </h3>
-            <p className="mt-1 text-xs text-gray-500">Last 6 months</p>
+            <p className="mt-1 text-xs text-gray-500">{t.last30Days}</p>
           </div>
 
           <div className="rounded-lg border border-stroke bg-white p-5 shadow-sm dark:border-strokedark dark:bg-black">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Unique Visitors
+                {t.uniqueVisitors}
               </span>
             </div>
             <h3 className="mt-2 text-2xl font-bold text-black dark:text-white">
-              {isLoadingAnalytics ? "..." : overviewData.visitors}
+              {isLoadingAnalytics ? t.loading : overviewData.visitors}
             </h3>
-            <p className="mt-1 text-xs text-gray-500">Last 6 months</p>
+            <p className="mt-1 text-xs text-gray-500">{t.last30Days}</p>
           </div>
 
           <div className="rounded-lg border border-stroke bg-white p-5 shadow-sm dark:border-strokedark dark:bg-black">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Avg. Time on Site
+                {t.avgTimeOnSite}
               </span>
             </div>
             <h3 className="mt-2 text-2xl font-bold text-black dark:text-white">
-              {isLoadingAnalytics ? "..." : overviewData.avgTimeOnSite}
+              {isLoadingAnalytics ? t.loading : overviewData.avgTimeOnSite}
             </h3>
-            <p className="mt-1 text-xs text-gray-500">Minutes:Seconds</p>
+            <p className="mt-1 text-xs text-gray-500">{t.minutesSeconds}</p>
           </div>
 
           <div className="rounded-lg border border-stroke bg-white p-5 shadow-sm dark:border-strokedark dark:bg-black">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Bounce Rate
+                {t.bounceRate}
               </span>
             </div>
             <h3 className="mt-2 text-2xl font-bold text-black dark:text-white">
-              {isLoadingAnalytics ? "..." : overviewData.bounceRate}
+              {isLoadingAnalytics ? t.loading : overviewData.bounceRate}
             </h3>
-            <p className="mt-1 text-xs text-gray-500">Site average</p>
+            <p className="mt-1 text-xs text-gray-500">{t.siteAverage}</p>
           </div>
         </div>
       </div>
@@ -394,7 +415,7 @@ export default function AdminDashboard() {
       {/* Traffic Trends Chart */}
       <div className="mb-8 rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
         <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-          Traffic Trends (Last 6 Months)
+          {t.trafficTrends}
         </h2>
         <div className="h-80">
           {isLoadingAnalytics ? (
@@ -434,7 +455,7 @@ export default function AdminDashboard() {
                   dataKey="date"
                   tickFormatter={(value) => {
                     const formatted = formatDate(value);
-                    return formatted === value ? "Unknown" : formatted;
+                    return formatted === value ? t.unknown : formatted;
                   }}
                   angle={-30}
                   textAnchor="end"
@@ -444,13 +465,13 @@ export default function AdminDashboard() {
                 />
                 <YAxis />
                 <Tooltip
-                  labelFormatter={(value) => `Date: ${formatDate(value)}`}
+                  labelFormatter={(value) => `${t.date}: ${formatDate(value)}`}
                 />
                 <Legend />
                 <Area
                   type="monotone"
                   dataKey="pageViews"
-                  name="Page Views"
+                  name={t.pageViews}
                   stroke="#8884d8"
                   fillOpacity={1}
                   fill="url(#colorPageViews)"
@@ -458,7 +479,7 @@ export default function AdminDashboard() {
                 <Area
                   type="monotone"
                   dataKey="visitors"
-                  name="Visitors"
+                  name={t.visitors}
                   stroke="#82ca9d"
                   fillOpacity={1}
                   fill="url(#colorVisitors)"
@@ -467,7 +488,7 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           ) : (
             <div className="flex h-full items-center justify-center">
-              <p className="text-gray-500">No traffic data available</p>
+              <p className="text-gray-500">{t.noDataAvailable}</p>
             </div>
           )}
         </div>
@@ -478,7 +499,7 @@ export default function AdminDashboard() {
         {/* Top Pages */}
         <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
           <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-            Top Pages
+            {t.topPages}
           </h2>
           <div className="h-80">
             {isLoadingAnalytics ? (
@@ -509,7 +530,7 @@ export default function AdminDashboard() {
                   <Tooltip />
                   <Bar
                     dataKey="views"
-                    name="Page Views"
+                    name={t.views}
                     fill="url(#colorBar)"
                     radius={[0, 4, 4, 0]}
                   />
@@ -517,7 +538,7 @@ export default function AdminDashboard() {
               </ResponsiveContainer>
             ) : (
               <div className="flex h-full items-center justify-center">
-                <p className="text-gray-500">No page view data available</p>
+                <p className="text-gray-500">{t.noDataAvailable}</p>
               </div>
             )}
           </div>
@@ -526,7 +547,7 @@ export default function AdminDashboard() {
         {/* Device Distribution */}
         <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
           <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-            Device Distribution
+            {t.deviceDistribution}
           </h2>
           <div className="h-80">
             {isLoadingAnalytics ? (
@@ -563,7 +584,7 @@ export default function AdminDashboard() {
               </ResponsiveContainer>
             ) : (
               <div className="flex h-full items-center justify-center">
-                <p className="text-gray-500">No device data available</p>
+                <p className="text-gray-500">{t.noDataAvailable}</p>
               </div>
             )}
           </div>
@@ -573,7 +594,7 @@ export default function AdminDashboard() {
       {/* Traffic Sources */}
       <div className="mb-8 rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
         <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-          Traffic Sources
+          {t.trafficSources}
         </h2>
         <div className="h-80">
           {isLoadingAnalytics ? (
@@ -614,7 +635,7 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           ) : (
             <div className="flex h-full items-center justify-center">
-              <p className="text-gray-500">No source data available</p>
+              <p className="text-gray-500">{t.noDataAvailable}</p>
             </div>
           )}
         </div>
@@ -623,30 +644,30 @@ export default function AdminDashboard() {
       {/* User Behavior Insights */}
       <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
         <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-          User Behavior Insights
+          {t.userBehaviorInsights}
         </h2>
         <div className="mb-6 grid gap-6 md:grid-cols-3">
           <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-800">
             <h3 className="mb-2 text-lg font-medium text-black dark:text-white">
-              Average Session Duration
+              {t.avgSessionDuration}
             </h3>
             <p className="text-3xl font-bold text-primary">
-              {isLoadingAnalytics ? "..." : overviewData.avgTimeOnSite}
+              {isLoadingAnalytics ? t.loading : overviewData.avgTimeOnSite}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               {!isLoadingAnalytics && (
-                <span className="text-green-500">Last 6 months</span>
+                <span className="text-green-500">{t.last30Days}</span>
               )}
             </p>
           </div>
 
           <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-800">
             <h3 className="mb-2 text-lg font-medium text-black dark:text-white">
-              Pages Per Session
+              {t.pagesPerSession}
             </h3>
             <p className="text-3xl font-bold text-primary">
               {isLoadingAnalytics
-                ? "..."
+                ? t.loading
                 : (
                     Number(overviewData.pageViews.replace(/,/g, "")) /
                     Number(overviewData.visitors.replace(/,/g, ""))
@@ -654,21 +675,21 @@ export default function AdminDashboard() {
             </p>
             <p className="mt-2 text-sm text-gray-500">
               {!isLoadingAnalytics && (
-                <span className="text-green-500">Last 6 months</span>
+                <span className="text-green-500">{t.last30Days}</span>
               )}
             </p>
           </div>
 
           <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-800">
             <h3 className="mb-2 text-lg font-medium text-black dark:text-white">
-              Bounce Rate
+              {t.bounceRate}
             </h3>
             <p className="text-3xl font-bold text-primary">
-              {isLoadingAnalytics ? "..." : overviewData.bounceRate}
+              {isLoadingAnalytics ? t.loading : overviewData.bounceRate}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               {!isLoadingAnalytics && (
-                <span className="text-blue-500">Last 6 months</span>
+                <span className="text-blue-500">{t.last30Days}</span>
               )}
             </p>
           </div>
