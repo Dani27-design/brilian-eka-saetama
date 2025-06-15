@@ -3,6 +3,7 @@ import "../globals.css";
 import { LanguageProvider } from "../context/LanguageContext";
 import { AdminProvider } from "../context/AdminContext";
 import AdminLayoutClient from "@/components/Admin/AdminLayoutClient";
+import { Providers } from "../providers";
 
 export const metadata = {
   title: "Admin Dashboard | PT Brilian Eka Saetama",
@@ -25,7 +26,9 @@ export default function AdminLayout({
       <body className={inter.className}>
         <LanguageProvider>
           <AdminProvider>
-            <AdminLayoutClient>{children}</AdminLayoutClient>
+            <Providers>
+              <AdminLayoutClient>{children}</AdminLayoutClient>
+            </Providers>
           </AdminProvider>
         </LanguageProvider>
       </body>
