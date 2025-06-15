@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { auth } from "@/db/firebase/firebaseConfig";
+import Image from "next/image";
 
 export default function AdminHeader({
   sidebarOpen = true,
   onMobileMenuToggle,
+  userData,
 }) {
   const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
@@ -68,9 +70,32 @@ export default function AdminHeader({
           </svg>
         </button>
 
-        <h1 className="text-lg font-medium text-black dark:text-white">
-          CMS Dashboard
-        </h1>
+        {/* Logo perusahaan */}
+        <div className="flex items-center">
+          <Image
+            src="/images/logo/logo-light.png"
+            alt="Logo"
+            width={40}
+            height={40}
+            className="dark:hidden"
+            priority={true}
+            quality={80}
+            loading="eager"
+          />
+          <Image
+            src="/images/logo/logo-dark.png"
+            alt="Logo"
+            width={40}
+            height={40}
+            className="hidden dark:block"
+            priority={true}
+            quality={80}
+            loading="eager"
+          />
+          <h1 className="ml-2 text-lg font-medium text-black dark:text-white">
+            CMS Dashboard
+          </h1>
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
@@ -136,15 +161,15 @@ export default function AdminHeader({
           )}
         </button>
 
-        {/* Profile dropdown */}
+        {/* Profile dropdown - tanpa foto profil */}
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gray-200"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white hover:bg-primary/90"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-500"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -160,6 +185,20 @@ export default function AdminHeader({
 
           {isProfileOpen && (
             <div className="absolute right-0 mt-2 w-48 rounded-md bg-white py-2 shadow-lg dark:bg-gray-800">
+              <div className="border-b border-gray-100 px-4 py-2 dark:border-gray-700">
+                <p className="text-sm font-medium text-gray-800 dark:text-white">
+                  {userData?.name || "User"}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {userData?.email || ""}
+                </p>
+              </div>
+              <a
+                href="/admin/settings"
+                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+              >
+                Settings
+              </a>
               <button
                 onClick={handleSignOut}
                 className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"

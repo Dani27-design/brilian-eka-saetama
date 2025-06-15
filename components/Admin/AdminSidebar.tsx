@@ -4,10 +4,64 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/app/context/LanguageContext"; // Import language context
 
-export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
+// Define translations
+const translations = {
+  id: {
+    dashboard: "Dasbor",
+    websiteManagement: "Manajemen Website",
+    headerSection: "Bagian Header",
+    heroSection: "Bagian Hero",
+    serviceSection: "Bagian Layanan",
+    aboutSection: "Bagian Tentang",
+    clientSatisfactionSection: "Bagian Kepuasan Klien",
+    clientListSection: "Bagian Daftar Klien",
+    faqSection: "Bagian FAQ",
+    testimonialSection: "Bagian Testimoni",
+    contactSection: "Bagian Kontak",
+    blogSection: "Bagian Blog",
+    footerSection: "Bagian Footer",
+    blogManagement: "Manajemen Blog",
+    mediaLibrary: "Pustaka Media",
+    checksheetApar: "Lembar Periksa APAR",
+    userManagement: "Manajemen Pengguna", // Added translation for user management
+    settings: "Pengaturan Akun", // Tambahkan ini
+  },
+  en: {
+    dashboard: "Dashboard",
+    websiteManagement: "Website Management",
+    headerSection: "Header Section",
+    heroSection: "Hero Section",
+    serviceSection: "Service Section",
+    aboutSection: "About Section",
+    clientSatisfactionSection: "Client Satisfaction Section",
+    clientListSection: "Client List Section",
+    faqSection: "FAQ Section",
+    testimonialSection: "Testimonial Section",
+    contactSection: "Contact Section",
+    blogSection: "Blog Section",
+    footerSection: "Footer Section",
+    blogManagement: "Blog Management",
+    mediaLibrary: "Media Library",
+    checksheetApar: "Checksheet APAR",
+    userManagement: "User Management", // Added translation for user management
+    settings: "Account Settings", // Tambahkan ini
+  },
+};
+
+export default function AdminSidebar({
+  onToggle,
+  isOpen,
+  onClose,
+  isMobile,
+  userData,
+}) {
   const [websiteContentExpanded, setWebsiteContentExpanded] = useState(false);
   const pathname = usePathname();
+  const { language } = useLanguage(); // Get current language
+  const t =
+    translations[language as keyof typeof translations] || translations.en;
 
   // Toggle sidebar function for desktop
   const toggleSidebar = () => {
@@ -40,90 +94,61 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
             : "fixed left-0 top-0 z-40 hidden h-screen transition-all duration-300 ease-in-out lg:block"
         } overflow-y-scroll border-r border-stroke bg-white pb-5 dark:border-strokedark dark:bg-black`}
       >
-        <div className="flex h-16 items-center justify-between px-4">
-          <Link
-            href="/admin/dashboard"
-            className="flex items-center"
-            onClick={isMobile ? onClose : undefined}
-          >
-            {isOpen ? (
-              <>
-                <Image
-                  src="/images/logo/logo-light.png"
-                  alt="Logo"
-                  width={40}
-                  height={40}
-                  className="dark:hidden"
-                  priority={true} // For above-the-fold images
-                  quality={80} // Balance between quality and size
-                  loading="eager" // For critical images
-                />
-                <Image
-                  src="/images/logo/logo-dark.png"
-                  alt="Logo"
-                  width={40}
-                  height={40}
-                  className="hidden dark:block"
-                  priority={true} // For above-the-fold images
-                  quality={80} // Balance between quality and size
-                  loading="eager" // For critical images
-                />
-                <h1 className="ml-2 text-xl font-bold text-black dark:text-white">
-                  Admin
-                </h1>
-              </>
-            ) : (
-              <>
-                <Image
-                  src="/images/logo/logo-light.png"
-                  alt="Logo"
-                  width={40}
-                  height={40}
-                  className="dark:hidden"
-                  priority={true} // For above-the-fold images
-                  quality={80} // Balance between quality and size
-                  loading="eager" // For critical images
-                />
-                <Image
-                  src="/images/logo/logo-dark.png"
-                  alt="Logo"
-                  width={40}
-                  height={40}
-                  className="hidden dark:block"
-                  priority={true} // For above-the-fold images
-                  quality={80} // Balance between quality and size
-                  loading="eager" // For critical images
-                />
-              </>
-            )}
-          </Link>
-
-          {isMobile && (
-            <button
-              onClick={onClose}
-              className="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-900 lg:hidden"
+        {/* Header dengan foto profil */}
+        <div className="flex flex-col items-center border-b border-stroke px-4 py-4 dark:border-strokedark">
+          {/* User profile photo */}
+          <div className="mb-2 flex items-center justify-center">
+            <div
+              className={`${
+                isOpen ? "h-24 w-24" : "h-12 w-12"
+              } overflow-hidden rounded-full border-2 border-primary`}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-black dark:text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
+              {userData?.photoURL ? (
+                <Image
+                  src={userData.photoURL}
+                  alt="Profile"
+                  width={isOpen ? 96 : 48}
+                  height={isOpen ? 96 : 48}
+                  className="h-full w-full object-cover"
                 />
-              </svg>
-            </button>
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gray-200 text-gray-500">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`${isOpen ? "h-12 w-12" : "h-6 w-6"}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* User name */}
+          {isOpen && (
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-black dark:text-white">
+                {userData?.name || "Admin"}
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {userData?.role || ""}
+              </p>
+            </div>
           )}
 
+          {/* Toggle sidebar button */}
           {!isMobile && (
             <button
               onClick={toggleSidebar}
-              className="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-900"
+              className="mt-4 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-900"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -147,7 +172,33 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
           )}
         </div>
 
-        <nav className="px-2">
+        {/* Mobile close button */}
+        {isMobile && (
+          <div className="flex justify-end p-2">
+            <button
+              onClick={onClose}
+              className="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-900 lg:hidden"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-black dark:text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Navigasi - sisanya sama */}
+        <nav className="mt-4 px-2">
           <ul className="space-y-2">
             {/* Dashboard Link */}
             <li>
@@ -175,7 +226,39 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                     />
                   </svg>
                 </div>
-                {isOpen && <span>Dashboard</span>}
+                {isOpen && <span>{t.dashboard}</span>}
+              </Link>
+            </li>
+
+            {/* User Management Link - NEW MENU */}
+            <li>
+              <Link
+                href="/admin/users"
+                onClick={isMobile ? onClose : undefined}
+                className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                  pathname === "/admin/users" ||
+                  (pathname && pathname.startsWith("/admin/users/"))
+                    ? "bg-primary text-white"
+                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                }`}
+              >
+                <div className="px-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                    />
+                  </svg>
+                </div>
+                {isOpen && <span>{t.userManagement}</span>}
               </Link>
             </li>
 
@@ -204,7 +287,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                       />
                     </svg>
                   </div>
-                  {isOpen && <span>Website Content</span>}
+                  {isOpen && <span>{t.websiteManagement}</span>}
                 </div>
                 {isOpen && (
                   <svg
@@ -257,7 +340,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>Header Section</span>}
+                      {isOpen && <span>{t.headerSection}</span>}
                     </Link>
                   </li>
 
@@ -290,7 +373,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>Hero Section</span>}
+                      {isOpen && <span>{t.heroSection}</span>}
                     </Link>
                   </li>
 
@@ -325,7 +408,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>Service Section</span>}
+                      {isOpen && <span>{t.serviceSection}</span>}
                     </Link>
                   </li>
 
@@ -358,7 +441,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>About Section</span>}
+                      {isOpen && <span>{t.aboutSection}</span>}
                     </Link>
                   </li>
 
@@ -391,7 +474,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>Client Satisfaction Section</span>}
+                      {isOpen && <span>{t.clientSatisfactionSection}</span>}
                     </Link>
                   </li>
 
@@ -426,7 +509,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>Client List Section</span>}
+                      {isOpen && <span>{t.clientListSection}</span>}
                     </Link>
                   </li>
 
@@ -459,7 +542,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>FAQ Section</span>}
+                      {isOpen && <span>{t.faqSection}</span>}
                     </Link>
                   </li>
 
@@ -494,7 +577,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>Testimonial Section</span>}
+                      {isOpen && <span>{t.testimonialSection}</span>}
                     </Link>
                   </li>
 
@@ -527,7 +610,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>Contact Section</span>}
+                      {isOpen && <span>{t.contactSection}</span>}
                     </Link>
                   </li>
 
@@ -560,7 +643,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>Blog Section</span>}
+                      {isOpen && <span>{t.blogSection}</span>}
                     </Link>
                   </li>
 
@@ -593,7 +676,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                           />
                         </svg>
                       </div>
-                      {isOpen && <span>Footer Section</span>}
+                      {isOpen && <span>{t.footerSection}</span>}
                     </Link>
                   </li>
                 </ul>
@@ -628,7 +711,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                     />
                   </svg>
                 </div>
-                {isOpen && <span>Blog Content</span>}
+                {isOpen && <span>{t.blogManagement}</span>}
               </Link>
             </li>
 
@@ -659,7 +742,7 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                     />
                   </svg>
                 </div>
-                {isOpen && <span>Media Library</span>}
+                {isOpen && <span>{t.mediaLibrary}</span>}
               </Link>
             </li>
 
@@ -691,7 +774,44 @@ export default function AdminSidebar({ onToggle, isOpen, onClose, isMobile }) {
                     />
                   </svg>
                 </div>
-                {isOpen && <span>Checksheet APAR</span>}
+                {isOpen && <span>{t.checksheetApar}</span>}
+              </Link>
+            </li>
+
+            {/* Settings/Pengaturan Menu - Tambahkan di akhir sebelum penutup ul */}
+            <li>
+              <Link
+                href="/admin/settings"
+                onClick={isMobile ? onClose : undefined}
+                className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                  pathname === "/admin/settings"
+                    ? "bg-primary text-white"
+                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                }`}
+              >
+                <div className="px-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                {isOpen && <span>{t.settings}</span>}
               </Link>
             </li>
           </ul>

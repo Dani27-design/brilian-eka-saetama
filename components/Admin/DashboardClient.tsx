@@ -235,14 +235,14 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push("/admin/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     await signOut(auth);
+  //     router.push("/admin/login");
+  //   } catch (error) {
+  //     console.error("Logout error:", error);
+  //   }
+  // };
 
   // Update the formatDate function
   const formatDate = (dateStr: string) => {
@@ -339,12 +339,12 @@ export default function AdminDashboard() {
             {t.analyticsSubtitle}
           </p>
         </div>
-        <button
+        {/* <button
           onClick={handleLogout}
           className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
         >
           {t.logout}
-        </button>
+        </button> */}
       </div>
 
       {/* Error display */}

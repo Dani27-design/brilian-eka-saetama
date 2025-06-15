@@ -2,17 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { auth } from "@/db/firebase/firebaseConfig";
+import { Inter } from "next/font/google";
 import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, firestore } from "@/db/firebase/firebaseConfig";
+
+const inter = Inter({ subsets: ["latin"] });
+
+interface UserData {
+  uid: string;
+  name: string;
+  email: string | null;
+  role: string;
+  isActive: boolean | undefined;
+  photoURL?: string; // Tambahkan field photoURL
+}
 import AdminSidebar from "@/components/Admin/AdminSidebar";
 import AdminHeader from "@/components/Admin/AdminHeader";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/app/context/LanguageContext";
-import { Inter } from "next/font/google";
 import "../../app/globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
-
 export default function AdminLayout({
   children,
 }: {
@@ -20,6 +29,7 @@ export default function AdminLayout({
 }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -43,19 +53,76 @@ export default function AdminLayout({
     setMobileSidebarOpen(false);
   }, [pathname]);
 
+  // Authentication check
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (isLoginPage) {
+      setIsLoading(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        // If user is on login page and already authenticated, redirect to dashboard
-        if (isLoginPage) {
-          router.push("/admin/dashboard");
+        try {
+          // Check if user has proper role in Firestore
+          const userDoc = await getDoc(doc(firestore, "users", user.uid));
+
+          if (!userDoc.exists()) {
+            // User authenticated but not in Firestore users collection
+            await auth.signOut();
+            setIsAuthenticated(false);
+            router.push("/");
+            setTimeout(() => {
+              alert("User not found. Please contact an administrator.");
+            }, 100);
+            return;
+          }
+
+          const userDataFromFirestore = userDoc.data();
+
+          // Store user data for passing to other components
+          setUserData({
+            uid: user.uid,
+            name:
+              userDataFromFirestore.name ||
+              user.displayName ||
+              user.email?.split("@")[0],
+            email: user.email,
+            role: userDataFromFirestore.role,
+            isActive: userDataFromFirestore.isActive,
+            photoURL: userDataFromFirestore.photoURL || "", // Tambahkan ini
+          });
+
+          // Check if user role is admin and account is active
+          if (
+            userDataFromFirestore.role === "admin" &&
+            userDataFromFirestore.isActive !== false
+          ) {
+            // User is authorized
+            setIsAuthenticated(true);
+          } else {
+            // User doesn't have proper role, sign them out
+            await auth.signOut();
+            setIsAuthenticated(false);
+            router.push("/");
+            setTimeout(() => {
+              alert(
+                "Access denied. You don't have permission to access the admin pages.",
+              );
+            }, 100);
+          }
+        } catch (error) {
+          console.error("Error checking user permissions:", error);
+          await auth.signOut();
+          setIsAuthenticated(false);
+          router.push("/");
+        } finally {
+          setIsLoading(false);
         }
       } else {
+        // No user is signed in
         setIsAuthenticated(false);
+        setUserData(null);
         setIsLoading(false);
-        // If not on login page and not authenticated, redirect to login
         if (!isLoginPage) {
           router.push("/admin/login");
         }
@@ -66,7 +133,7 @@ export default function AdminLayout({
   }, [pathname, router, isLoginPage]);
 
   // Handle sidebar toggle for desktop
-  const handleSidebarToggle = (isOpen) => {
+  const handleSidebarToggle = (isOpen: boolean) => {
     setSidebarOpen(isOpen);
   };
 
@@ -106,6 +173,11 @@ export default function AdminLayout({
     );
   }
 
+  // Show only authenticated content for admin pages
+  if (!isAuthenticated && !isLoginPage) {
+    return null; // Router handles redirection in the effect
+  }
+
   // Admin layout with sidebar and header
   return (
     <html lang="id">
@@ -119,11 +191,13 @@ export default function AdminLayout({
                   isOpen={isMobile ? mobileSidebarOpen : sidebarOpen}
                   onClose={handleMobileSidebarClose}
                   isMobile={isMobile}
+                  userData={userData}
                 />
                 <div className="flex flex-1 flex-col overflow-hidden">
                   <AdminHeader
                     sidebarOpen={sidebarOpen}
                     onMobileMenuToggle={handleMobileMenuToggle}
+                    userData={userData} // Pastikan ini dikirim
                   />
                   <main
                     className={`${

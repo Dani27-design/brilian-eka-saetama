@@ -1,17 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { auth } from "@/db/firebase/firebaseConfig";
+import { useLanguage } from "@/app/context/LanguageContext";
+import { useAdmin } from "@/app/context/AdminContext";
+
+// Define translations
+const translations = {
+  id: {
+    adminLogin: "Login Admin",
+    email: "Email",
+    password: "Kata Sandi",
+    signIn: "Masuk",
+    invalidCredentials: "Kredensial tidak valid. Silakan coba lagi.",
+    unauthorizedAccess: "Anda tidak memiliki izin untuk mengakses panel admin.",
+    userNotFound: "Pengguna tidak ditemukan. Silakan hubungi administrator.",
+  },
+  en: {
+    adminLogin: "Admin Login",
+    email: "Email",
+    password: "Password",
+    signIn: "Sign In",
+    invalidCredentials: "Invalid login credentials. Please try again.",
+    unauthorizedAccess: "You don't have permission to access the admin panel.",
+    userNotFound: "User not found. Please contact an administrator.",
+  },
+};
 
 export default function AdminLogin() {
+  const { language } = useLanguage();
+  const t =
+    translations[language as keyof typeof translations] || translations.en;
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { isAuthenticated } = useAdmin();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/admin/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,12 +55,12 @@ export default function AdminLogin() {
     setError("");
 
     try {
+      // Just authenticate with Firebase - the AuthGuard will handle role checking
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/admin/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
-      setError("Invalid login credentials. Please try again.");
-    } finally {
+      setError(t.invalidCredentials);
       setIsLoading(false);
     }
   };
@@ -39,9 +75,9 @@ export default function AdminLogin() {
             width={150}
             height={50}
             className="dark:hidden"
-            priority={true} // For above-the-fold images
-            quality={80} // Balance between quality and size
-            loading="eager" // For critical images
+            priority={true}
+            quality={80}
+            loading="eager"
           />
           <Image
             src="/images/logo/logo-dark.png"
@@ -49,13 +85,13 @@ export default function AdminLogin() {
             width={150}
             height={50}
             className="hidden dark:block"
-            priority={true} // For above-the-fold images
-            quality={80} // Balance between quality and size
-            loading="eager" // For critical images
+            priority={true}
+            quality={80}
+            loading="eager"
           />
         </div>
         <h1 className="mb-6 text-center text-2xl font-bold text-black dark:text-white">
-          Admin Login
+          {t.adminLogin}
         </h1>
 
         {error && (
@@ -70,7 +106,7 @@ export default function AdminLogin() {
               className="mb-2.5 block font-medium text-black dark:text-white"
               htmlFor="email"
             >
-              Email
+              {t.email}
             </label>
             <input
               type="email"
@@ -87,7 +123,7 @@ export default function AdminLogin() {
               className="mb-2.5 block font-medium text-black dark:text-white"
               htmlFor="password"
             >
-              Password
+              {t.password}
             </label>
             <input
               type="password"
@@ -107,7 +143,7 @@ export default function AdminLogin() {
             {isLoading ? (
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
             ) : (
-              "Sign In"
+              t.signIn
             )}
           </button>
         </form>

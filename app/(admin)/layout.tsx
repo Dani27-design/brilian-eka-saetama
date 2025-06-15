@@ -1,50 +1,33 @@
-// This is now a Server Component (no "use client" directive)
 import { Inter } from "next/font/google";
 import "../globals.css";
+import { LanguageProvider } from "../context/LanguageContext";
+import { AdminProvider } from "../context/AdminContext";
 import AdminLayoutClient from "@/components/Admin/AdminLayoutClient";
-import { Providers } from "../providers";
+
+export const metadata = {
+  title: "Admin Dashboard | PT Brilian Eka Saetama",
+  description: "Admin dashboard untuk mengelola konten website",
+};
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: {
-    default: "Admin Dashboard | PT Brilian Eka Saetama",
-  },
-  description: "Admin dashboard for managing website content",
-  applicationName: "Admin Dashboard PT Brilian Eka Saetama",
-  icons: {
-    icon: "/images/favicon.ico",
-    apple: "/images/favicon.ico",
-    shortcut: "/images/favicon.ico",
-    other: [
-      {
-        rel: "apple-touch-icon",
-        url: "/images/favicon.ico",
-      },
-      {
-        rel: "mask-icon",
-        url: "/images/favicon.ico",
-        color: "#000000",
-      },
-    ],
-  },
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+// Note: metadata can't be used in Client Components
+// You'll need to define metadata in a separate layout file or use other methods
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Serahkan semua rendering ke AdminLayoutClient
   return (
     <html lang="id">
       <body className={inter.className}>
-        <Providers>
-          <AdminLayoutClient>{children}</AdminLayoutClient>
-        </Providers>
+        <LanguageProvider>
+          <AdminProvider>
+            <AdminLayoutClient>{children}</AdminLayoutClient>
+          </AdminProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
