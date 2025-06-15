@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import ContactPreview from "./ContactPreview";
+import debounce from "lodash/debounce";
 
 interface ContactEditorProps {
   collectionName: string;
@@ -31,7 +32,12 @@ const ContactEditor = ({
     "desktop",
   );
 
-  // Load all contact-related data for the preview
+  // Local state for immediate UI updates during typing
+  const [localInputs, setLocalInputs] = useState<{
+    [key: string]: any;
+  }>({});
+
+  // Load all contact-related data for the preview only once initially
   useEffect(() => {
     const fetchContactData = async () => {
       try {
@@ -46,11 +52,6 @@ const ContactEditor = ({
           }
         }
 
-        // If current document is one of these, use our form data for preview
-        if (docTypes.includes(documentId)) {
-          data[documentId] = formData;
-        }
-
         setFullContactData(data);
       } catch (error) {
         console.error("Error fetching contact data:", error);
@@ -58,65 +59,202 @@ const ContactEditor = ({
     };
 
     fetchContactData();
-  }, [documentId, formData]);
+  }, []); // Only fetch once on component mount
+
+  // Update preview data with debouncing
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      setFullContactData((prevData) => {
+        // Create a deep copy of the previous state
+        const updatedData = JSON.parse(JSON.stringify(prevData || {}));
+
+        // Only update the current document, preserving other data
+        if (documentId) {
+          updatedData[documentId] = formData;
+        }
+
+        return updatedData;
+      });
+    }, 500); // Longer delay for preview updates
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
 
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       setFormData(initialData);
-    }
-  }, [initialData]);
 
-  // Handle form data change
-  const handleFormChange = (lang: string, field: string, value: any) => {
-    setFormData((prev) => ({
+      // Initialize local inputs for immediate UI feedback
+      if (documentId === "contact_title") {
+        setLocalInputs({
+          title: initialData[activeTab]?.title || "",
+          subtitle: initialData[activeTab]?.subtitle || "",
+        });
+      } else if (documentId === "find_us") {
+        setLocalInputs({
+          title: initialData[activeTab]?.title || "",
+          location_title: initialData[activeTab]?.location?.title || "",
+          location_text: initialData[activeTab]?.location?.text || "",
+          email_title: initialData[activeTab]?.email?.title || "",
+          email_text: initialData[activeTab]?.email?.text || "",
+          phone_title: initialData[activeTab]?.phone?.title || "",
+          phone_text: initialData[activeTab]?.phone?.text || "",
+        });
+      } else if (documentId === "send_message") {
+        setLocalInputs({
+          title: initialData[activeTab]?.title || "",
+          name_placeholder:
+            initialData[activeTab]?.form?.name?.placeholder || "",
+          email_placeholder:
+            initialData[activeTab]?.form?.email?.placeholder || "",
+          subject_placeholder:
+            initialData[activeTab]?.form?.subject?.placeholder || "",
+          phone_placeholder:
+            initialData[activeTab]?.form?.phone?.placeholder || "",
+          message_placeholder:
+            initialData[activeTab]?.form?.message?.placeholder || "",
+          consent_text: initialData[activeTab]?.consent_text || "",
+          submit_button: initialData[activeTab]?.submit_button || "",
+        });
+      }
+    }
+  }, [initialData, documentId, activeTab]);
+
+  // Handle form data change with debouncing
+  const handleFormChange = useCallback(
+    (lang: string, field: string, value: any) => {
+      setFormData((prev) => ({
+        ...prev,
+        [lang]: {
+          ...(prev[lang] || {}),
+          [field]: value,
+        },
+      }));
+    },
+    [],
+  );
+
+  // Debounced update for text fields
+  const debouncedFormUpdate = useCallback(
+    debounce((lang: string, field: string, value: any) => {
+      handleFormChange(lang, field, value);
+    }, 500),
+    [handleFormChange],
+  );
+
+  // Handle text input changes with local state for responsive UI
+  const handleTextInputChange = (e, lang: string, field: string) => {
+    const value = e.target.value;
+
+    // Update local state immediately for responsive UI
+    setLocalInputs((prev) => ({
       ...prev,
-      [lang]: {
-        ...(prev[lang] || {}),
-        [field]: value,
-      },
+      [field]: value,
     }));
+
+    // Debounce the update to formData to prevent lag
+    debouncedFormUpdate(lang, field, value);
   };
 
-  // Handle nested form data changes
-  const handleNestedFormChange = (
+  // Handle nested form data changes with debouncing
+  const handleNestedFormChange = useCallback(
+    (lang: string, parentField: string, field: string, value: any) => {
+      setFormData((prev) => ({
+        ...prev,
+        [lang]: {
+          ...(prev[lang] || {}),
+          [parentField]: {
+            ...(prev[lang]?.[parentField] || {}),
+            [field]: value,
+          },
+        },
+      }));
+    },
+    [],
+  );
+
+  // Debounced update for nested fields
+  const debouncedNestedUpdate = useCallback(
+    debounce((lang: string, parentField: string, field: string, value: any) => {
+      handleNestedFormChange(lang, parentField, field, value);
+    }, 500),
+    [handleNestedFormChange],
+  );
+
+  // Handle nested text input changes with local state for responsive UI
+  const handleNestedTextChange = (
+    e,
     lang: string,
     parentField: string,
     field: string,
-    value: any,
   ) => {
-    setFormData((prev) => ({
+    const value = e.target.value;
+
+    // Update local state immediately for responsive UI
+    setLocalInputs((prev) => ({
       ...prev,
-      [lang]: {
-        ...(prev[lang] || {}),
-        [parentField]: {
-          ...(prev[lang]?.[parentField] || {}),
-          [field]: value,
-        },
-      },
+      [`${parentField}_${field}`]: value,
     }));
+
+    // Debounce the update to formData to prevent lag
+    debouncedNestedUpdate(lang, parentField, field, value);
   };
 
   // Handle deeply nested form data changes (for fields object in send_message)
-  const handleFieldsFormChange = (
+  const handleFieldsFormChange = useCallback(
+    (lang: string, field: string, subField: string, value: any) => {
+      setFormData((prev) => ({
+        ...prev,
+        [lang]: {
+          ...(prev[lang] || {}),
+          form: {
+            ...(prev[lang]?.form || {}),
+            [field]: {
+              ...(prev[lang]?.form?.[field] || {}),
+              [subField]: value,
+            },
+          },
+        },
+      }));
+    },
+    [],
+  );
+
+  // Debounced update for fields form
+  const debouncedFieldsUpdate = useCallback(
+    debounce((lang: string, field: string, subField: string, value: any) => {
+      handleFieldsFormChange(lang, field, subField, value);
+    }, 500),
+    [handleFieldsFormChange],
+  );
+
+  // Handle fields form text input changes with local state for responsive UI
+  const handleFieldsTextChange = (
+    e,
     lang: string,
     field: string,
     subField: string,
-    value: any,
   ) => {
-    setFormData((prev) => ({
+    const value = e.target.value;
+
+    // Update local state immediately for responsive UI
+    setLocalInputs((prev) => ({
       ...prev,
-      [lang]: {
-        ...(prev[lang] || {}),
-        form: {
-          ...(prev[lang]?.form || {}),
-          [field]: {
-            ...(prev[lang]?.form?.[field] || {}),
-            [subField]: value,
-          },
-        },
-      },
+      [`${field}_${subField}`]: value,
     }));
+
+    // Debounce the update to formData to prevent lag
+    debouncedFieldsUpdate(lang, field, subField, value);
   };
 
   // Handle form submission
@@ -144,10 +282,8 @@ const ContactEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab]?.title || ""}
-                onChange={(e) =>
-                  handleFormChange(activeTab, "title", e.target.value)
-                }
+                value={localInputs.title || ""}
+                onChange={(e) => handleTextInputChange(e, activeTab, "title")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={activeTab === "en" ? "Contact Us" : "Hubungi Kami"}
               />
@@ -161,9 +297,9 @@ const ContactEditor = ({
                 Contact Subtitle
               </label>
               <textarea
-                value={formData[activeTab]?.subtitle || ""}
+                value={localInputs.subtitle || ""}
                 onChange={(e) =>
-                  handleFormChange(activeTab, "subtitle", e.target.value)
+                  handleTextInputChange(e, activeTab, "subtitle")
                 }
                 className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
@@ -188,10 +324,8 @@ const ContactEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab]?.title || ""}
-                onChange={(e) =>
-                  handleFormChange(activeTab, "title", e.target.value)
-                }
+                value={localInputs.title || ""}
+                onChange={(e) => handleTextInputChange(e, activeTab, "title")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={activeTab === "en" ? "Find Us" : "Temukan Kami"}
               />
@@ -210,14 +344,9 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={formData[activeTab]?.location?.title || ""}
+                    value={localInputs.location_title || ""}
                     onChange={(e) =>
-                      handleNestedFormChange(
-                        activeTab,
-                        "location",
-                        "title",
-                        e.target.value,
-                      )
+                      handleNestedTextChange(e, activeTab, "location", "title")
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     placeholder={
@@ -231,14 +360,9 @@ const ContactEditor = ({
                     Address
                   </label>
                   <textarea
-                    value={formData[activeTab]?.location?.text || ""}
+                    value={localInputs.location_text || ""}
                     onChange={(e) =>
-                      handleNestedFormChange(
-                        activeTab,
-                        "location",
-                        "text",
-                        e.target.value,
-                      )
+                      handleNestedTextChange(e, activeTab, "location", "text")
                     }
                     className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     placeholder="Jl. Wonocolo Utara V No.22, Surabaya"
@@ -260,14 +384,9 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={formData[activeTab]?.email?.title || ""}
+                    value={localInputs.email_title || ""}
                     onChange={(e) =>
-                      handleNestedFormChange(
-                        activeTab,
-                        "email",
-                        "title",
-                        e.target.value,
-                      )
+                      handleNestedTextChange(e, activeTab, "email", "title")
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     placeholder={activeTab === "en" ? "Email us" : "Email kami"}
@@ -280,14 +399,9 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={formData[activeTab]?.email?.text || ""}
+                    value={localInputs.email_text || ""}
                     onChange={(e) =>
-                      handleNestedFormChange(
-                        activeTab,
-                        "email",
-                        "text",
-                        e.target.value,
-                      )
+                      handleNestedTextChange(e, activeTab, "email", "text")
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     placeholder="info@brilineska.com"
@@ -309,14 +423,9 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={formData[activeTab]?.phone?.title || ""}
+                    value={localInputs.phone_title || ""}
                     onChange={(e) =>
-                      handleNestedFormChange(
-                        activeTab,
-                        "phone",
-                        "title",
-                        e.target.value,
-                      )
+                      handleNestedTextChange(e, activeTab, "phone", "title")
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     placeholder={activeTab === "en" ? "Phone" : "Telepon"}
@@ -329,14 +438,9 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={formData[activeTab]?.phone?.text || ""}
+                    value={localInputs.phone_text || ""}
                     onChange={(e) =>
-                      handleNestedFormChange(
-                        activeTab,
-                        "phone",
-                        "text",
-                        e.target.value,
-                      )
+                      handleNestedTextChange(e, activeTab, "phone", "text")
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     placeholder="+62 852-3160-0808"
@@ -356,10 +460,8 @@ const ContactEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab]?.title || ""}
-                onChange={(e) =>
-                  handleFormChange(activeTab, "title", e.target.value)
-                }
+                value={localInputs.title || ""}
+                onChange={(e) => handleTextInputChange(e, activeTab, "title")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en" ? "Send Message" : "Kirim Pesan"
@@ -379,13 +481,13 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={formData[activeTab]?.form?.name?.placeholder || ""}
+                    value={localInputs.name_placeholder || ""}
                     onChange={(e) =>
-                      handleFieldsFormChange(
+                      handleFieldsTextChange(
+                        e,
                         activeTab,
                         "name",
                         "placeholder",
-                        e.target.value,
                       )
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -401,13 +503,13 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={formData[activeTab]?.form?.email?.placeholder || ""}
+                    value={localInputs.email_placeholder || ""}
                     onChange={(e) =>
-                      handleFieldsFormChange(
+                      handleFieldsTextChange(
+                        e,
                         activeTab,
                         "email",
                         "placeholder",
-                        e.target.value,
                       )
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -423,15 +525,13 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={
-                      formData[activeTab]?.form?.subject?.placeholder || ""
-                    }
+                    value={localInputs.subject_placeholder || ""}
                     onChange={(e) =>
-                      handleFieldsFormChange(
+                      handleFieldsTextChange(
+                        e,
                         activeTab,
                         "subject",
                         "placeholder",
-                        e.target.value,
                       )
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -445,13 +545,13 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={formData[activeTab]?.form?.phone?.placeholder || ""}
+                    value={localInputs.phone_placeholder || ""}
                     onChange={(e) =>
-                      handleFieldsFormChange(
+                      handleFieldsTextChange(
+                        e,
                         activeTab,
                         "phone",
                         "placeholder",
-                        e.target.value,
                       )
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -467,15 +567,13 @@ const ContactEditor = ({
                   </label>
                   <input
                     type="text"
-                    value={
-                      formData[activeTab]?.form?.message?.placeholder || ""
-                    }
+                    value={localInputs.message_placeholder || ""}
                     onChange={(e) =>
-                      handleFieldsFormChange(
+                      handleFieldsTextChange(
+                        e,
                         activeTab,
                         "message",
                         "placeholder",
-                        e.target.value,
                       )
                     }
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -490,9 +588,9 @@ const ContactEditor = ({
                 Consent Text
               </label>
               <textarea
-                value={formData[activeTab]?.consent_text || ""}
+                value={localInputs.consent_text || ""}
                 onChange={(e) =>
-                  handleFormChange(activeTab, "consent_text", e.target.value)
+                  handleTextInputChange(e, activeTab, "consent_text")
                 }
                 className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
@@ -509,9 +607,9 @@ const ContactEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab]?.submit_button || ""}
+                value={localInputs.submit_button || ""}
                 onChange={(e) =>
-                  handleFormChange(activeTab, "submit_button", e.target.value)
+                  handleTextInputChange(e, activeTab, "submit_button")
                 }
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
@@ -531,16 +629,26 @@ const ContactEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [documentId, activeTab, localInputs]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
-      {/* Contact preview component */}
-      <ContactPreview
-        data={fullContactData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {/* Contact preview component - memoized to prevent re-renders during typing */}
+      {useMemo(
+        () => (
+          <ContactPreview
+            data={fullContactData}
+            activeSection={documentId}
+            onEditSection={handleEditSection}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
+          />
+        ),
+        [fullContactData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -576,7 +684,7 @@ const ContactEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

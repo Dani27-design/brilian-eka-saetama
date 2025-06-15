@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import AboutPreview from "./AboutPreview";
 import ImageUploader from "./ImageUploader";
+import debounce from "lodash/debounce";
 
 interface AboutEditorProps {
   collectionName: string;
@@ -33,7 +34,32 @@ const AboutEditor = ({
   );
   const [aboutSections, setAboutSections] = useState<any[]>([]);
 
-  // Load all about-related data for the preview
+  // Add local state for immediate UI response during typing
+  const [localTextInputs, setLocalTextInputs] = useState({
+    title: "",
+    subtitle: "",
+  });
+
+  // Initialize local text inputs when active tab or form data changes
+  useEffect(() => {
+    if (formData && documentId) {
+      if (documentId === "about_title" && formData[activeTab]) {
+        setLocalTextInputs((prev) => ({
+          ...prev,
+          title: formData[activeTab],
+        }));
+      }
+
+      if (documentId === "about_subtitle" && formData[activeTab]) {
+        setLocalTextInputs((prev) => ({
+          ...prev,
+          subtitle: formData[activeTab],
+        }));
+      }
+    }
+  }, [activeTab, formData, documentId]);
+
+  // Fetch all about data only once initially
   useEffect(() => {
     const fetchAboutData = async () => {
       try {
@@ -48,33 +74,42 @@ const AboutEditor = ({
           }
         }
 
-        // If current document is one of these, use our form data for preview
-        if (docTypes.includes(documentId)) {
-          data[documentId] = formData;
-        }
-
         setFullAboutData(data);
-
-        // Special handling for about sections
-        if (
-          documentId === "about_sections" &&
-          formData &&
-          formData[activeTab]
-        ) {
-          try {
-            const sectionsData = formData[activeTab];
-            setAboutSections(Array.isArray(sectionsData) ? sectionsData : []);
-          } catch (e) {
-            console.error("Failed to process about sections:", e);
-          }
-        }
       } catch (error) {
         console.error("Error fetching about data:", error);
       }
     };
 
     fetchAboutData();
-  }, [documentId, formData, activeTab]);
+  }, []); // Only fetch once on component mount
+
+  // Update preview data - optimized with debouncing
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      setFullAboutData((prevData) => {
+        // Create a deep copy of the previous state
+        const updatedData = JSON.parse(JSON.stringify(prevData || {}));
+
+        // Only update the current document, preserving other data
+        if (documentId) {
+          updatedData[documentId] = formData;
+        }
+
+        return updatedData;
+      });
+    }, 500); // Longer delay for preview updates
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
 
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
@@ -93,47 +128,98 @@ const AboutEditor = ({
     }
   }, [initialData, documentId, activeTab]);
 
-  // Handle form data change
-  const handleFormChange = (value: any) => {
-    setFormData((prev) => ({
+  // Optimized form change handler with direct updates for typing
+  const handleFormChange = useCallback(
+    (value) => {
+      setFormData((prev) => ({
+        ...prev,
+        [activeTab]: value,
+      }));
+    },
+    [activeTab],
+  );
+
+  // Debounced update for preview and other components
+  const debouncedFormUpdate = useCallback(
+    debounce((value) => {
+      handleFormChange(value);
+    }, 500),
+    [handleFormChange],
+  );
+
+  // Handle text input changes with local state for responsive UI
+  const handleTextInputChange = (e, field) => {
+    const value = e.target.value;
+
+    // Update local state immediately for responsive UI
+    setLocalTextInputs((prev) => ({
       ...prev,
-      [activeTab]: value,
-    }));
-  };
-
-  // Handle about section changes
-  const handleSectionChange = (index: number, field: string, value: any) => {
-    const newSections = [...aboutSections];
-    newSections[index] = { ...newSections[index], [field]: value };
-    setAboutSections(newSections);
-    handleFormChange(newSections);
-  };
-
-  // Handle point changes within a section
-  const handlePointChange = (
-    sectionIndex: number,
-    pointIndex: number,
-    field: string,
-    value: any,
-  ) => {
-    const newSections = [...aboutSections];
-    if (!newSections[sectionIndex].points) {
-      newSections[sectionIndex].points = [];
-    }
-    if (!newSections[sectionIndex].points[pointIndex]) {
-      newSections[sectionIndex].points[pointIndex] = {
-        id: Date.now().toString(),
-      };
-    }
-
-    newSections[sectionIndex].points[pointIndex] = {
-      ...newSections[sectionIndex].points[pointIndex],
       [field]: value,
-    };
+    }));
 
-    setAboutSections(newSections);
-    handleFormChange(newSections);
+    // Debounce the update to formData to prevent lag
+    debouncedFormUpdate(value);
   };
+
+  // Handle about section changes with debouncing for text fields
+  const handleSectionChange = useCallback(
+    (index, field, value) => {
+      const newSections = [...aboutSections];
+      newSections[index] = { ...newSections[index], [field]: value };
+
+      // Always update local state immediately for responsive UI
+      setAboutSections(newSections);
+
+      // For text fields, use debounced update to prevent lag
+      if (["title", "subtitle", "description"].includes(field)) {
+        debouncedSectionUpdate(newSections);
+      } else {
+        // For other fields like images, update immediately
+        handleFormChange(newSections);
+      }
+    },
+    [aboutSections, activeTab],
+  );
+
+  // Debounced update for sections
+  const debouncedSectionUpdate = useCallback(
+    debounce((sections) => {
+      handleFormChange(sections);
+    }, 500),
+    [handleFormChange],
+  );
+
+  // Handle point changes within a section with debouncing
+  const handlePointChange = useCallback(
+    (sectionIndex, pointIndex, field, value) => {
+      const newSections = [...aboutSections];
+      if (!newSections[sectionIndex].points) {
+        newSections[sectionIndex].points = [];
+      }
+      if (!newSections[sectionIndex].points[pointIndex]) {
+        newSections[sectionIndex].points[pointIndex] = {
+          id: Date.now().toString(),
+        };
+      }
+
+      newSections[sectionIndex].points[pointIndex] = {
+        ...newSections[sectionIndex].points[pointIndex],
+        [field]: value,
+      };
+
+      // Always update local state immediately for responsive UI
+      setAboutSections(newSections);
+
+      // For text fields, use debounced update to prevent lag
+      if (["title", "description"].includes(field)) {
+        debouncedSectionUpdate(newSections);
+      } else {
+        // For other fields like number, update immediately
+        handleFormChange(newSections);
+      }
+    },
+    [aboutSections, activeTab],
+  );
 
   const addSection = () => {
     const newSection = {
@@ -210,8 +296,8 @@ const AboutEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab] || ""}
-                onChange={(e) => handleFormChange(e.target.value)}
+                value={localTextInputs.title || ""}
+                onChange={(e) => handleTextInputChange(e, "title")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={activeTab === "en" ? "About Us" : "Tentang Kami"}
               />
@@ -230,8 +316,8 @@ const AboutEditor = ({
                 About Section Subtitle
               </label>
               <textarea
-                value={formData[activeTab] || ""}
-                onChange={(e) => handleFormChange(e.target.value)}
+                value={localTextInputs.subtitle || ""}
+                onChange={(e) => handleTextInputChange(e, "subtitle")}
                 className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en"
@@ -488,16 +574,26 @@ const AboutEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [documentId, activeTab, aboutSections, localTextInputs]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
-      {/* About preview component */}
-      <AboutPreview
-        data={fullAboutData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {/* About preview component - memoized to prevent re-renders during typing */}
+      {useMemo(
+        () => (
+          <AboutPreview
+            data={fullAboutData}
+            activeSection={documentId}
+            onEditSection={handleEditSection}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
+          />
+        ),
+        [fullAboutData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -533,7 +629,7 @@ const AboutEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

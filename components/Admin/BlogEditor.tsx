@@ -1,27 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import dynamic from "next/dynamic";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import BlogPreview from "./BlogPreview";
-import ImageUploader from "./ImageUploader";
 import { Blog } from "@/types/blog";
 import { EditorState } from "draft-js";
 import { stateFromHTML } from "draft-js-import-html";
 import debounce from "lodash/debounce";
 import BlogItemEditor from "./BlogItemEditor";
-
-// Dynamically import our SimpleBlogEditor component with SSR disabled
-const SimpleBlogEditor = dynamic(() => import("./SimpleBlogEditor"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-[250px] items-center justify-center bg-gray-50 dark:bg-gray-800">
-      <p className="text-gray-500">Loading editor...</p>
-    </div>
-  ),
-});
 
 interface BlogEditorProps {
   collectionName: string;
@@ -216,18 +204,6 @@ const BlogEditor = ({
     }));
   };
 
-  // For blog items, separate immediate and debounced updates
-  const handleBlogItemChangeImmediate = (
-    index: number,
-    field: string,
-    value: any,
-  ) => {
-    // Fields that need immediate feedback but don't affect the preview much
-    const newBlogItems = [...blogItems];
-    newBlogItems[index] = { ...newBlogItems[index], [field]: value };
-    setBlogItems(newBlogItems);
-  };
-
   // Debounced update for preview and other components
   const debouncedBlogUpdate = useCallback(
     debounce((items) => {
@@ -251,28 +227,6 @@ const BlogEditor = ({
       handleFormChange(newBlogItems);
     }
   };
-
-  // Add this new optimized handler specifically for text input fields
-  const handleTextInputChange = (index: number, field: string, value: any) => {
-    // Direct DOM update for immediate feedback without re-rendering the whole component
-    const newBlogItems = [...blogItems];
-    newBlogItems[index] = { ...newBlogItems[index], [field]: value };
-
-    // Update local state only
-    setBlogItems(newBlogItems);
-
-    // Use a more aggressive debounce for text fields
-    textUpdateDebounce(index, field, value, newBlogItems);
-  };
-
-  // Create a more aggressive debounce specifically for text typing
-  const textUpdateDebounce = useCallback(
-    debounce((index, field, value, items) => {
-      // Only after typing stops, update parent state
-      handleFormChange(items);
-    }, 300), // shorter delay for better responsiveness
-    [activeTab],
-  );
 
   const addBlogItem = () => {
     const newBlogItem: Blog = {

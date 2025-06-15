@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import TestimonialPreview from "./TestimonialPreview";
 import ImageUploader from "./ImageUploader";
+import debounce from "lodash/debounce";
 
 interface TestimonialEditorProps {
   collectionName: string;
@@ -33,7 +34,45 @@ const TestimonialEditor = ({
   );
   const [testimonialItems, setTestimonialItems] = useState<any[]>([]);
 
-  // Load all testimonial-related data for the preview
+  // Local state for immediate UI updates during typing
+  const [localTextInputs, setLocalTextInputs] = useState({
+    title: "",
+    subtitle: "",
+    description: "",
+  });
+
+  // Local state for testimonial items text inputs
+  const [localTestimonialInputs, setLocalTestimonialInputs] = useState<{
+    [key: string]: { name: string; designation: string; content: string };
+  }>({});
+
+  // Initialize local text inputs when active tab or form data changes
+  useEffect(() => {
+    if (formData && documentId) {
+      if (documentId === "testimonial_title" && formData[activeTab]) {
+        setLocalTextInputs((prev) => ({
+          ...prev,
+          title: formData[activeTab],
+        }));
+      }
+
+      if (documentId === "testimonial_subtitle" && formData[activeTab]) {
+        setLocalTextInputs((prev) => ({
+          ...prev,
+          subtitle: formData[activeTab],
+        }));
+      }
+
+      if (documentId === "testimonial_description" && formData[activeTab]) {
+        setLocalTextInputs((prev) => ({
+          ...prev,
+          description: formData[activeTab],
+        }));
+      }
+    }
+  }, [formData, activeTab, documentId]);
+
+  // Load all testimonial-related data for the preview only once initially
   useEffect(() => {
     const fetchTestimonialData = async () => {
       try {
@@ -53,31 +92,42 @@ const TestimonialEditor = ({
           }
         }
 
-        // If current document is one of these, use our form data for preview
-        if (docTypes.includes(documentId)) {
-          data[documentId] = formData;
-        }
-
         setFullTestimonialData(data);
-
-        // Special handling for testimonial items
-        if (documentId === "testimonials" && formData && formData[activeTab]) {
-          try {
-            const testimonialsData = formData[activeTab];
-            setTestimonialItems(
-              Array.isArray(testimonialsData) ? testimonialsData : [],
-            );
-          } catch (e) {
-            console.error("Failed to process testimonials:", e);
-          }
-        }
       } catch (error) {
         console.error("Error fetching testimonial data:", error);
       }
     };
 
     fetchTestimonialData();
-  }, [documentId, formData, activeTab]);
+  }, []); // Only fetch once on component mount
+
+  // Update preview data with debouncing
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      setFullTestimonialData((prevData) => {
+        // Create a deep copy of the previous state
+        const updatedData = JSON.parse(JSON.stringify(prevData || {}));
+
+        // Only update the current document, preserving other data
+        if (documentId) {
+          updatedData[documentId] = formData;
+        }
+
+        return updatedData;
+      });
+    }, 500); // Longer delay for preview updates
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
 
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
@@ -88,9 +138,19 @@ const TestimonialEditor = ({
       if (documentId === "testimonials" && initialData[activeTab]) {
         try {
           const testimonialsData = initialData[activeTab];
-          setTestimonialItems(
-            Array.isArray(testimonialsData) ? testimonialsData : [],
-          );
+          const items = Array.isArray(testimonialsData) ? testimonialsData : [];
+          setTestimonialItems(items);
+
+          // Initialize local inputs for testimonials
+          const localInputs = {};
+          items.forEach((item, index) => {
+            localInputs[index] = {
+              name: item.name || "",
+              designation: item.designation || "",
+              content: item.content || "",
+            };
+          });
+          setLocalTestimonialInputs(localInputs);
         } catch (e) {
           console.error("Failed to process testimonials:", e);
         }
@@ -98,31 +158,83 @@ const TestimonialEditor = ({
     }
   }, [initialData, documentId, activeTab]);
 
-  // Handle form data change
-  const handleFormChange = (value: any) => {
-    setFormData((prev) => ({
+  // Handle form data change with debouncing
+  const handleFormChange = useCallback(
+    (value) => {
+      setFormData((prev) => ({
+        ...prev,
+        [activeTab]: value,
+      }));
+    },
+    [activeTab],
+  );
+
+  // Debounced update for text fields
+  const debouncedFormUpdate = useCallback(
+    debounce((value) => {
+      handleFormChange(value);
+    }, 500),
+    [handleFormChange],
+  );
+
+  // Handle text input changes with local state for responsive UI
+  const handleTextInputChange = (e, field) => {
+    const value = e.target.value;
+
+    // Update local state immediately for responsive UI
+    setLocalTextInputs((prev) => ({
       ...prev,
-      [activeTab]: value,
+      [field]: value,
     }));
+
+    // Debounce the update to formData to prevent lag
+    debouncedFormUpdate(value);
   };
 
-  // Handle testimonial item changes
-  const handleTestimonialChange = (
-    index: number,
-    field: string,
-    value: any,
-  ) => {
-    const newItems = [...testimonialItems];
-    newItems[index] = { ...newItems[index], [field]: value };
-    setTestimonialItems(newItems);
-    handleFormChange(newItems);
-  };
+  // Handle testimonial item changes with debouncing for text fields
+  const handleTestimonialChange = useCallback(
+    (index, field, value) => {
+      // Update local state immediately for responsive UI
+      if (field === "name" || field === "designation" || field === "content") {
+        setLocalTestimonialInputs((prev) => ({
+          ...prev,
+          [index]: {
+            ...prev[index],
+            [field]: value,
+          },
+        }));
+      }
+
+      const newItems = [...testimonialItems];
+      newItems[index] = { ...newItems[index], [field]: value };
+
+      // Update the display state
+      setTestimonialItems(newItems);
+
+      // For text fields, use debounced update to prevent lag
+      if (field === "name" || field === "designation" || field === "content") {
+        debouncedTestimonialUpdate(newItems);
+      } else {
+        // For image uploads, update immediately
+        handleFormChange(newItems);
+      }
+    },
+    [testimonialItems],
+  );
+
+  // Debounced update for testimonial items
+  const debouncedTestimonialUpdate = useCallback(
+    debounce((items) => {
+      handleFormChange(items);
+    }, 500),
+    [handleFormChange],
+  );
 
   // Add new testimonial
-  const addTestimonial = () => {
+  const addTestimonial = useCallback(() => {
     const newId =
       testimonialItems.length > 0
-        ? Math.max(...testimonialItems.map((item) => Number(item.id))) + 1
+        ? Math.max(...testimonialItems.map((item) => Number(item.id || 0))) + 1
         : 1;
 
     const newTestimonial = {
@@ -135,42 +247,88 @@ const TestimonialEditor = ({
     };
 
     const newItems = [...testimonialItems, newTestimonial];
+
+    // Add to local inputs too
+    setLocalTestimonialInputs((prev) => ({
+      ...prev,
+      [testimonialItems.length]: {
+        name: "New Client Name",
+        designation: "Designation",
+        content: "Write client testimonial here...",
+      },
+    }));
+
     setTestimonialItems(newItems);
     handleFormChange(newItems);
-  };
+  }, [testimonialItems, handleFormChange]);
 
   // Remove testimonial
-  const removeTestimonial = (index: number) => {
-    const newItems = testimonialItems.filter((_, i) => i !== index);
-    setTestimonialItems(newItems);
-    handleFormChange(newItems);
-  };
+  const removeTestimonial = useCallback(
+    (index) => {
+      const newItems = testimonialItems.filter((_, i) => i !== index);
+
+      // Update local inputs - create a new object without the removed testimonial
+      const newLocalInputs = { ...localTestimonialInputs };
+      delete newLocalInputs[index];
+
+      // Reindex the keys for local inputs
+      const reindexedInputs = {};
+      Object.values(newLocalInputs).forEach((value, i) => {
+        reindexedInputs[i] = value;
+      });
+
+      setLocalTestimonialInputs(reindexedInputs);
+      setTestimonialItems(newItems);
+      handleFormChange(newItems);
+    },
+    [testimonialItems, localTestimonialInputs, handleFormChange],
+  );
 
   // Move testimonial up
-  const moveTestimonialUp = (index: number) => {
-    if (index === 0) return; // Can't move the first item up
+  const moveTestimonialUp = useCallback(
+    (index) => {
+      if (index === 0) return; // Can't move the first item up
 
-    const newItems = [...testimonialItems];
-    const temp = newItems[index];
-    newItems[index] = newItems[index - 1];
-    newItems[index - 1] = temp;
+      const newItems = [...testimonialItems];
+      const temp = newItems[index];
+      newItems[index] = newItems[index - 1];
+      newItems[index - 1] = temp;
 
-    setTestimonialItems(newItems);
-    handleFormChange(newItems);
-  };
+      // Also update local inputs
+      const newLocalInputs = { ...localTestimonialInputs };
+      const tempLocal = newLocalInputs[index];
+      newLocalInputs[index] = newLocalInputs[index - 1];
+      newLocalInputs[index - 1] = tempLocal;
+
+      setLocalTestimonialInputs(newLocalInputs);
+      setTestimonialItems(newItems);
+      handleFormChange(newItems);
+    },
+    [testimonialItems, localTestimonialInputs, handleFormChange],
+  );
 
   // Move testimonial down
-  const moveTestimonialDown = (index: number) => {
-    if (index === testimonialItems.length - 1) return; // Can't move the last item down
+  const moveTestimonialDown = useCallback(
+    (index) => {
+      if (index === testimonialItems.length - 1) return; // Can't move the last item down
 
-    const newItems = [...testimonialItems];
-    const temp = newItems[index];
-    newItems[index] = newItems[index + 1];
-    newItems[index + 1] = temp;
+      const newItems = [...testimonialItems];
+      const temp = newItems[index];
+      newItems[index] = newItems[index + 1];
+      newItems[index + 1] = temp;
 
-    setTestimonialItems(newItems);
-    handleFormChange(newItems);
-  };
+      // Also update local inputs
+      const newLocalInputs = { ...localTestimonialInputs };
+      const tempLocal = newLocalInputs[index];
+      newLocalInputs[index] = newLocalInputs[index + 1];
+      newLocalInputs[index + 1] = tempLocal;
+
+      setLocalTestimonialInputs(newLocalInputs);
+      setTestimonialItems(newItems);
+      handleFormChange(newItems);
+    },
+    [testimonialItems, localTestimonialInputs, handleFormChange],
+  );
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -197,8 +355,8 @@ const TestimonialEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab] || ""}
-                onChange={(e) => handleFormChange(e.target.value)}
+                value={localTextInputs.title || ""}
+                onChange={(e) => handleTextInputChange(e, "title")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={activeTab === "en" ? "TESTIMONIALS" : "TESTIMONI"}
               />
@@ -219,8 +377,8 @@ const TestimonialEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab] || ""}
-                onChange={(e) => handleFormChange(e.target.value)}
+                value={localTextInputs.subtitle || ""}
+                onChange={(e) => handleTextInputChange(e, "subtitle")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en"
@@ -243,8 +401,8 @@ const TestimonialEditor = ({
                 Testimonial Section Description
               </label>
               <textarea
-                value={formData[activeTab] || ""}
-                onChange={(e) => handleFormChange(e.target.value)}
+                value={localTextInputs.description || ""}
+                onChange={(e) => handleTextInputChange(e, "description")}
                 rows={3}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
@@ -322,7 +480,12 @@ const TestimonialEditor = ({
                         </label>
                         <input
                           type="text"
-                          value={testimonial.name || ""}
+                          value={
+                            (localTestimonialInputs[index] &&
+                              localTestimonialInputs[index].name) ||
+                            testimonial.name ||
+                            ""
+                          }
                           onChange={(e) =>
                             handleTestimonialChange(
                               index,
@@ -341,7 +504,12 @@ const TestimonialEditor = ({
                         </label>
                         <input
                           type="text"
-                          value={testimonial.designation || ""}
+                          value={
+                            (localTestimonialInputs[index] &&
+                              localTestimonialInputs[index].designation) ||
+                            testimonial.designation ||
+                            ""
+                          }
                           onChange={(e) =>
                             handleTestimonialChange(
                               index,
@@ -375,7 +543,12 @@ const TestimonialEditor = ({
                         Testimonial Content
                       </label>
                       <textarea
-                        value={testimonial.content || ""}
+                        value={
+                          (localTestimonialInputs[index] &&
+                            localTestimonialInputs[index].content) ||
+                          testimonial.content ||
+                          ""
+                        }
                         onChange={(e) =>
                           handleTestimonialChange(
                             index,
@@ -412,16 +585,32 @@ const TestimonialEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [
+    documentId,
+    activeTab,
+    testimonialItems,
+    localTextInputs,
+    localTestimonialInputs,
+  ]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
-      {/* Testimonial preview component */}
-      <TestimonialPreview
-        data={fullTestimonialData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {/* Testimonial preview component - memoized to prevent re-renders during typing */}
+      {useMemo(
+        () => (
+          <TestimonialPreview
+            data={fullTestimonialData}
+            activeSection={documentId}
+            onEditSection={handleEditSection}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
+          />
+        ),
+        [fullTestimonialData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -457,7 +646,7 @@ const TestimonialEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

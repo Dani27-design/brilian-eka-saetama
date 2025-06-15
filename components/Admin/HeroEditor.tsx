@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import HeroPreview from "./HeroPreview";
+import debounce from "lodash/debounce";
 
 interface HeroEditorProps {
   collectionName: string;
@@ -24,7 +25,6 @@ const HeroEditor = ({
 }: HeroEditorProps) => {
   const { theme } = useTheme();
   const { language } = useLanguage();
-  // Initialize formData properly with initialData
   const [formData, setFormData] = useState<any>(
     initialData || { en: "", id: "" },
   );
@@ -34,7 +34,19 @@ const HeroEditor = ({
     "desktop",
   );
 
-  // Load all hero related data for the preview
+  // For immediate UI updates (local state)
+  const [localInputValue, setLocalInputValue] = useState("");
+
+  // Initialize local input value when active tab changes or form data updates
+  useEffect(() => {
+    if (formData && formData[activeTab] !== undefined) {
+      setLocalInputValue(formData[activeTab]);
+    } else {
+      setLocalInputValue(""); // Reset to empty string if no data exists
+    }
+  }, [formData, activeTab]);
+
+  // Fetch all hero data initially
   useEffect(() => {
     const fetchHeroData = async () => {
       try {
@@ -56,11 +68,6 @@ const HeroEditor = ({
           }
         }
 
-        // If current document is one of these, use our form data for preview
-        if (docTypes.includes(documentId)) {
-          data[documentId] = formData;
-        }
-
         setFullHeroData(data);
       } catch (error) {
         console.error("Error fetching hero data:", error);
@@ -68,21 +75,85 @@ const HeroEditor = ({
     };
 
     fetchHeroData();
-  }, [documentId, formData, activeTab]);
+  }, []); // Only fetch once on component mount
+
+  // Update only the current document in the preview data
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      setFullHeroData((prevData) => {
+        // Create a deep copy of the previous state
+        const updatedData = JSON.parse(JSON.stringify(prevData));
+
+        // Only update the current document, preserving other data
+        if (documentId && updatedData) {
+          // If the document already exists in preview data, update it without replacing other language data
+          if (updatedData[documentId]) {
+            updatedData[documentId] = {
+              ...updatedData[documentId], // Preserve other language data
+              ...formData, // Update with new data
+            };
+          } else {
+            // If it doesn't exist yet, add it
+            updatedData[documentId] = formData;
+          }
+        }
+
+        return updatedData;
+      });
+    }, 500);
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
 
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       setFormData(initialData);
-    }
-  }, [initialData]);
 
-  // Handle form data change
-  const handleFormChange = (field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [activeTab]: value,
-    }));
+      // Also initialize the local input value for responsive UI
+      if (initialData[activeTab]) {
+        setLocalInputValue(initialData[activeTab]);
+      }
+    }
+  }, [initialData, activeTab]);
+
+  // Handle form data change with debouncing
+  const handleFormChange = useCallback(
+    (value) => {
+      setFormData((prev) => ({
+        ...prev,
+        [activeTab]: value,
+      }));
+    },
+    [activeTab],
+  );
+
+  // Create a debounced version of the form update function
+  const debouncedFormUpdate = useCallback(
+    debounce((value) => {
+      handleFormChange(value);
+    }, 500),
+    [handleFormChange],
+  );
+
+  // Handle input changes - optimized for better performance
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+
+    // Update local state immediately for responsive UI
+    setLocalInputValue(value);
+
+    // Debounce the update to formData to prevent lag
+    debouncedFormUpdate(value);
   };
 
   // Handle form submission
@@ -100,9 +171,8 @@ const HeroEditor = ({
 
   // Render form fields based on the document type
   const renderFormFields = () => {
-    // Make sure we have a default value even if formData[activeTab] is undefined
-    const currentValue =
-      formData && formData[activeTab] ? formData[activeTab] : "";
+    // Get current value from local state for responsive typing
+    const currentValue = localInputValue || "";
 
     switch (documentId) {
       case "hero_title":
@@ -119,7 +189,7 @@ const HeroEditor = ({
               <input
                 type="text"
                 value={currentValue}
-                onChange={(e) => handleFormChange("", e.target.value)}
+                onChange={handleInputChange}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="We provide the best (solutions) for your business"
               />
@@ -136,7 +206,7 @@ const HeroEditor = ({
               </label>
               <textarea
                 value={currentValue}
-                onChange={(e) => handleFormChange("", e.target.value)}
+                onChange={handleInputChange}
                 className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Enter a descriptive subtitle for the hero section"
               />
@@ -154,7 +224,7 @@ const HeroEditor = ({
               <input
                 type="text"
                 value={currentValue}
-                onChange={(e) => handleFormChange("", e.target.value)}
+                onChange={handleInputChange}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Your company slogan"
               />
@@ -172,7 +242,7 @@ const HeroEditor = ({
               <input
                 type="text"
                 value={currentValue}
-                onChange={(e) => handleFormChange("", e.target.value)}
+                onChange={handleInputChange}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Enter email address"
               />
@@ -190,7 +260,7 @@ const HeroEditor = ({
               <input
                 type="text"
                 value={currentValue}
-                onChange={(e) => handleFormChange("", e.target.value)}
+                onChange={handleInputChange}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Connect with us"
               />
@@ -207,16 +277,31 @@ const HeroEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [documentId, activeTab, localInputValue]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
-      {/* Hero preview component - No more edit buttons above */}
-      <HeroPreview
-        data={fullHeroData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {/* Hero preview component - memoized to prevent re-renders during typing */}
+      {useMemo(
+        () =>
+          fullHeroData && Object.keys(fullHeroData).length > 0 ? (
+            <HeroPreview
+              data={fullHeroData}
+              activeSection={documentId}
+              onEditSection={handleEditSection}
+              previewMode={previewMode}
+              onPreviewModeChange={setPreviewMode}
+            />
+          ) : (
+            <div className="rounded-md border bg-gray-50 p-6 text-center text-gray-500">
+              Loading preview...
+            </div>
+          ),
+        [fullHeroData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -252,7 +337,7 @@ const HeroEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import FAQPreview from "./FAQPreview";
+import debounce from "lodash/debounce";
 
 interface FAQEditorProps {
   collectionName: string;
@@ -32,7 +33,37 @@ const FAQEditor = ({
   );
   const [faqItems, setFaqItems] = useState<any[]>([]);
 
-  // Load all FAQ-related data for the preview
+  // Local state for immediate UI updates during typing
+  const [localTextInputs, setLocalTextInputs] = useState({
+    title: "",
+    subtitle: "",
+  });
+
+  // Local state for FAQ items text inputs
+  const [localFaqInputs, setLocalFaqInputs] = useState<{
+    [key: string]: { question: string; answer: string };
+  }>({});
+
+  // Initialize local text inputs when active tab or form data changes
+  useEffect(() => {
+    if (formData && documentId) {
+      if (documentId === "faq_title" && formData[activeTab]) {
+        setLocalTextInputs((prev) => ({
+          ...prev,
+          title: formData[activeTab],
+        }));
+      }
+
+      if (documentId === "faq_subtitle" && formData[activeTab]) {
+        setLocalTextInputs((prev) => ({
+          ...prev,
+          subtitle: formData[activeTab],
+        }));
+      }
+    }
+  }, [activeTab, formData, documentId]);
+
+  // Load all FAQ data once initially - separated from UI updates
   useEffect(() => {
     const fetchFAQData = async () => {
       try {
@@ -47,29 +78,42 @@ const FAQEditor = ({
           }
         }
 
-        // If current document is one of these, use our form data for preview
-        if (docTypes.includes(documentId)) {
-          data[documentId] = formData;
-        }
-
         setFullFAQData(data);
-
-        // Special handling for FAQ items
-        if (documentId === "faq_items" && formData && formData[activeTab]) {
-          try {
-            const faqData = formData[activeTab];
-            setFaqItems(Array.isArray(faqData) ? faqData : []);
-          } catch (e) {
-            console.error("Failed to process FAQ items:", e);
-          }
-        }
       } catch (error) {
         console.error("Error fetching FAQ data:", error);
       }
     };
 
     fetchFAQData();
-  }, [documentId, formData, activeTab]);
+  }, []); // Only fetch once on component mount
+
+  // Update preview data - optimized with debouncing
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      setFullFAQData((prevData) => {
+        // Create a deep copy of the previous state
+        const updatedData = JSON.parse(JSON.stringify(prevData || {}));
+
+        // Only update the current document, preserving other data
+        if (documentId) {
+          updatedData[documentId] = formData;
+        }
+
+        return updatedData;
+      });
+    }, 500); // Longer delay for preview updates
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
 
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
@@ -80,7 +124,18 @@ const FAQEditor = ({
       if (documentId === "faq_items" && initialData[activeTab]) {
         try {
           const faqData = initialData[activeTab];
-          setFaqItems(Array.isArray(faqData) ? faqData : []);
+          const items = Array.isArray(faqData) ? faqData : [];
+          setFaqItems(items);
+
+          // Initialize local inputs for FAQ items
+          const localInputs = {};
+          items.forEach((item, index) => {
+            localInputs[index] = {
+              question: item.question || "",
+              answer: item.answer || "",
+            };
+          });
+          setLocalFaqInputs(localInputs);
         } catch (e) {
           console.error("Failed to process FAQ items:", e);
         }
@@ -88,24 +143,79 @@ const FAQEditor = ({
     }
   }, [initialData, documentId, activeTab]);
 
-  // Handle form data change
-  const handleFormChange = (value: any) => {
-    setFormData((prev) => ({
+  // Handle text input changes with local state for responsive UI
+  const handleTextInputChange = (e, field) => {
+    const value = e.target.value;
+
+    // Update local state immediately for responsive UI
+    setLocalTextInputs((prev) => ({
       ...prev,
-      [activeTab]: value,
+      [field]: value,
     }));
+
+    // Debounce the update to formData to prevent lag
+    debouncedFormUpdate(value);
   };
 
-  // Handle FAQ item changes
-  const handleFaqItemChange = (index: number, field: string, value: string) => {
-    const newFaqItems = [...faqItems];
-    newFaqItems[index] = { ...newFaqItems[index], [field]: value };
-    setFaqItems(newFaqItems);
-    handleFormChange(newFaqItems);
-  };
+  // Handle form data change with debouncing
+  const handleFormChange = useCallback(
+    (value) => {
+      setFormData((prev) => ({
+        ...prev,
+        [activeTab]: value,
+      }));
+    },
+    [activeTab],
+  );
+
+  // Debounced update for text fields
+  const debouncedFormUpdate = useCallback(
+    debounce((value) => {
+      handleFormChange(value);
+    }, 500),
+    [handleFormChange],
+  );
+
+  // Handle FAQ item changes with debouncing for text fields
+  const handleFaqItemChange = useCallback(
+    (index, field, value) => {
+      // Update local state immediately for responsive UI
+      if (field === "question" || field === "answer") {
+        setLocalFaqInputs((prev) => ({
+          ...prev,
+          [index]: {
+            ...prev[index],
+            [field]: value,
+          },
+        }));
+      }
+
+      const newFaqItems = [...faqItems];
+      newFaqItems[index] = { ...newFaqItems[index], [field]: value };
+
+      // Update the display state
+      setFaqItems(newFaqItems);
+
+      // For text fields, use debounced update to prevent lag
+      if (field === "question" || field === "answer") {
+        debouncedFaqUpdate(newFaqItems);
+      } else {
+        handleFormChange(newFaqItems);
+      }
+    },
+    [faqItems],
+  );
+
+  // Debounced update for FAQ items
+  const debouncedFaqUpdate = useCallback(
+    debounce((items) => {
+      handleFormChange(items);
+    }, 500),
+    [handleFormChange],
+  );
 
   // Add a new FAQ item
-  const addFaqItem = () => {
+  const addFaqItem = useCallback(() => {
     const newId =
       faqItems.length > 0
         ? Math.max(...faqItems.map((item) => item.id)) + 1
@@ -118,38 +228,87 @@ const FAQEditor = ({
     };
 
     const newFaqItems = [...faqItems, newItem];
+
+    // Add to local inputs too
+    setLocalFaqInputs((prev) => ({
+      ...prev,
+      [faqItems.length]: {
+        question: "New Question",
+        answer: "Answer goes here",
+      },
+    }));
+
     setFaqItems(newFaqItems);
     handleFormChange(newFaqItems);
-  };
+  }, [faqItems, handleFormChange]);
 
   // Remove FAQ item
-  const removeFaqItem = (index: number) => {
-    const newFaqItems = faqItems.filter((_, i) => i !== index);
-    setFaqItems(newFaqItems);
-    handleFormChange(newFaqItems);
-  };
+  const removeFaqItem = useCallback(
+    (index) => {
+      const newFaqItems = faqItems.filter((_, i) => i !== index);
 
-  // Move FAQ item up
-  const moveFaqItemUp = (index: number) => {
-    if (index === 0) return; // Can't move the first item up
-    const newFaqItems = [...faqItems];
-    const temp = newFaqItems[index];
-    newFaqItems[index] = newFaqItems[index - 1];
-    newFaqItems[index - 1] = temp;
-    setFaqItems(newFaqItems);
-    handleFormChange(newFaqItems);
-  };
+      // Update local inputs - create a new object without the removed FAQ
+      const newLocalInputs = { ...localFaqInputs };
+      delete newLocalInputs[index];
 
-  // Move FAQ item down
-  const moveFaqItemDown = (index: number) => {
-    if (index === faqItems.length - 1) return; // Can't move the last item down
-    const newFaqItems = [...faqItems];
-    const temp = newFaqItems[index];
-    newFaqItems[index] = newFaqItems[index + 1];
-    newFaqItems[index + 1] = temp;
-    setFaqItems(newFaqItems);
-    handleFormChange(newFaqItems);
-  };
+      // Reindex the keys for local inputs
+      const reindexedInputs = {};
+      Object.values(newLocalInputs).forEach((value, i) => {
+        reindexedInputs[i] = value;
+      });
+
+      setLocalFaqInputs(reindexedInputs);
+      setFaqItems(newFaqItems);
+      handleFormChange(newFaqItems);
+    },
+    [faqItems, localFaqInputs, handleFormChange],
+  );
+
+  // Move FAQ item up - optimized
+  const moveFaqItemUp = useCallback(
+    (index) => {
+      if (index === 0) return; // Can't move the first item up
+
+      const newFaqItems = [...faqItems];
+      const temp = newFaqItems[index];
+      newFaqItems[index] = newFaqItems[index - 1];
+      newFaqItems[index - 1] = temp;
+
+      // Also update local inputs
+      const newLocalInputs = { ...localFaqInputs };
+      const tempLocal = newLocalInputs[index];
+      newLocalInputs[index] = newLocalInputs[index - 1];
+      newLocalInputs[index - 1] = tempLocal;
+
+      setLocalFaqInputs(newLocalInputs);
+      setFaqItems(newFaqItems);
+      handleFormChange(newFaqItems);
+    },
+    [faqItems, localFaqInputs, handleFormChange],
+  );
+
+  // Move FAQ item down - optimized
+  const moveFaqItemDown = useCallback(
+    (index) => {
+      if (index === faqItems.length - 1) return; // Can't move the last item down
+
+      const newFaqItems = [...faqItems];
+      const temp = newFaqItems[index];
+      newFaqItems[index] = newFaqItems[index + 1];
+      newFaqItems[index + 1] = temp;
+
+      // Also update local inputs
+      const newLocalInputs = { ...localFaqInputs };
+      const tempLocal = newLocalInputs[index];
+      newLocalInputs[index] = newLocalInputs[index + 1];
+      newLocalInputs[index + 1] = tempLocal;
+
+      setLocalFaqInputs(newLocalInputs);
+      setFaqItems(newFaqItems);
+      handleFormChange(newFaqItems);
+    },
+    [faqItems, localFaqInputs, handleFormChange],
+  );
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -176,8 +335,8 @@ const FAQEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab] || ""}
-                onChange={(e) => handleFormChange(e.target.value)}
+                value={localTextInputs.title || ""}
+                onChange={(e) => handleTextInputChange(e, "title")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en" ? "OUR FAQS" : "TANYA JAWAB KAMI"
@@ -199,8 +358,8 @@ const FAQEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab] || ""}
-                onChange={(e) => handleFormChange(e.target.value)}
+                value={localTextInputs.subtitle || ""}
+                onChange={(e) => handleTextInputChange(e, "subtitle")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en"
@@ -274,7 +433,12 @@ const FAQEditor = ({
                     </label>
                     <input
                       type="text"
-                      value={item.question || ""}
+                      value={
+                        (localFaqInputs[index] &&
+                          localFaqInputs[index].question) ||
+                        item.question ||
+                        ""
+                      }
                       onChange={(e) =>
                         handleFaqItemChange(index, "question", e.target.value)
                       }
@@ -288,7 +452,12 @@ const FAQEditor = ({
                       Answer
                     </label>
                     <textarea
-                      value={item.answer || ""}
+                      value={
+                        (localFaqInputs[index] &&
+                          localFaqInputs[index].answer) ||
+                        item.answer ||
+                        ""
+                      }
                       onChange={(e) =>
                         handleFaqItemChange(index, "answer", e.target.value)
                       }
@@ -320,16 +489,26 @@ const FAQEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [documentId, activeTab, faqItems, localTextInputs, localFaqInputs]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
-      {/* FAQ preview component */}
-      <FAQPreview
-        data={fullFAQData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {/* FAQ preview component - memoized to prevent re-renders during typing */}
+      {useMemo(
+        () => (
+          <FAQPreview
+            data={fullFAQData}
+            activeSection={documentId}
+            onEditSection={handleEditSection}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
+          />
+        ),
+        [fullFAQData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -365,7 +544,7 @@ const FAQEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

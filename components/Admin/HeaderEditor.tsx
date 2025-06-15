@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
@@ -8,6 +8,7 @@ import { useLanguage } from "@/app/context/LanguageContext";
 import HeaderPreview from "./HeaderPreview";
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
+import debounce from "lodash/debounce";
 
 interface HeaderEditorProps {
   collectionName: string;
@@ -36,7 +37,33 @@ const HeaderEditor = ({
   );
   const [menuItems, setMenuItems] = useState<any[]>([]);
 
-  // Load all header-related data for the preview
+  // Optimize this useEffect to be less aggressive with updates
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      // Only update preview data when typing has stopped
+      const updatedData = { ...fullHeaderData };
+
+      // Just update the current document
+      if (documentId) {
+        updatedData[documentId] = formData;
+      }
+
+      setFullHeaderData(updatedData);
+    }, 500); // Longer delay for preview updates
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
+
+  // Add a separate effect for initial data loading that doesn't run on every change
   useEffect(() => {
     const fetchHeaderData = async () => {
       try {
@@ -51,29 +78,14 @@ const HeaderEditor = ({
           }
         }
 
-        // If current document is one of these, use our form data for preview
-        if (docTypes.includes(documentId)) {
-          data[documentId] = formData;
-        }
-
         setFullHeaderData(data);
-
-        // Special handling for menu items
-        if (documentId === "menu_items" && formData && formData[activeTab]) {
-          try {
-            const menuData = formData[activeTab];
-            setMenuItems(Array.isArray(menuData) ? menuData : []);
-          } catch (e) {
-            console.error("Failed to process menu items:", e);
-          }
-        }
       } catch (error) {
         console.error("Error fetching header data:", error);
       }
     };
 
     fetchHeaderData();
-  }, [documentId, formData, activeTab]);
+  }, [documentId, activeTab]); // Only reload when document or language changes
 
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
@@ -92,7 +104,7 @@ const HeaderEditor = ({
     }
   }, [initialData, documentId, activeTab]);
 
-  // Handle form data change
+  // Optimized form change handler with direct updates for typing
   const handleFormChange = (value: any) => {
     setFormData((prev) => ({
       ...prev,
@@ -100,17 +112,43 @@ const HeaderEditor = ({
     }));
   };
 
-  // Handle menu item changes
+  // Debounced update for preview and other components
+  const debouncedFormUpdate = useCallback(
+    debounce((field, value) => {
+      const currentData = formData[activeTab] || {};
+      const updatedData = { ...currentData, [field]: value };
+      handleFormChange(updatedData);
+    }, 500),
+    [activeTab, formData],
+  );
+
+  // Handle menu item changes with debouncing
   const handleMenuItemChange = (
     index: number,
     field: string,
     value: string,
   ) => {
+    // Update local state immediately for responsive UI
     const newMenuItems = [...menuItems];
     newMenuItems[index] = { ...newMenuItems[index], [field]: value };
     setMenuItems(newMenuItems);
-    handleFormChange(newMenuItems);
+
+    // For text fields like title, use debounced update
+    if (["title"].includes(field)) {
+      debouncedMenuUpdate(newMenuItems);
+    } else {
+      // For other fields, update immediately
+      handleFormChange(newMenuItems);
+    }
   };
+
+  // Debounced update for menu items
+  const debouncedMenuUpdate = useCallback(
+    debounce((items) => {
+      handleFormChange(items);
+    }, 500),
+    [activeTab],
+  );
 
   const addMenuItem = () => {
     const newItem = { title: "New Item", path: "#" };
@@ -142,7 +180,13 @@ const HeaderEditor = ({
     ) {
       newMenuItems[parentIndex].submenu[childIndex][field] = value;
       setMenuItems(newMenuItems);
-      handleFormChange(newMenuItems);
+
+      // Use debounced update for text fields
+      if (["title"].includes(field)) {
+        debouncedMenuUpdate(newMenuItems);
+      } else {
+        handleFormChange(newMenuItems);
+      }
     }
   };
 
@@ -166,11 +210,14 @@ const HeaderEditor = ({
     handleFormChange(newMenuItems);
   };
 
-  // Handle language dropdown changes
+  // Handle language dropdown changes with debouncing
   const handleLanguageDropdownChange = (field: string, value: string) => {
+    // Update UI immediately with local state
     const currentData = formData[activeTab] || {};
-    const updatedData = { ...currentData, [field]: value };
-    handleFormChange(updatedData);
+    const localUpdatedData = { ...currentData, [field]: value };
+
+    // For input fields, use debounced update to prevent lag
+    debouncedFormUpdate(field, value);
   };
 
   // Handle logo data changes
@@ -301,13 +348,13 @@ const HeaderEditor = ({
                     <span className="font-medium text-black dark:text-white">
                       #{index + 1}
                     </span>
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => removeMenuItem(index)}
                       className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
                     >
                       Remove
-                    </button>
+                    </button> */}
                   </div>
 
                   <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -343,14 +390,6 @@ const HeaderEditor = ({
                   </div>
                 </div>
               ))}
-
-              <button
-                type="button"
-                onClick={addMenuItem}
-                className="mt-2 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5 dark:bg-transparent"
-              >
-                + Add Menu Item
-              </button>
             </div>
           </div>
         );
@@ -364,16 +403,26 @@ const HeaderEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [documentId, activeTab, menuItems]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
       {/* Header preview component */}
-      <HeaderPreview
-        data={fullHeaderData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {useMemo(
+        () => (
+          <HeaderPreview
+            data={fullHeaderData}
+            activeSection={documentId}
+            onEditSection={handleEditSection}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
+          />
+        ),
+        [fullHeaderData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -409,7 +458,7 @@ const HeaderEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

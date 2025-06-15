@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import ClientsPreview from "./ClientsPreview";
 import ImageUploader from "./ImageUploader";
+import debounce from "lodash/debounce";
 
 interface ClientsEditorProps {
   collectionName: string;
@@ -33,7 +34,41 @@ const ClientsEditor = ({
   );
   const [clientsStats, setClientsStats] = useState<any[]>([]);
 
-  // Load all clients-related data for the preview
+  // Local state for immediate UI updates during typing
+  const [localTextInputs, setLocalTextInputs] = useState({
+    title: "",
+    description: "",
+  });
+
+  // Local state for stats items text inputs
+  const [localStatsInputs, setLocalStatsInputs] = useState<{
+    [key: string]: { value: string; label: string };
+  }>({});
+
+  // Initialize local text inputs when active tab or form data changes
+  useEffect(() => {
+    if (formData && documentId === "clients_data" && formData[activeTab]) {
+      const currentData = formData[activeTab] || {};
+      setLocalTextInputs({
+        title: currentData.title || "",
+        description: currentData.description || "",
+      });
+
+      // Initialize stats local inputs
+      if (currentData.stats && Array.isArray(currentData.stats)) {
+        const statsInputs = {};
+        currentData.stats.forEach((stat, index) => {
+          statsInputs[index] = {
+            value: stat.value || "",
+            label: stat.label || "",
+          };
+        });
+        setLocalStatsInputs(statsInputs);
+      }
+    }
+  }, [activeTab, formData, documentId]);
+
+  // Load all clients-related data for the preview only once initially
   useEffect(() => {
     const fetchClientsData = async () => {
       try {
@@ -46,11 +81,6 @@ const ClientsEditor = ({
           if (docSnap.exists()) {
             data[docType] = docSnap.data();
           }
-        }
-
-        // If current document is one of these, use our form data for preview
-        if (docTypes.includes(documentId)) {
-          data[documentId] = formData;
         }
 
         setFullClientsData(data);
@@ -74,7 +104,35 @@ const ClientsEditor = ({
     };
 
     fetchClientsData();
-  }, [documentId, formData, activeTab]);
+  }, []); // Only fetch once on component mount
+
+  // Update preview data - optimized with debouncing
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      setFullClientsData((prevData) => {
+        // Create a deep copy of the previous state
+        const updatedData = JSON.parse(JSON.stringify(prevData || {}));
+
+        // Only update the current document, preserving other data
+        if (documentId) {
+          updatedData[documentId] = formData;
+        }
+
+        return updatedData;
+      });
+    }, 500); // Longer delay for preview updates
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
 
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
@@ -97,35 +155,91 @@ const ClientsEditor = ({
     }
   }, [initialData, documentId, activeTab]);
 
-  // Handle form data change for simple fields
-  const handleFormChange = (field: string, value: any) => {
-    setFormData((prev) => ({
+  // Optimized form change handler
+  const handleFormChange = useCallback(
+    (field, value) => {
+      setFormData((prev) => {
+        const currentData = prev[activeTab] || {};
+        return {
+          ...prev,
+          [activeTab]: {
+            ...currentData,
+            [field]: value,
+          },
+        };
+      });
+    },
+    [activeTab],
+  );
+
+  // Debounced update for text fields
+  const debouncedTextUpdate = useCallback(
+    debounce((field, value) => {
+      handleFormChange(field, value);
+    }, 500),
+    [handleFormChange],
+  );
+
+  // Handle text input changes with local state for responsive UI
+  const handleTextInputChange = (e, field) => {
+    const value = e.target.value;
+
+    // Update local state immediately for responsive UI
+    setLocalTextInputs((prev) => ({
       ...prev,
-      [activeTab]: {
-        ...(prev[activeTab] || {}),
-        [field]: value,
-      },
+      [field]: value,
     }));
+
+    // Debounce the update to formData to prevent lag
+    debouncedTextUpdate(field, value);
   };
 
   // Handle form data change for clients stats
-  const handleStatsChange = (newStats: any[]) => {
-    const currentData = formData[activeTab] || {};
-    setFormData((prev) => ({
+  const handleStatsChange = useCallback(
+    (newStats) => {
+      const currentData = formData[activeTab] || {};
+      setFormData((prev) => ({
+        ...prev,
+        [activeTab]: {
+          ...currentData,
+          stats: newStats,
+        },
+      }));
+      setClientsStats(newStats);
+    },
+    [activeTab, formData],
+  );
+
+  // Debounced update for stats
+  const debouncedStatsUpdate = useCallback(
+    debounce((newStats) => {
+      handleStatsChange(newStats);
+    }, 500),
+    [handleStatsChange],
+  );
+
+  // Handle individual stat change with local state for immediate feedback
+  const handleStatChange = (index, field, value) => {
+    // Update local state immediately for responsive UI
+    setLocalStatsInputs((prev) => ({
       ...prev,
-      [activeTab]: {
-        ...currentData,
-        stats: newStats,
+      [index]: {
+        ...prev[index],
+        [field]: value,
       },
     }));
-    setClientsStats(newStats);
-  };
 
-  // Handle individual stat change
-  const handleStatChange = (index: number, field: string, value: any) => {
+    // Also update the display list for other UI elements
     const newStats = [...clientsStats];
     newStats[index] = { ...newStats[index], [field]: value };
-    handleStatsChange(newStats);
+    setClientsStats(newStats);
+
+    // For text fields, use debounced update to prevent lag
+    if (["value", "label"].includes(field)) {
+      debouncedStatsUpdate(newStats);
+    } else {
+      handleStatsChange(newStats);
+    }
   };
 
   // Add new stat
@@ -136,25 +250,57 @@ const ClientsEditor = ({
       label: "New Stat",
     };
     const newStats = [...clientsStats, newStat];
+    setClientsStats(newStats);
+
+    // Also add to local inputs for immediate feedback
+    setLocalStatsInputs((prev) => ({
+      ...prev,
+      [clientsStats.length]: {
+        value: "100+",
+        label: "New Stat",
+      },
+    }));
+
     handleStatsChange(newStats);
   };
 
   // Remove stat
-  const removeStat = (index: number) => {
+  const removeStat = (index) => {
     const newStats = clientsStats.filter((_, i) => i !== index);
+
+    // Update both states
+    setClientsStats(newStats);
+
+    // Create a new object without the removed stat
+    const newLocalInputs = { ...localStatsInputs };
+    delete newLocalInputs[index];
+
+    // Reindex the keys
+    const reindexedInputs = {};
+    Object.values(newLocalInputs).forEach((value, i) => {
+      reindexedInputs[i] = value;
+    });
+
+    setLocalStatsInputs(reindexedInputs);
     handleStatsChange(newStats);
   };
 
   // Handle background image changes
-  const handleBackgroundChange = (field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [activeTab]: {
-        ...(prev[activeTab] || {}),
-        [field]: value,
-      },
-    }));
-  };
+  const handleBackgroundChange = useCallback(
+    (field, value) => {
+      setFormData((prev) => {
+        const currentData = prev[activeTab] || {};
+        return {
+          ...prev,
+          [activeTab]: {
+            ...currentData,
+            [field]: value,
+          },
+        };
+      });
+    },
+    [activeTab],
+  );
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -163,7 +309,7 @@ const ClientsEditor = ({
   };
 
   // Handle which section to edit
-  const handleEditSection = (section: string) => {
+  const handleEditSection = (section) => {
     if (section !== documentId) {
       window.location.href = `/admin/collections/clients/edit/${section}`;
     }
@@ -173,11 +319,6 @@ const ClientsEditor = ({
   const renderFormFields = () => {
     switch (documentId) {
       case "clients_data":
-        const clientsData = formData[activeTab] || {
-          title: "",
-          description: "",
-          stats: [],
-        };
         return (
           <div className="space-y-6">
             <div>
@@ -186,8 +327,8 @@ const ClientsEditor = ({
               </label>
               <input
                 type="text"
-                value={clientsData.title || ""}
-                onChange={(e) => handleFormChange("title", e.target.value)}
+                value={localTextInputs.title}
+                onChange={(e) => handleTextInputChange(e, "title")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en"
@@ -202,10 +343,8 @@ const ClientsEditor = ({
                 Clients Section Description
               </label>
               <textarea
-                value={clientsData.description || ""}
-                onChange={(e) =>
-                  handleFormChange("description", e.target.value)
-                }
+                value={localTextInputs.description}
+                onChange={(e) => handleTextInputChange(e, "description")}
                 className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en"
@@ -239,13 +378,13 @@ const ClientsEditor = ({
                     <span className="font-medium text-black dark:text-white">
                       Stat {index + 1}
                     </span>
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => removeStat(index)}
                       className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
                     >
                       Remove
-                    </button>
+                    </button> */}
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -255,7 +394,12 @@ const ClientsEditor = ({
                       </label>
                       <input
                         type="text"
-                        value={stat.value || ""}
+                        value={
+                          (localStatsInputs[index] &&
+                            localStatsInputs[index].value) ||
+                          stat.value ||
+                          ""
+                        }
                         onChange={(e) =>
                           handleStatChange(index, "value", e.target.value)
                         }
@@ -269,7 +413,12 @@ const ClientsEditor = ({
                       </label>
                       <input
                         type="text"
-                        value={stat.label || ""}
+                        value={
+                          (localStatsInputs[index] &&
+                            localStatsInputs[index].label) ||
+                          stat.label ||
+                          ""
+                        }
                         onChange={(e) =>
                           handleStatChange(index, "label", e.target.value)
                         }
@@ -279,14 +428,6 @@ const ClientsEditor = ({
                   </div>
                 </div>
               ))}
-
-              <button
-                type="button"
-                onClick={addStat}
-                className="mt-2 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5 dark:bg-transparent"
-              >
-                + Add Statistic
-              </button>
             </div>
           </div>
         );
@@ -336,16 +477,26 @@ const ClientsEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [documentId, activeTab, clientsStats, localTextInputs, localStatsInputs]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
-      {/* Clients preview component */}
-      <ClientsPreview
-        data={fullClientsData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {/* Clients preview component - memoized to prevent re-renders during typing */}
+      {useMemo(
+        () => (
+          <ClientsPreview
+            data={fullClientsData}
+            activeSection={documentId}
+            onEditSection={handleEditSection}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
+          />
+        ),
+        [fullClientsData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -381,7 +532,7 @@ const ClientsEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

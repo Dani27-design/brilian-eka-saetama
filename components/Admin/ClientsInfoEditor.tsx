@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import ClientsInfoPreview from "./ClientsInfoPreview";
 import ImageUploader from "./ImageUploader";
+import debounce from "lodash/debounce";
 
 interface ClientsInfoEditorProps {
   collectionName: string;
@@ -33,7 +34,12 @@ const ClientsInfoEditor = ({
   );
   const [clientsBrands, setClientsBrands] = useState<any[]>([]);
 
-  // Load all clients info related data for the preview
+  // Local state for immediate UI updates during typing
+  const [localBrandInputs, setLocalBrandInputs] = useState<{
+    [key: string]: { name: string; href: string };
+  }>({});
+
+  // Load all clients info related data for the preview only once initially
   useEffect(() => {
     const fetchClientsInfoData = async () => {
       try {
@@ -48,29 +54,42 @@ const ClientsInfoEditor = ({
           }
         }
 
-        // If current document is one of these, use our form data for preview
-        if (docTypes.includes(documentId)) {
-          data[documentId] = formData;
-        }
-
         setFullClientsInfoData(data);
-
-        // Special handling for clients data
-        if (documentId === "clients" && formData && formData[activeTab]) {
-          try {
-            const brandsData = formData[activeTab];
-            setClientsBrands(Array.isArray(brandsData) ? brandsData : []);
-          } catch (e) {
-            console.error("Failed to process clients brands:", e);
-          }
-        }
       } catch (error) {
         console.error("Error fetching clients info data:", error);
       }
     };
 
     fetchClientsInfoData();
-  }, [documentId, formData, activeTab]);
+  }, []); // Only fetch once on component mount
+
+  // Update the preview data with debouncing
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      setFullClientsInfoData((prevData) => {
+        // Create a deep copy of previous state
+        const updatedData = JSON.parse(JSON.stringify(prevData || {}));
+
+        // Only update the current document
+        if (documentId) {
+          updatedData[documentId] = formData;
+        }
+
+        return updatedData;
+      });
+    }, 500); // Longer delay for preview updates
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
 
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
@@ -81,7 +100,18 @@ const ClientsInfoEditor = ({
       if (documentId === "clients" && initialData[activeTab]) {
         try {
           const brandsData = initialData[activeTab];
-          setClientsBrands(Array.isArray(brandsData) ? brandsData : []);
+          const brands = Array.isArray(brandsData) ? brandsData : [];
+          setClientsBrands(brands);
+
+          // Initialize local inputs for brands
+          const localInputs = {};
+          brands.forEach((brand, index) => {
+            localInputs[index] = {
+              name: brand.name || "",
+              href: brand.href || "#",
+            };
+          });
+          setLocalBrandInputs(localInputs);
         } catch (e) {
           console.error("Failed to process clients brands:", e);
         }
@@ -89,20 +119,52 @@ const ClientsInfoEditor = ({
     }
   }, [initialData, documentId, activeTab]);
 
-  // Handle form data change for the entire array
-  const handleFormChange = (newBrands: any[]) => {
-    setFormData((prev) => ({
-      ...prev,
-      [activeTab]: newBrands,
-    }));
-    setClientsBrands(newBrands);
-  };
+  // Handle form data change for the entire array - optimized with useCallback
+  const handleFormChange = useCallback(
+    (newBrands: any[]) => {
+      setFormData((prev) => ({
+        ...prev,
+        [activeTab]: newBrands,
+      }));
+      setClientsBrands(newBrands);
+    },
+    [activeTab],
+  );
 
-  // Handle individual brand change
+  // Debounced update for text fields
+  const debouncedBrandUpdate = useCallback(
+    debounce((newBrands) => {
+      handleFormChange(newBrands);
+    }, 500),
+    [handleFormChange],
+  );
+
+  // Handle individual brand change with debouncing for text fields
   const handleBrandChange = (index: number, field: string, value: any) => {
+    // Update the local state immediately for responsive UI
+    if (field === "name" || field === "href") {
+      setLocalBrandInputs((prev) => ({
+        ...prev,
+        [index]: {
+          ...prev[index],
+          [field]: value,
+        },
+      }));
+    }
+
     const newBrands = [...clientsBrands];
     newBrands[index] = { ...newBrands[index], [field]: value };
-    handleFormChange(newBrands);
+
+    // Update the display state
+    setClientsBrands(newBrands);
+
+    // For text fields, use debounced update to prevent lag
+    if (field === "name" || field === "href") {
+      debouncedBrandUpdate(newBrands);
+    } else {
+      // For image uploads or other non-text fields, update immediately
+      handleFormChange(newBrands);
+    }
   };
 
   // Add new brand
@@ -115,12 +177,34 @@ const ClientsInfoEditor = ({
       imageLight: "",
     };
     const newBrands = [...clientsBrands, newBrand];
+
+    // Add to local inputs too
+    setLocalBrandInputs((prev) => ({
+      ...prev,
+      [clientsBrands.length]: {
+        name: "New Brand",
+        href: "#",
+      },
+    }));
+
     handleFormChange(newBrands);
   };
 
   // Remove brand
   const removeBrand = (index: number) => {
     const newBrands = clientsBrands.filter((_, i) => i !== index);
+
+    // Update local inputs - create a new object without the removed brand
+    const newLocalInputs = { ...localBrandInputs };
+    delete newLocalInputs[index];
+
+    // Reindex the keys for local inputs
+    const reindexedInputs = {};
+    Object.values(newLocalInputs).forEach((value, i) => {
+      reindexedInputs[i] = value;
+    });
+
+    setLocalBrandInputs(reindexedInputs);
     handleFormChange(newBrands);
   };
 
@@ -131,6 +215,14 @@ const ClientsInfoEditor = ({
     const temp = newBrands[index];
     newBrands[index] = newBrands[index - 1];
     newBrands[index - 1] = temp;
+
+    // Also update local inputs
+    const newLocalInputs = { ...localBrandInputs };
+    const tempLocal = newLocalInputs[index];
+    newLocalInputs[index] = newLocalInputs[index - 1];
+    newLocalInputs[index - 1] = tempLocal;
+
+    setLocalBrandInputs(newLocalInputs);
     handleFormChange(newBrands);
   };
 
@@ -141,6 +233,14 @@ const ClientsInfoEditor = ({
     const temp = newBrands[index];
     newBrands[index] = newBrands[index + 1];
     newBrands[index + 1] = temp;
+
+    // Also update local inputs
+    const newLocalInputs = { ...localBrandInputs };
+    const tempLocal = newLocalInputs[index];
+    newLocalInputs[index] = newLocalInputs[index + 1];
+    newLocalInputs[index + 1] = tempLocal;
+
+    setLocalBrandInputs(newLocalInputs);
     handleFormChange(newBrands);
   };
 
@@ -220,7 +320,12 @@ const ClientsInfoEditor = ({
                       </label>
                       <input
                         type="text"
-                        value={brand.name || ""}
+                        value={
+                          (localBrandInputs[index] &&
+                            localBrandInputs[index].name) ||
+                          brand.name ||
+                          ""
+                        }
                         onChange={(e) =>
                           handleBrandChange(index, "name", e.target.value)
                         }
@@ -235,7 +340,12 @@ const ClientsInfoEditor = ({
                       </label>
                       <input
                         type="text"
-                        value={brand.href || "#"}
+                        value={
+                          (localBrandInputs[index] &&
+                            localBrandInputs[index].href) ||
+                          brand.href ||
+                          "#"
+                        }
                         onChange={(e) =>
                           handleBrandChange(index, "href", e.target.value)
                         }
@@ -284,16 +394,26 @@ const ClientsInfoEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [documentId, activeTab, clientsBrands, localBrandInputs]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
-      {/* Clients info preview component */}
-      <ClientsInfoPreview
-        data={fullClientsInfoData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {/* Clients info preview component - memoized to prevent re-renders during typing */}
+      {useMemo(
+        () => (
+          <ClientsInfoPreview
+            data={fullClientsInfoData}
+            activeSection={documentId}
+            onEditSection={handleEditSection}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
+          />
+        ),
+        [fullClientsInfoData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -329,7 +449,7 @@ const ClientsInfoEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button

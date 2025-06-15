@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import ServicePreview from "./ServicePreview";
 import ImageUploader from "./ImageUploader";
+import debounce from "lodash/debounce";
 
 interface ServiceEditorProps {
   collectionName: string;
@@ -33,7 +34,13 @@ const ServiceEditor = ({
   );
   const [serviceItems, setServiceItems] = useState<any[]>([]);
 
-  // Load all services-related data for the preview
+  // For immediate UI updates (local state)
+  const [localTextInputs, setLocalTextInputs] = useState({
+    title: "",
+    subtitle: "",
+  });
+
+  // Fetch all service data only once initially
   useEffect(() => {
     const fetchServicesData = async () => {
       try {
@@ -52,29 +59,61 @@ const ServiceEditor = ({
           }
         }
 
-        // If current document is one of these, use our form data for preview
-        if (docTypes.includes(documentId)) {
-          data[documentId] = formData;
-        }
-
         setFullServicesData(data);
-
-        // Special handling for services data
-        if (documentId === "services_data" && formData && formData[activeTab]) {
-          try {
-            const servicesData = formData[activeTab];
-            setServiceItems(Array.isArray(servicesData) ? servicesData : []);
-          } catch (e) {
-            console.error("Failed to process service items:", e);
-          }
-        }
       } catch (error) {
         console.error("Error fetching services data:", error);
       }
     };
 
     fetchServicesData();
-  }, [documentId, formData, activeTab]);
+  }, []); // Only fetch once on component mount
+
+  // Update preview data - optimized with debouncing
+  useEffect(() => {
+    // Skip preview updates during typing to prevent lag
+    if (
+      document.activeElement?.tagName === "INPUT" ||
+      document.activeElement?.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    // Use a timeout to debounce expensive operations
+    const updateTimer = setTimeout(() => {
+      setFullServicesData((prevData) => {
+        // Create a deep copy of the previous state
+        const updatedData = JSON.parse(JSON.stringify(prevData || {}));
+
+        // Only update the current document, preserving other data
+        if (documentId) {
+          updatedData[documentId] = formData;
+        }
+
+        return updatedData;
+      });
+    }, 500); // Longer delay for preview updates
+
+    return () => clearTimeout(updateTimer);
+  }, [formData, documentId]);
+
+  // Initialize local text inputs when active tab or form data changes
+  useEffect(() => {
+    if (formData && documentId) {
+      if (documentId === "services_title" && formData[activeTab]) {
+        setLocalTextInputs((prev) => ({
+          ...prev,
+          title: formData[activeTab],
+        }));
+      }
+
+      if (documentId === "services_subtitle" && formData[activeTab]) {
+        setLocalTextInputs((prev) => ({
+          ...prev,
+          subtitle: formData[activeTab],
+        }));
+      }
+    }
+  }, [activeTab, formData, documentId]);
 
   // Make sure formData is properly initialized when initialData changes
   useEffect(() => {
@@ -93,25 +132,66 @@ const ServiceEditor = ({
     }
   }, [initialData, documentId, activeTab]);
 
-  // Handle form data change
-  const handleFormChange = (value: any) => {
-    setFormData((prev) => ({
+  // Handle form data change with debouncing
+  const handleFormChange = useCallback(
+    (value) => {
+      setFormData((prev) => ({
+        ...prev,
+        [activeTab]: value,
+      }));
+    },
+    [activeTab],
+  );
+
+  // Create a debounced version of the form update function
+  const debouncedFormUpdate = useCallback(
+    debounce((value) => {
+      handleFormChange(value);
+    }, 500),
+    [handleFormChange],
+  );
+
+  // Handle text input changes with local state for responsive UI
+  const handleTextInputChange = (e, field) => {
+    const value = e.target.value;
+
+    // Update local state immediately for responsive UI
+    setLocalTextInputs((prev) => ({
       ...prev,
-      [activeTab]: value,
+      [field]: value,
     }));
+
+    // Debounce the update to formData to prevent lag
+    debouncedFormUpdate(value);
   };
 
-  // Handle service item changes
-  const handleServiceItemChange = (
-    index: number,
-    field: string,
-    value: string,
-  ) => {
-    const newServiceItems = [...serviceItems];
-    newServiceItems[index] = { ...newServiceItems[index], [field]: value };
-    setServiceItems(newServiceItems);
-    handleFormChange(newServiceItems);
-  };
+  // Handle service item changes with debouncing for text fields
+  const handleServiceItemChange = useCallback(
+    (index, field, value) => {
+      const newServiceItems = [...serviceItems];
+      newServiceItems[index] = { ...newServiceItems[index], [field]: value };
+
+      // Always update local state immediately for responsive UI
+      setServiceItems(newServiceItems);
+
+      // For text fields, use debounced update to prevent lag
+      if (["title", "description"].includes(field)) {
+        debouncedServiceItemsUpdate(newServiceItems);
+      } else {
+        // For other fields like images, update immediately
+        handleFormChange(newServiceItems);
+      }
+    },
+    [serviceItems, activeTab],
+  );
+
+  // Debounced update for service items
+  const debouncedServiceItemsUpdate = useCallback(
+    debounce((items) => {
+      handleFormChange(items);
+    }, 500),
+    [activeTab],
+  );
 
   const addServiceItem = () => {
     const newItem = {
@@ -155,8 +235,8 @@ const ServiceEditor = ({
               </label>
               <input
                 type="text"
-                value={formData[activeTab] || ""}
-                onChange={(e) => handleFormChange(e.target.value)}
+                value={localTextInputs.title || ""}
+                onChange={(e) => handleTextInputChange(e, "title")}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en" ? "Our Services" : "Layanan Kami"
@@ -177,8 +257,8 @@ const ServiceEditor = ({
                 Services Section Subtitle
               </label>
               <textarea
-                value={formData[activeTab] || ""}
-                onChange={(e) => handleFormChange(e.target.value)}
+                value={localTextInputs.subtitle || ""}
+                onChange={(e) => handleTextInputChange(e, "subtitle")}
                 className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder={
                   activeTab === "en"
@@ -297,16 +377,26 @@ const ServiceEditor = ({
     }
   };
 
+  // Memoize the form fields to prevent unnecessary re-renders
+  const memoizedFormFields = useMemo(() => {
+    return renderFormFields();
+  }, [documentId, activeTab, serviceItems, localTextInputs]); // Only re-render when these change
+
   return (
     <div className="space-y-8">
-      {/* Services preview component */}
-      <ServicePreview
-        data={fullServicesData}
-        activeSection={documentId}
-        onEditSection={handleEditSection}
-        previewMode={previewMode}
-        onPreviewModeChange={setPreviewMode}
-      />
+      {/* Services preview component - memoized to prevent re-renders during typing */}
+      {useMemo(
+        () => (
+          <ServicePreview
+            data={fullServicesData}
+            activeSection={documentId}
+            onEditSection={handleEditSection}
+            previewMode={previewMode}
+            onPreviewModeChange={setPreviewMode}
+          />
+        ),
+        [fullServicesData, documentId, previewMode],
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -342,7 +432,7 @@ const ServiceEditor = ({
           </div>
         </div>
 
-        <div className="h-fit">{renderFormFields()}</div>
+        <div className="h-fit">{memoizedFormFields}</div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <button
