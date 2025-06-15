@@ -128,7 +128,7 @@ const BlogPreview = ({
         </div>
 
         <div className="px-0">
-          <h3 className="mb-3.5 mt-3 line-clamp-2 inline-block text-lg font-medium text-black duration-300 hover:text-primary dark:text-white dark:hover:text-primary xl:text-itemtitle2">
+          <h3 className="mb-3 mt-3 line-clamp-2 inline-block text-lg font-medium text-black duration-300 hover:text-primary dark:text-white dark:hover:text-primary xl:text-itemtitle2">
             {blog.title && blog.title.length > 40
               ? `${blog.title.slice(0, 40)}...`
               : blog.title || "Blog Title"}
