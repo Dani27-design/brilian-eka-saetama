@@ -11,6 +11,11 @@ module.exports = {
       priority: 1.0,
       lastmod: new Date().toISOString(),
     },
+    {
+      loc: "/server-sitemap-index.xml",
+      lastmod: new Date().toISOString(),
+      priority: 0.7,
+    },
   ],
   robotsTxtOptions: {
     policies: [
