@@ -174,6 +174,20 @@ export async function generateMetadata(
   };
 }
 
+// Pre-generate all blog posts at build time
+export async function generateStaticParams() {
+  // Get blogs in both languages to ensure all are generated
+  const idBlogs = await getBlogData("id");
+  const enBlogs = await getBlogData("en");
+
+  // Combine all unique slugs
+  const allSlugs = [...idBlogs, ...enBlogs]
+    .map((blog) => blog.slug)
+    .filter((value, index, self) => self.indexOf(value) === index);
+
+  return allSlugs.map((slug) => ({ slug }));
+}
+
 export default async function BlogDetailPage({ params }: Props) {
   const slug = params.slug;
 
