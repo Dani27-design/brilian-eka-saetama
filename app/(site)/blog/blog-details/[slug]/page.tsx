@@ -73,7 +73,12 @@ export async function generateMetadata(
     ],
     generator: "Next.js",
     keywords: [
-      blog.metadata || "blog pt brilian eka saetama",
+      // Extract keywords from blog title
+      ...blog.title.split(" ").filter((word) => word.length > 3),
+      // Extract keywords from blog content
+      ...blog.metadata.split(" ").filter((word) => word.length > 3),
+      // Include existing keywords
+      "blog pt brilian eka saetama",
       "blog keamanan",
       "blog keselamatan kebakaran",
       "proteksi kebakaran",
@@ -81,8 +86,19 @@ export async function generateMetadata(
       "keselamatan gedung",
       "PT Brilian Eka Saetama",
       "blog keamanan",
-      "blog keselamatan kebakaran",
-    ],
+      "keselamatan kebakaran",
+      "fire safety",
+      "fire alarm",
+      "sprinkler system",
+      "smoke detector",
+      "evacuasi darurat",
+      locale === "id" ? "pemadam api" : "fire extinguisher",
+      locale === "id" ? "keamanan gedung" : "building safety",
+    ].filter(
+      (value, index, self) =>
+        // Remove duplicates
+        self.indexOf(value) === index && value,
+    ),
     referrer: "origin-when-cross-origin",
     creator: blog.author || "PT Brilian Eka Saetama",
     publisher: "PT Brilian Eka Saetama",
@@ -93,7 +109,7 @@ export async function generateMetadata(
     },
     category: "safety services",
     openGraph: {
-      title: blog.title,
+      title: `${blog.title} | PT. Brilian Eka Saetama`,
       description:
         blog.metadata ||
         "Temukan wawasan ahli seputar sistem keamanan dan keselamatan kebakaran bersama PT. Brilian Eka Saetama, solusi terpercaya untuk perlindungan gedung dan aset Anda.",
@@ -115,7 +131,7 @@ export async function generateMetadata(
     },
     twitter: {
       card: "summary_large_image",
-      title: blog.title,
+      title: `${blog.title} | PT. Brilian Eka Saetama`,
       description:
         blog.metadata ||
         "Temukan wawasan ahli seputar sistem keamanan dan keselamatan kebakaran bersama PT. Brilian Eka Saetama, solusi terpercaya untuk perlindungan gedung dan aset Anda.",

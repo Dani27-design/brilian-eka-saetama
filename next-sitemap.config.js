@@ -2,7 +2,7 @@
 module.exports = {
   siteUrl: "https://brilian-eka-saetama.vercel.app",
   generateRobotsTxt: true,
-  generateIndexSitemap: false,
+  generateIndexSitemap: true,
   exclude: ["/server-sitemap-index.xml", "/admin/*", "/api/*"],
   additionalPaths: async (config) => [
     {
@@ -22,6 +22,7 @@ module.exports = {
     ],
     additionalSitemaps: [
       "https://brilian-eka-saetama.vercel.app/server-sitemap-index.xml",
+      "https://brilian-eka-saetama.vercel.app/sitemap.xml",
     ],
   },
   transform: async (config, path) => {
