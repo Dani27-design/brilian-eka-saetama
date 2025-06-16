@@ -137,18 +137,27 @@ export default async function BlogPage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Blog",
-            name: "PT. Brilian Eka Saetama Blog",
-            description:
-              "Temukan wawasan ahli seputar sistem keamanan dan keselamatan kebakaran bersama PT. Brilian Eka Saetama, solusi terpercaya untuk perlindungan gedung dan aset Anda.",
-            url: "https://brilian-eka-saetama.vercel.app/blog",
-            publisher: {
+            "name": "PT. Brilian Eka Saetama Blog",
+            "description": "Temukan wawasan ahli seputar sistem keamanan dan keselamatan kebakaran bersama PT. Brilian Eka Saetama, solusi terpercaya untuk perlindungan gedung dan aset Anda.",
+            "url": "https://brilian-eka-saetama.vercel.app/blog",
+            "publisher": {
               "@type": "Organization",
-              name: "PT. Brilian Eka Saetama",
-              logo: {
+              "name": "PT. Brilian Eka Saetama",
+              "logo": {
                 "@type": "ImageObject",
-                url: "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png",
-              },
+                "url": "https://brilian-eka-saetama.vercel.app/images/logo/logo-light.png"
+              }
             },
+            "blogPosts": blogsData.map(blog => ({
+              "@type": "BlogPosting",
+              "headline": blog.title,
+              "url": `https://brilian-eka-saetama.vercel.app/blog/blog-details/${blog.slug}`,
+              "datePublished": blog.publishDate,
+              "author": {
+                "@type": "Person",
+                "name": blog.author || "PT. Brilian Eka Saetama"
+              }
+            }))
           }),
         }}
       />

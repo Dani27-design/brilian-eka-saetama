@@ -221,6 +221,16 @@ export default async function BlogDetailPage({ params }: Props) {
               },
             },
             description: initialBlog.metadata,
+            articleBody: initialBlog.content || initialBlog.metadata,
+            wordCount: initialBlog.content
+              ? initialBlog.content.split(" ").length
+              : initialBlog.metadata.split(" ").length,
+            inLanguage: "id",
+            isPartOf: {
+              "@type": "Blog",
+              name: "PT. Brilian Eka Saetama Blog",
+              url: "https://brilian-eka-saetama.vercel.app/blog",
+            },
             mainEntityOfPage: {
               "@type": "WebPage",
               "@id": `https://brilian-eka-saetama.vercel.app/blog/blog-details/${slug}`,
