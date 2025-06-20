@@ -235,15 +235,6 @@ export default function AdminDashboard() {
     });
   };
 
-  // const handleLogout = async () => {
-  //   try {
-  //     await signOut(auth);
-  //     router.push("/admin/login");
-  //   } catch (error) {
-  //     console.error("Logout error:", error);
-  //   }
-  // };
-
   // Update the formatDate function
   const formatDate = (dateStr: string) => {
     try {
@@ -339,12 +330,6 @@ export default function AdminDashboard() {
             {t.analyticsSubtitle}
           </p>
         </div>
-        {/* <button
-          onClick={handleLogout}
-          className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
-        >
-          {t.logout}
-        </button> */}
       </div>
 
       {/* Error display */}
@@ -524,8 +509,28 @@ export default function AdminDashboard() {
                   <YAxis
                     dataKey="name"
                     type="category"
-                    width={70}
-                    tick={{ fontSize: 12 }}
+                    width={50} // Lebarkan agar label lebih muat
+                    interval={0} // Tampilkan semua label
+                    tick={({ x, y, payload }) => {
+                      // Batasi label maksimal 18 karakter, tambahkan ... jika lebih
+                      const maxLen = 18;
+                      let label = payload.value;
+                      if (label.length > maxLen) {
+                        label = label.slice(0, maxLen - 3) + "...";
+                      }
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          dy={4}
+                          fontSize={12}
+                          textAnchor="end"
+                          className="text-gray-700 dark:text-gray-300"
+                        >
+                          {label}
+                        </text>
+                      );
+                    }}
                   />
                   <Tooltip />
                   <Bar

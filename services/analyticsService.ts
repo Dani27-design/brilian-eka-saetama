@@ -38,21 +38,58 @@ export async function getOverviewData(startDate: string, endDate: string) {
     const [response] = await client.runReport({
       property: `properties/${PROPERTY_ID}`,
       dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: "pagePath" }], // Tambahkan dimensi pagePath
       metrics: [
         { name: "screenPageViews" },
         { name: "totalUsers" },
         { name: "userEngagementDuration" },
+        { name: "sessions" },
         { name: "bounceRate" },
       ],
+      limit: 10000, // pastikan cukup besar untuk seluruh data
     });
 
-    // Process response
-    const metrics = response.rows?.[0]?.metricValues || [];
+    // Filter data yang bukan /admin
+    const filteredRows = (response.rows || []).filter(
+      (row) => !row.dimensionValues?.[0].value?.includes("/admin"),
+    );
+
+    // Agregasi manual
+    let pageViews = 0;
+    let visitors = new Set<string>();
+    let totalEngagement = 0;
+    let sessions = 0;
+    let bounceSum = 0;
+    let bounceCount = 0;
+
+    filteredRows.forEach((row) => {
+      pageViews += Number(row.metricValues?.[0].value || 0);
+      // totalUsers tidak bisa di-union manual, jadi gunakan sum sebagai pendekatan
+      visitors.add(row.metricValues?.[1].value || ""); // asumsikan userId, jika tidak, gunakan sum
+      totalEngagement += Number(row.metricValues?.[2].value || 0);
+      sessions += Number(row.metricValues?.[3].value || 0);
+      // bounceRate adalah rata-rata, jadi kita rata-ratakan manual
+      if (row.metricValues?.[4].value) {
+        bounceSum += Number(row.metricValues[4].value);
+        bounceCount++;
+      }
+    });
+
+    // Hitung rata-rata waktu per sesi (dalam detik)
+    let avgTimeOnSite = "0:00";
+    if (sessions > 0) {
+      const avgSeconds = totalEngagement / sessions;
+      avgTimeOnSite = formatTime(avgSeconds);
+    }
+
+    // Hitung bounce rate rata-rata
+    const bounceRate = bounceCount > 0 ? bounceSum / bounceCount : 0;
+
     return {
-      pageViews: metrics[0]?.value || "0",
-      visitors: metrics[1]?.value || "0",
-      avgTimeOnSite: formatTime(Number(metrics[2]?.value || "0")),
-      bounceRate: `${Math.round(Number(metrics[3]?.value || "0"))}%`,
+      pageViews: pageViews.toString(),
+      visitors: visitors.size.toString(), // pendekatan, bisa juga sum totalUsers
+      avgTimeOnSite,
+      bounceRate: `${bounceRate.toFixed(1)}%`,
     };
   } catch (error) {
     console.error("Error fetching overview data:", error);
@@ -69,30 +106,35 @@ export async function getTrafficData(startDate: string, endDate: string) {
     const [response] = await client.runReport({
       property: `properties/${PROPERTY_ID}`,
       dateRanges: [{ startDate, endDate }],
-      dimensions: [{ name: "date" }],
-      metrics: [{ name: "totalUsers" }, { name: "screenPageViews" }],
+      dimensions: [{ name: "date" }, { name: "pagePath" }],
+      metrics: [{ name: "screenPageViews" }, { name: "totalUsers" }],
+      limit: 10000,
     });
 
-    return (response.rows || []).map((row) => {
-      const rawDate = row.dimensionValues?.[0].value || "";
+    // Filter out /admin
+    const filteredRows = (response.rows || []).filter(
+      (row) => !row.dimensionValues?.[1].value?.includes("/admin"),
+    );
 
-      // Ensure date is in YYYY-MM-DD format
-      let formattedDate = rawDate;
-
-      // If in YYYYMMDD format, convert to YYYY-MM-DD
-      if (/^\d{8}$/.test(rawDate)) {
-        formattedDate = `${rawDate.substring(0, 4)}-${rawDate.substring(
-          4,
-          6,
-        )}-${rawDate.substring(6, 8)}`;
+    // Aggregate by date
+    const trafficMap: Record<string, { visitors: number; pageViews: number }> =
+      {};
+    filteredRows.forEach((row) => {
+      const date = row.dimensionValues?.[0].value || "";
+      const pageViews = Number(row.metricValues?.[0].value || 0);
+      const visitors = Number(row.metricValues?.[1].value || 0);
+      if (!trafficMap[date]) {
+        trafficMap[date] = { visitors: 0, pageViews: 0 };
       }
-
-      return {
-        date: formattedDate,
-        visitors: Number(row.metricValues?.[0].value || 0),
-        pageViews: Number(row.metricValues?.[1].value || 0),
-      };
+      trafficMap[date].pageViews += pageViews;
+      trafficMap[date].visitors += visitors;
     });
+
+    return Object.entries(trafficMap).map(([date, data]) => ({
+      date,
+      visitors: data.visitors,
+      pageViews: data.pageViews,
+    }));
   } catch (error) {
     console.error("Error fetching traffic data:", error);
     return [];
@@ -111,13 +153,15 @@ export async function getTopPagesData(startDate: string, endDate: string) {
       dimensions: [{ name: "pagePath" }],
       metrics: [{ name: "screenPageViews" }],
       orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
-      limit: 10,
+      limit: 10000,
     });
 
-    return (response.rows || []).map((row) => ({
-      name: row.dimensionValues?.[0].value || "",
-      views: Number(row.metricValues?.[0].value || 0),
-    }));
+    return (response.rows || [])
+      .map((row) => ({
+        name: row.dimensionValues?.[0].value ?? "unknown",
+        views: Number(row.metricValues?.[0].value ?? 0),
+      }))
+      .filter((row) => !row.name.includes("/admin"));
   } catch (error) {
     console.error("Error fetching top pages data:", error);
     return [];
@@ -133,20 +177,29 @@ export async function getDevicesData(startDate: string, endDate: string) {
     const [response] = await client.runReport({
       property: `properties/${PROPERTY_ID}`,
       dateRanges: [{ startDate, endDate }],
-      dimensions: [{ name: "deviceCategory" }],
-      metrics: [{ name: "totalUsers" }],
+      dimensions: [{ name: "deviceCategory" }, { name: "pagePath" }],
+      metrics: [{ name: "screenPageViews" }],
+      limit: 10000,
     });
 
-    const total = (response.rows || []).reduce(
-      (sum, row) => sum + Number(row.metricValues?.[0].value || 0),
-      0,
+    // Filter out /admin
+    const filteredRows = (response.rows || []).filter(
+      (row) => !row.dimensionValues?.[1].value?.includes("/admin"),
     );
 
-    return (response.rows || []).map((row) => ({
-      name: row.dimensionValues?.[0].value || "",
-      value: Math.round(
-        (Number(row.metricValues?.[0].value || 0) / total) * 100,
-      ),
+    // Aggregate by deviceCategory
+    const deviceMap: Record<string, number> = {};
+    let total = 0;
+    filteredRows.forEach((row) => {
+      const device = row.dimensionValues?.[0].value || "unknown";
+      const views = Number(row.metricValues?.[0].value || 0);
+      deviceMap[device] = (deviceMap[device] || 0) + views;
+      total += views;
+    });
+
+    return Object.entries(deviceMap).map(([name, value]) => ({
+      name,
+      value: total > 0 ? Math.round((value / total) * 100) : 0,
     }));
   } catch (error) {
     console.error("Error fetching devices data:", error);
@@ -163,22 +216,29 @@ export async function getSourcesData(startDate: string, endDate: string) {
     const [response] = await client.runReport({
       property: `properties/${PROPERTY_ID}`,
       dateRanges: [{ startDate, endDate }],
-      dimensions: [{ name: "sessionSource" }],
+      dimensions: [{ name: "sessionSource" }, { name: "pagePath" }],
       metrics: [{ name: "sessions" }],
-      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
-      limit: 10,
+      limit: 10000,
     });
 
-    const total = (response.rows || []).reduce(
-      (sum, row) => sum + Number(row.metricValues?.[0].value || 0),
-      0,
+    // Filter out /admin
+    const filteredRows = (response.rows || []).filter(
+      (row) => !row.dimensionValues?.[1].value?.includes("/admin"),
     );
 
-    return (response.rows || []).map((row) => ({
-      name: row.dimensionValues?.[0].value || "(direct)",
-      value: Math.round(
-        (Number(row.metricValues?.[0].value || 0) / total) * 100,
-      ),
+    // Aggregate by sessionSource
+    const sourceMap: Record<string, number> = {};
+    let total = 0;
+    filteredRows.forEach((row) => {
+      const source = row.dimensionValues?.[0].value || "unknown";
+      const sessions = Number(row.metricValues?.[0].value || 0);
+      sourceMap[source] = (sourceMap[source] || 0) + sessions;
+      total += sessions;
+    });
+
+    return Object.entries(sourceMap).map(([name, value]) => ({
+      name,
+      value: total > 0 ? Math.round((value / total) * 100) : 0,
     }));
   } catch (error) {
     console.error("Error fetching sources data:", error);
