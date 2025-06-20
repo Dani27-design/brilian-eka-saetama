@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { auth } from "@/db/firebase/firebaseConfig";
+import { useAdmin } from "@/app/context/AdminContext";
 import Image from "next/image";
 
 export default function AdminHeader({
@@ -18,13 +19,32 @@ export default function AdminHeader({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const router = useRouter();
   const profileRef = useRef<HTMLDivElement>(null);
+  const { signOut: contextSignOut } = useAdmin();
 
   const handleSignOut = async () => {
     try {
+      // First notify our context that we're signing out
+      await contextSignOut();
+      
+      // Set sign out flag with a stronger indicator
+      localStorage.setItem("isSigningOut", "true");
+      localStorage.setItem("signOutTimestamp", Date.now().toString());
+      
+      // Perform the actual Firebase sign out
       await signOut(auth);
-      router.push("/admin/login");
+      
+      // Manually clear the auth state in sessionStorage to prevent flashing
+      sessionStorage.removeItem('firebase:authUser:AIza...'); // Replace with your actual Firebase API key
+      
+      // Add a delay before navigation to ensure all state changes complete
+      setTimeout(() => {
+        // Use replace instead of push to prevent back navigation issues
+        router.replace("/admin/login?signout=true");
+      }, 100);
     } catch (error) {
       console.error("Sign out error:", error);
+      localStorage.removeItem("isSigningOut");
+      localStorage.removeItem("signOutTimestamp");
     }
   };
 

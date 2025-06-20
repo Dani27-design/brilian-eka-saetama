@@ -44,8 +44,27 @@ export default function AdminLogin() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/admin/dashboard");
+    const searchParams = new URLSearchParams(window.location.search);
+    const isExplicitSignOut = searchParams.get("signout") === "true";
+    const signOutTimestamp = localStorage.getItem("signOutTimestamp");
+    const recentSignOut =
+      signOutTimestamp && Date.now() - parseInt(signOutTimestamp) < 3000; // Within 3 seconds
+
+    // Only redirect if authenticated AND not recently signed out
+    if (isAuthenticated && !isExplicitSignOut && !recentSignOut) {
+      router.replace("/admin/dashboard");
+    }
+
+    // Clean up the sign-out indicators
+    if (isExplicitSignOut || recentSignOut) {
+      localStorage.removeItem("isSigningOut");
+      localStorage.removeItem("signOutTimestamp");
+
+      // Remove the signout parameter from URL for cleaner history
+      if (isExplicitSignOut) {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
     }
   }, [isAuthenticated, router]);
 

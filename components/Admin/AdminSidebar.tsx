@@ -75,6 +75,14 @@ export default function AdminSidebar({
     }
   }, []);
 
+  // Tooltip component to reuse across menu items
+  const Tooltip = ({ text }) =>
+    !isOpen && (
+      <div className="absolute left-0 top-1/2 z-[9999] h-full w-full rounded-md bg-gray-800 px-1 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity hover:opacity-100">
+        {text}
+      </div>
+    );
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -201,7 +209,7 @@ export default function AdminSidebar({
         <nav className="mt-4 px-2">
           <ul className="space-y-2">
             {/* Dashboard Link */}
-            <li>
+            <li className="group relative">
               <Link
                 href="/admin/dashboard"
                 className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
@@ -210,7 +218,7 @@ export default function AdminSidebar({
                     : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                 }`}
               >
-                <div className="px-3">
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5"
@@ -227,11 +235,12 @@ export default function AdminSidebar({
                   </svg>
                 </div>
                 {isOpen && <span>{t.dashboard}</span>}
+                <Tooltip text={t.dashboard} />
               </Link>
             </li>
 
-            {/* User Management Link - NEW MENU */}
-            <li>
+            {/* User Management Link */}
+            <li className="group relative">
               <Link
                 href="/admin/users"
                 onClick={isMobile ? onClose : undefined}
@@ -242,7 +251,7 @@ export default function AdminSidebar({
                     : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                 }`}
               >
-                <div className="px-3">
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5"
@@ -259,18 +268,23 @@ export default function AdminSidebar({
                   </svg>
                 </div>
                 {isOpen && <span>{t.userManagement}</span>}
+                <Tooltip text={t.userManagement} />
               </Link>
             </li>
 
-            {/* Website Content Section */}
-            <li className="mb-1">
+            {/* Website Content Section - parent menu */}
+            <li className="group relative mb-1">
               <div
                 className={`flex cursor-pointer items-center justify-between rounded-lg px-0 py-2 text-base font-medium transition-colors`}
                 onClick={() => {
                   setWebsiteContentExpanded(!websiteContentExpanded);
                 }}
               >
-                <div className="flex items-center">
+                <div
+                  className={`flex w-full items-center ${
+                    !isOpen && "justify-center"
+                  }`}
+                >
                   <div className="px-3">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -307,12 +321,13 @@ export default function AdminSidebar({
                     />
                   </svg>
                 )}
+                {!isOpen && <Tooltip text={t.websiteManagement} />}
               </div>
 
               {websiteContentExpanded && (
                 <ul className={`space-y-1 pt-1 ${isOpen ? "ml-6" : ""}`}>
                   {/* Header Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/header"
                       onClick={isMobile ? onClose : undefined}
@@ -324,7 +339,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -341,11 +360,12 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.headerSection}</span>}
+                      {!isOpen && <Tooltip text={t.headerSection} />}
                     </Link>
                   </li>
 
                   {/* Hero Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/hero"
                       onClick={isMobile ? onClose : undefined}
@@ -357,7 +377,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -374,11 +398,12 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.heroSection}</span>}
+                      {!isOpen && <Tooltip text={t.heroSection} />}
                     </Link>
                   </li>
 
                   {/* Services Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/services"
                       onClick={isMobile ? onClose : undefined}
@@ -392,7 +417,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -409,11 +438,12 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.serviceSection}</span>}
+                      {!isOpen && <Tooltip text={t.serviceSection} />}
                     </Link>
                   </li>
 
                   {/* About Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/about"
                       onClick={isMobile ? onClose : undefined}
@@ -425,7 +455,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -442,11 +476,12 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.aboutSection}</span>}
+                      {!isOpen && <Tooltip text={t.aboutSection} />}
                     </Link>
                   </li>
 
                   {/* Clients Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/clients"
                       onClick={isMobile ? onClose : undefined}
@@ -458,7 +493,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -475,11 +514,14 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.clientSatisfactionSection}</span>}
+                      {!isOpen && (
+                        <Tooltip text={t.clientSatisfactionSection} />
+                      )}
                     </Link>
                   </li>
 
                   {/* Clients Info Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/clientsInfo"
                       onClick={isMobile ? onClose : undefined}
@@ -493,7 +535,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -510,11 +556,12 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.clientListSection}</span>}
+                      {!isOpen && <Tooltip text={t.clientListSection} />}
                     </Link>
                   </li>
 
                   {/* FAQ Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/faq"
                       onClick={isMobile ? onClose : undefined}
@@ -526,7 +573,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -543,11 +594,12 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.faqSection}</span>}
+                      {!isOpen && <Tooltip text={t.faqSection} />}
                     </Link>
                   </li>
 
                   {/* Testimonial Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/testimonial"
                       onClick={isMobile ? onClose : undefined}
@@ -561,7 +613,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -578,11 +634,12 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.testimonialSection}</span>}
+                      {!isOpen && <Tooltip text={t.testimonialSection} />}
                     </Link>
                   </li>
 
                   {/* Contact Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/contact"
                       onClick={isMobile ? onClose : undefined}
@@ -594,7 +651,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -611,11 +672,12 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.contactSection}</span>}
+                      {!isOpen && <Tooltip text={t.contactSection} />}
                     </Link>
                   </li>
 
                   {/* Blog Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/blog"
                       onClick={isMobile ? onClose : undefined}
@@ -627,7 +689,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -644,11 +710,12 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.blogSection}</span>}
+                      {!isOpen && <Tooltip text={t.blogSection} />}
                     </Link>
                   </li>
 
                   {/* Footer Section Editor Link */}
-                  <li>
+                  <li className="group relative">
                     <Link
                       href="/admin/collections/footer"
                       onClick={isMobile ? onClose : undefined}
@@ -660,7 +727,11 @@ export default function AdminSidebar({
                           : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                       }`}
                     >
-                      <div className="px-3">
+                      <div
+                        className={
+                          isOpen ? "px-3" : "flex w-full justify-center"
+                        }
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5"
@@ -677,6 +748,7 @@ export default function AdminSidebar({
                         </svg>
                       </div>
                       {isOpen && <span>{t.footerSection}</span>}
+                      {!isOpen && <Tooltip text={t.footerSection} />}
                     </Link>
                   </li>
                 </ul>
@@ -684,7 +756,7 @@ export default function AdminSidebar({
             </li>
 
             {/* Blog Posts Menu Item */}
-            <li>
+            <li className="group relative">
               <Link
                 href="/admin/blogs"
                 onClick={isMobile ? onClose : undefined}
@@ -695,7 +767,7 @@ export default function AdminSidebar({
                     : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                 }`}
               >
-                <div className="px-3">
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5"
@@ -712,11 +784,12 @@ export default function AdminSidebar({
                   </svg>
                 </div>
                 {isOpen && <span>{t.blogManagement}</span>}
+                <Tooltip text={t.blogManagement} />
               </Link>
             </li>
 
             {/* Media Library Link */}
-            <li>
+            <li className="group relative">
               <Link
                 href="/admin/media"
                 onClick={isMobile ? onClose : undefined}
@@ -726,7 +799,7 @@ export default function AdminSidebar({
                     : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                 }`}
               >
-                <div className="px-3">
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5"
@@ -743,11 +816,12 @@ export default function AdminSidebar({
                   </svg>
                 </div>
                 {isOpen && <span>{t.mediaLibrary}</span>}
+                <Tooltip text={t.mediaLibrary} />
               </Link>
             </li>
 
             {/* Checksheet Link */}
-            <li>
+            <li className="group relative">
               <Link
                 href="/admin/checksheet-apar"
                 onClick={isMobile ? onClose : undefined}
@@ -758,7 +832,7 @@ export default function AdminSidebar({
                     : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                 }`}
               >
-                <div className="px-3">
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5"
@@ -775,11 +849,12 @@ export default function AdminSidebar({
                   </svg>
                 </div>
                 {isOpen && <span>{t.checksheetApar}</span>}
+                <Tooltip text={t.checksheetApar} />
               </Link>
             </li>
 
-            {/* Settings/Pengaturan Menu - Tambahkan di akhir sebelum penutup ul */}
-            <li>
+            {/* Settings/Pengaturan Menu */}
+            <li className="group relative">
               <Link
                 href="/admin/settings"
                 onClick={isMobile ? onClose : undefined}
@@ -789,7 +864,7 @@ export default function AdminSidebar({
                     : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                 }`}
               >
-                <div className="px-3">
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5"
@@ -812,6 +887,7 @@ export default function AdminSidebar({
                   </svg>
                 </div>
                 {isOpen && <span>{t.settings}</span>}
+                <Tooltip text={t.settings} />
               </Link>
             </li>
           </ul>

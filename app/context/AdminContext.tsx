@@ -17,12 +17,14 @@ type AdminContextType = {
   user: AdminUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  signOut: () => Promise<void>;
 };
 
 const AdminContext = createContext<AdminContextType>({
   user: null,
   isLoading: true,
   isAuthenticated: false,
+  signOut: async () => {},
 });
 
 export const useAdmin = () => useContext(AdminContext);
@@ -30,8 +32,12 @@ export const useAdmin = () => useContext(AdminContext);
 export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
+    // Skip auth listener setup if we're in the middle of signing out
+    if (isSigningOut) return;
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!firebaseUser) {
         setUser(null);
@@ -63,7 +69,23 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isSigningOut]);
+
+  // Centralized sign out function that all components should use
+  const handleSignOut = async () => {
+    try {
+      setIsSigningOut(true);
+      setUser(null); // Immediately clear user state
+      setIsLoading(true);
+
+      // Reset authentication state immediately
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error in context signOut:", error);
+      setIsSigningOut(false);
+      return Promise.reject(error);
+    }
+  };
 
   return (
     <AdminContext.Provider
@@ -74,6 +96,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
           !!user &&
           user.isActive &&
           (user.role === "admin" || user.role === "engineer"),
+        signOut: handleSignOut,
       }}
     >
       {children}
