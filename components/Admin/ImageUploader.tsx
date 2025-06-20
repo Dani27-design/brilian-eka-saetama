@@ -104,15 +104,18 @@ const ImageUploader = ({
       setUploadProgress(0);
       setError(null);
 
+      // Compress the image before uploading
+      const compressedFile = await compressImage(file);
+
       // Create a unique filename with timestamp
       const timestamp = new Date().getTime();
-      const filename = `${timestamp}_${file.name
+      const filename = `${timestamp}_${compressedFile.name
         .replace(/\s+/g, "-")
         .toLowerCase()}`;
       const storageRef = ref(storage, `media/${folder}/${filename}`);
 
-      // Upload file to Firebase Storage
-      await uploadBytes(storageRef, file);
+      // Upload compressed file to Firebase Storage
+      await uploadBytes(storageRef, compressedFile);
       setUploadProgress(100);
 
       // Get the download URL
@@ -126,7 +129,7 @@ const ImageUploader = ({
         type: "image",
         fullPath: `media/${folder}/${filename}`,
         createdAt: serverTimestamp(),
-        size: file.size,
+        size: compressedFile.size,
         description: "",
       });
 
@@ -141,6 +144,89 @@ const ImageUploader = ({
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // New function to compress image
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      // Maximum dimensions for the image (adjust as needed)
+      const maxWidth = 1920;
+      const maxHeight = 1080;
+      const quality = 0.7; // Compression quality (0.7 = 70%, adjust as needed)
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          // Calculate new dimensions while maintaining aspect ratio
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+
+          // Create canvas and context
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+
+          if (!ctx) {
+            reject(new Error("Could not get canvas context"));
+            return;
+          }
+
+          // Draw image to canvas with new dimensions
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Get the file extension/type
+          const fileExtension =
+            file.name.split(".").pop()?.toLowerCase() || "jpg";
+          const mimeType =
+            file.type || `image/${fileExtension === "png" ? "png" : "jpeg"}`;
+
+          // Convert canvas to blob
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error("Canvas to Blob conversion failed"));
+                return;
+              }
+
+              // Create new file from blob
+              const newFile = new File([blob], file.name, {
+                type: mimeType,
+                lastModified: Date.now(),
+              });
+
+              console.log(
+                `Original size: ${file.size / 1024}KB, Compressed size: ${
+                  newFile.size / 1024
+                }KB`,
+              );
+              resolve(newFile);
+            },
+            mimeType,
+            quality,
+          );
+        };
+        img.onerror = () => {
+          reject(new Error("Failed to load image"));
+        };
+      };
+      reader.onerror = () => {
+        reject(new Error("Failed to read file"));
+      };
+    });
   };
 
   // Handle file input change

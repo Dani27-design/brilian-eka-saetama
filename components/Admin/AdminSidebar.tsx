@@ -27,6 +27,7 @@ const translations = {
     checksheetApar: "Lembar Periksa APAR",
     userManagement: "Manajemen Pengguna", // Added translation for user management
     settings: "Pengaturan Akun", // Tambahkan ini
+    productManagement: "Manajemen Produk", // Tambahkan ini
   },
   en: {
     dashboard: "Dashboard",
@@ -47,6 +48,7 @@ const translations = {
     checksheetApar: "Checksheet APAR",
     userManagement: "User Management", // Added translation for user management
     settings: "Account Settings", // Tambahkan ini
+    productManagement: "Product Management", // Tambahkan ini
   },
 };
 
@@ -269,6 +271,39 @@ export default function AdminSidebar({
                 </div>
                 {isOpen && <span>{t.userManagement}</span>}
                 <Tooltip text={t.userManagement} />
+              </Link>
+            </li>
+
+            {/* Product Management Menu Item */}
+            <li className="group relative">
+              <Link
+                href="/admin/products"
+                onClick={isMobile ? onClose : undefined}
+                className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                  pathname === "/admin/products" ||
+                  (pathname && pathname.startsWith("/admin/products/"))
+                    ? "bg-primary text-white"
+                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                }`}
+              >
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4"
+                    />
+                  </svg>
+                </div>
+                {isOpen && <span>{t.productManagement}</span>}
+                <Tooltip text={t.productManagement} />
               </Link>
             </li>
 
@@ -821,7 +856,7 @@ export default function AdminSidebar({
             </li>
 
             {/* Checksheet Link */}
-            <li className="group relative">
+            {/* <li className="group relative">
               <Link
                 href="/admin/checksheet-apar"
                 onClick={isMobile ? onClose : undefined}
@@ -851,7 +886,7 @@ export default function AdminSidebar({
                 {isOpen && <span>{t.checksheetApar}</span>}
                 <Tooltip text={t.checksheetApar} />
               </Link>
-            </li>
+            </li> */}
 
             {/* Settings/Pengaturan Menu */}
             <li className="group relative">

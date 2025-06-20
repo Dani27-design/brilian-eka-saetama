@@ -606,8 +606,8 @@ export default function UserManagementPage() {
                             }
                             className={`flex w-24 items-center justify-center whitespace-nowrap rounded-lg px-1.5 py-1.5 text-xs font-medium transition-colors ${
                               user.isActive
-                                ? "bg-gray-200 text-gray-800 hover:bg-yellow-200"
-                                : "bg-gray-200 text-gray-800 hover:bg-green-200"
+                                ? "bg-blue-200 text-gray-800 hover:bg-yellow-200"
+                                : "bg-blue-200 text-gray-800 hover:bg-green-200"
                             }`}
                           >
                             {user.isActive ? (
