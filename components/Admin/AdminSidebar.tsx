@@ -340,6 +340,39 @@ export default function AdminSidebar({
               </Link>
             </li>
 
+            {/* Contract Management Menu Item */}
+            <li className="group relative">
+              <Link
+                href="/admin/contracts"
+                onClick={isMobile ? onClose : undefined}
+                className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                  pathname === "/admin/contracts" ||
+                  (pathname && pathname.startsWith("/admin/contracts/"))
+                    ? "bg-primary text-white"
+                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                }`}
+              >
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8V4m0 0H8a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2h-4zM12 8h4m-4 4h4m-4 4h4m-4-8H8m0 8h4m0-4H8m0-4h4"
+                    />
+                  </svg>
+                </div>
+                {isOpen && <span>Manajemen Kontrak</span>}
+                <Tooltip text="Manajemen Kontrak" />
+              </Link>
+            </li>
+
             {/* Website Content Section - parent menu */}
             <li className="group relative mb-1">
               <div
