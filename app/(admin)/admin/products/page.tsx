@@ -12,23 +12,7 @@ import {
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import Image from "next/image";
-
-type Product = {
-  id: string;
-  name: string;
-  productNumber: string;
-  brand: string;
-  brandType: string;
-  weight: string;
-  height: string;
-  width: string;
-  productType: string;
-  imageUrl?: string;
-  createdAt?: Timestamp;
-  createdBy?: DocumentReference; // Reference to user document
-  updatedAt?: Timestamp;
-  updatedBy?: DocumentReference;
-};
+import type { Product, ProductType } from "@/types/product";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -118,6 +102,30 @@ export default function ProductsPage() {
     setBrandFilter(null);
     setSearchTerm("");
   };
+
+  // Helper: Get all possible specs keys and labels
+  const allSpecsColumns = [
+    { key: "weight", label: "Berat (kg)" },
+    { key: "height", label: "Tinggi (cm)" },
+    { key: "width", label: "Lebar (cm)" },
+    { key: "pressure", label: "Tekanan (bar)" },
+    { key: "capacity", label: "Kapasitas (kg)" },
+    { key: "agentType", label: "Jenis Media" },
+    { key: "flowRate", label: "Debit Air (L/min)" },
+    { key: "valveType", label: "Tipe Valve" },
+    { key: "resolution", label: "Resolusi" },
+    { key: "lens", label: "Lensa" },
+    { key: "nightVision", label: "Night Vision" },
+    { key: "power", label: "Daya" },
+    { key: "connectivity", label: "Konektivitas" },
+    { key: "sensorType", label: "Tipe Sensor" },
+    { key: "coverageArea", label: "Area Cakupan (m²)" },
+    { key: "soundLevel", label: "Tingkat Suara (dB)" },
+    { key: "material", label: "Material" },
+    { key: "lockType", label: "Tipe Kunci" },
+    { key: "deviceType", label: "Tipe Perangkat" },
+    { key: "batteryLife", label: "Baterai" },
+  ];
 
   return (
     <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
@@ -229,21 +237,22 @@ export default function ProductsPage() {
               <table className="w-full table-auto">
                 <thead>
                   <tr className="border-b bg-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-black">
+                    <th className="px-4 py-3">No</th>
                     <th className="px-4 py-3">Gambar</th>
                     <th className="px-4 py-3">Nama</th>
-                    <th className="px-4 py-3">No. Produk</th>
+                    <th className="px-4 py-3">Tipe</th>
                     <th className="px-4 py-3">Merk</th>
                     <th className="px-4 py-3">Jenis</th>
-                    <th className="px-4 py-3">Berat</th>
-                    <th className="px-4 py-3">Tinggi</th>
-                    <th className="px-4 py-3">Lebar</th>
-                    <th className="px-4 py-3">Tipe Produk</th>
+                    <th className="px-4 py-3">Spesifikasi</th>
+                    <th className="px-4 py-3">Vendor</th>
+                    <th className="px-4 py-3">Pemeliharaan</th>
                     <th className="px-4 py-3">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentProducts.map((product) => (
                     <tr key={product.id} className="text-sm">
+                      <td className="px-4 py-3">{product.productNumber}</td>
                       <td className="px-4 py-3">
                         {product.imageUrl ? (
                           <Image
@@ -258,22 +267,50 @@ export default function ProductsPage() {
                         )}
                       </td>
                       <td className="px-4 py-3">{product.name}</td>
-                      <td className="px-4 py-3">{product.productNumber}</td>
+                      <td className="px-4 py-3">{product.productType}</td>
                       <td className="px-4 py-3">{product.brand}</td>
                       <td className="px-4 py-3">{product.brandType}</td>
+                      {/* Single column for all specs */}
                       <td className="px-4 py-3">
-                        {product.weight}
-                        {" kg"}
+                        {product.specs &&
+                        Object.keys(product.specs).length > 0 ? (
+                          <ul className="list-disc pl-4">
+                            {allSpecsColumns
+                              .filter(
+                                (col) =>
+                                  product.specs[col.key] !== undefined &&
+                                  product.specs[col.key] !== "",
+                              )
+                              .map((col) => (
+                                <li key={col.key}>
+                                  <span className="font-medium">
+                                    {col.label}:
+                                  </span>{" "}
+                                  {typeof product.specs[col.key] === "boolean"
+                                    ? product.specs[col.key]
+                                      ? "Ya"
+                                      : "Tidak"
+                                    : product.specs[col.key]}
+                                </li>
+                              ))}
+                          </ul>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </td>
+                      <td className="px-4 py-3">{product.source ?? "-"}</td>
                       <td className="px-4 py-3">
-                        {product.height}
-                        {" cm"}
+                        {Number(product.maintenanceInterval) > 0
+                          ? `${Math.round(
+                              Math.max(
+                                Math.max(
+                                  Number(product.maintenanceInterval),
+                                  0,
+                                ) / 30,
+                              ),
+                            )} Bulan`
+                          : "-"}
                       </td>
-                      <td className="px-4 py-3">
-                        {product.width}
-                        {" cm"}
-                      </td>
-                      <td className="px-4 py-3">{product.productType}</td>
                       <td className="px-4 py-3">
                         <div className="flex space-x-2">
                           <Link

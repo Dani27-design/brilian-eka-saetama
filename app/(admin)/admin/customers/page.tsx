@@ -1,0 +1,280 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { firestore } from "@/db/firebase/firebaseConfig";
+import type { Customer } from "@/types/customer";
+
+export default function CustomersPage() {
+  const [customers, setCustomers] = useState<(Customer & { id: string })[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Fetch customers
+  const fetchCustomers = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const querySnapshot = await getDocs(collection(firestore, "customers"));
+      const data: any[] = [];
+      querySnapshot.forEach((docSnap) => {
+        data.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setCustomers(data);
+    } catch (err) {
+      setError("Gagal memuat pelanggan");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Filtered customers
+  const filteredCustomers = customers.filter((c) => {
+    const matchesSearch = (
+      c.name +
+      c.address +
+      (c.contact?.name || "") +
+      (c.contact?.email || "") +
+      (c.contact?.phone || "")
+    )
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCustomers = filteredCustomers.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
+
+  // Delete customer
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Hapus pelanggan ini?")) {
+      try {
+        await deleteDoc(doc(firestore, "customers", id));
+        setCustomers(customers.filter((c) => c.id !== id));
+      } catch {
+        setError("Gagal menghapus pelanggan");
+      }
+    }
+  };
+
+  return (
+    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold">Manajemen Pelanggan</h2>
+          <p className="mt-1 text-sm text-gray-500">Kelola data pelanggan</p>
+        </div>
+        <Link
+          href="/admin/customers/create"
+          className="mt-4 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 sm:mt-0"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="mr-2 h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          Tambah Pelanggan
+        </Link>
+      </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg bg-red-100 p-4 text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* Filter section */}
+      <div className="mb-6">
+        <div className="flex flex-wrap items-end gap-4">
+          {/* Search field */}
+          <div className="w-full sm:w-64">
+            <label className="mb-1 block text-xs font-medium text-gray-600">
+              Cari pelanggan...
+            </label>
+            <input
+              type="text"
+              placeholder="Cari pelanggan..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-lg border border-stroke px-4 py-2 outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-stroke bg-white p-4">
+        {isLoading ? (
+          <div className="py-8 text-center">Memuat pelanggan...</div>
+        ) : filteredCustomers.length === 0 ? (
+          <div className="py-8 text-center">Tidak ada pelanggan.</div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="border-b bg-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-black">
+                    <th className="px-4 py-3">Nama</th>
+                    <th className="px-4 py-3">Alamat</th>
+                    <th className="px-4 py-3">Kontak</th>
+                    <th className="px-4 py-3">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentCustomers.map((customer) => (
+                    <tr key={customer.id} className="text-sm">
+                      <td className="px-4 py-3">{customer.name}</td>
+                      <td className="px-4 py-3">{customer.address}</td>
+                      <td className="px-4 py-3">
+                        <div>
+                          <div>
+                            <span className="font-medium">Nama:</span>{" "}
+                            {customer.contact?.name || "-"}
+                          </div>
+                          <div>
+                            <span className="font-medium">Telepon:</span>{" "}
+                            {customer.contact?.phone || "-"}
+                          </div>
+                          <div>
+                            <span className="font-medium">Email:</span>{" "}
+                            {customer.contact?.email || "-"}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex space-x-2">
+                          <Link
+                            href={`/admin/customers/edit/${customer.id}`}
+                            className="flex w-18 items-center justify-center rounded-lg bg-blue-200 px-1.5 py-1.5 text-xs font-medium text-gray-800 transition-colors hover:bg-yellow-200"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="mr-1 h-3 w-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6"
+                              />
+                            </svg>
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(customer.id)}
+                            className="flex w-18 items-center justify-center rounded-lg border border-red-300 bg-white px-1.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="mr-1 h-3 w-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                            Hapus
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Pagination Controls */}
+            <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t pt-4 sm:flex-row sm:space-y-0">
+              <div className="text-xs text-gray-600">
+                Menampilkan {indexOfFirstItem + 1}-
+                {Math.min(indexOfLastItem, filteredCustomers.length)} dari{" "}
+                {filteredCustomers.length} pelanggan
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Item per halaman:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="rounded-md border px-2 py-1 text-sm"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
+                    currentPage === 1
+                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                      : "border-stroke bg-white hover:bg-gray-100"
+                  }`}
+                >
+                  &lt;
+                </button>
+                <span className="text-sm text-gray-600">
+                  Halaman <span className="font-medium">{currentPage}</span>{" "}
+                  dari {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
+                    currentPage === totalPages || totalPages === 0
+                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                      : "border-stroke bg-white hover:bg-gray-100"
+                  }`}
+                >
+                  &gt;
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
