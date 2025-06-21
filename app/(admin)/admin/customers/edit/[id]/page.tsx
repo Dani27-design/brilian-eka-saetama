@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc, updateDoc, serverTimestamp, DocumentReference } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+  DocumentReference,
+} from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter, useParams } from "next/navigation";
 import { useAdmin } from "@/app/context/AdminContext";
@@ -49,7 +55,11 @@ export default function EditCustomerPage() {
 
           // Determine which meta to show: updated or created
           if (data.updatedAt && data.updatedBy) {
-            fetchUserMeta(data.updatedBy, data.updatedAt, "Terakhir diubah oleh");
+            fetchUserMeta(
+              data.updatedBy,
+              data.updatedAt,
+              "Terakhir diubah oleh",
+            );
           } else if (data.createdAt && data.createdBy) {
             fetchUserMeta(data.createdBy, data.createdAt, "Dibuat oleh");
           } else {
@@ -131,7 +141,7 @@ export default function EditCustomerPage() {
   if (loading) return <div className="p-8 text-center">Memuat...</div>;
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 dark:bg-boxdark dark:border-strokedark md:p-6 xl:p-7.5">
+    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-2 dark:border-strokedark md:p-6 xl:p-7.5">
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-black dark:text-white">
           Edit Pelanggan
@@ -171,7 +181,7 @@ export default function EditCustomerPage() {
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Perusahaan Pelanggan
+              Perusahaan Pelanggan<span className="text-red-500">*</span>
             </label>
             <input
               name="name"
@@ -184,7 +194,7 @@ export default function EditCustomerPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Alamat
+              Alamat<span className="text-red-500">*</span>
             </label>
             <textarea
               name="address"
@@ -198,7 +208,7 @@ export default function EditCustomerPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Nama Kontak
+              Nama Kontak<span className="text-red-500">*</span>
             </label>
             <input
               name="contactName"
@@ -211,7 +221,7 @@ export default function EditCustomerPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Telepon Kontak
+              Telepon Kontak<span className="text-red-500">*</span>
             </label>
             <input
               name="contactPhone"
@@ -225,7 +235,7 @@ export default function EditCustomerPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email Kontak
+              Email Kontak<span className="text-red-500">*</span>
             </label>
             <input
               name="contactEmail"

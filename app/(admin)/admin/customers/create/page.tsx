@@ -71,7 +71,7 @@ export default function CreateCustomerPage() {
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Perusahaan Pelanggan
+              Perusahaan Pelanggan<span className="text-red-500">*</span>
             </label>
             <input
               name="name"
@@ -84,7 +84,7 @@ export default function CreateCustomerPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Alamat
+              Alamat<span className="text-red-500">*</span>
             </label>
             <textarea
               name="address"
@@ -98,7 +98,7 @@ export default function CreateCustomerPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Nama Kontak
+              Nama Kontak<span className="text-red-500">*</span>
             </label>
             <input
               name="contactName"
@@ -111,7 +111,7 @@ export default function CreateCustomerPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Telepon Kontak
+              Telepon Kontak<span className="text-red-500">*</span>
             </label>
             <input
               name="contactPhone"
@@ -125,7 +125,7 @@ export default function CreateCustomerPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email Kontak
+              Email Kontak<span className="text-red-500">*</span>
             </label>
             <input
               name="contactEmail"

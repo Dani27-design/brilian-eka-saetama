@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import ImageUploader from "@/components/Admin/ImageUploader";
 import { useAdmin } from "@/app/context/AdminContext";
 import type { ProductType } from "@/types/product";
+import { query, where, getDocs } from "firebase/firestore";
 
 export default function CreateProductPage() {
   const [form, setForm] = useState({
@@ -25,10 +26,35 @@ export default function CreateProductPage() {
   const router = useRouter();
   const { user } = useAdmin(); // pastikan context ini mengandung user id
 
-  const handleChange = (
+  // Add state for productNumber uniqueness
+  const [productNumberError, setProductNumberError] = useState<string>("");
+
+  // Check uniqueness when productNumber changes
+  const checkProductNumberUnique = async (value: string) => {
+    if (!value) {
+      setProductNumberError("");
+      return;
+    }
+    const q = query(
+      collection(firestore, "products"),
+      where("productNumber", "==", value),
+    );
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      setProductNumberError("No. Produk sudah digunakan, gunakan nomor lain.");
+    } else {
+      setProductNumberError("");
+    }
+  };
+
+  // Update handleChange to check uniqueness for productNumber
+  const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.name === "productNumber") {
+      await checkProductNumberUnique(e.target.value);
+    }
   };
 
   const handleImageChange = (url: string) => {
@@ -420,6 +446,22 @@ export default function CreateProductPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    // Final check before submit
+    const q = query(
+      collection(firestore, "products"),
+      where("productNumber", "==", form.productNumber),
+    );
+    const snapshot = await getDocs(q);
+    if (!form.productNumber || !form.name) {
+      setError("No. Produk dan Nama Produk wajib diisi.");
+      setLoading(false);
+      return;
+    }
+    if (!snapshot.empty) {
+      setProductNumberError("No. Produk sudah digunakan, gunakan nomor lain.");
+      setLoading(false);
+      return;
+    }
     try {
       await addDoc(collection(firestore, "products"), {
         ...form,
@@ -486,20 +528,25 @@ export default function CreateProductPage() {
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              No. Produk
+              No. Produk<span className="text-red-500">*</span>
             </label>
             <input
               name="productNumber"
               placeholder="No. Produk"
               value={form.productNumber}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className={`w-full rounded-lg border ${
+                productNumberError ? "border-red-500" : "border-stroke"
+              } bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white`}
               required
             />
+            {productNumberError && (
+              <p className="mt-1 text-xs text-red-600">{productNumberError}</p>
+            )}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Tipe Produk
+              Tipe Produk<span className="text-red-500">*</span>
             </label>
             <select
               name="productType"
@@ -519,7 +566,7 @@ export default function CreateProductPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Nama Produk
+              Nama Produk<span className="text-red-500">*</span>
             </label>
             <input
               name="name"
@@ -532,7 +579,7 @@ export default function CreateProductPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Merk
+              Merk<span className="text-red-500">*</span>
             </label>
             <input
               name="brand"
@@ -545,7 +592,7 @@ export default function CreateProductPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Jenis
+              Jenis<span className="text-red-500">*</span>
             </label>
             <input
               name="brandType"
@@ -558,7 +605,7 @@ export default function CreateProductPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Sumber Produk
+              Sumber Produk<span className="text-red-500">*</span>
             </label>
             <input
               name="source"
@@ -581,7 +628,6 @@ export default function CreateProductPage() {
               value={form.maintenanceInterval}
               onChange={handleChange}
               className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-              required
             />
           </div>
           {/* Render dynamic specs fields */}
