@@ -56,7 +56,7 @@ export default function ProductsPage() {
     new Set(products.map((p) => p.productType).filter(Boolean)),
   );
   const brands = Array.from(
-    new Set(products.map((p) => p.brand).filter(Boolean)),
+    new Set(products.map((p) => p.specs.brand).filter(Boolean)),
   );
 
   // Filtered products
@@ -64,14 +64,14 @@ export default function ProductsPage() {
     const matchesSearch = (
       p.name +
       p.productNumber +
-      p.brand +
-      p.brandType +
+      p.specs.brand +
+      p.specs.brandType +
       p.productType
     )
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesType = !typeFilter || p.productType === typeFilter;
-    const matchesBrand = !brandFilter || p.brand === brandFilter;
+    const matchesBrand = !brandFilter || p.specs.brand === brandFilter;
     return matchesSearch && matchesType && matchesBrand;
   });
 
@@ -113,18 +113,31 @@ export default function ProductsPage() {
     { key: "agentType", label: "Jenis Media" },
     { key: "flowRate", label: "Debit Air (L/min)" },
     { key: "valveType", label: "Tipe Valve" },
+    { key: "hoseLength", label: "Panjang Selang (m)" },
+    { key: "material", label: "Material" },
     { key: "resolution", label: "Resolusi" },
     { key: "lens", label: "Lensa" },
     { key: "nightVision", label: "Night Vision" },
     { key: "power", label: "Daya" },
     { key: "connectivity", label: "Konektivitas" },
+    { key: "pan", label: "Pan" },
+    { key: "tilt", label: "Tilt" },
+    { key: "storageCapacity", label: "Kapasitas Penyimpanan" },
     { key: "sensorType", label: "Tipe Sensor" },
     { key: "coverageArea", label: "Area Cakupan (m²)" },
     { key: "soundLevel", label: "Tingkat Suara (dB)" },
-    { key: "material", label: "Material" },
+    { key: "batteryBackup", label: "Cadangan Baterai" },
     { key: "lockType", label: "Tipe Kunci" },
+    { key: "openingSpeed", label: "Kecepatan Buka (cm/s)" },
     { key: "deviceType", label: "Tipe Perangkat" },
     { key: "batteryLife", label: "Baterai" },
+    { key: "patrolInterval", label: "Interval Patroli (menit)" },
+    { key: "firmwareVersion", label: "Versi Firmware" },
+    // BaseSpecs
+    { key: "serialNumber", label: "Serial Number" },
+    { key: "manufactureDate", label: "Tanggal Produksi" },
+    { key: "installationDate", label: "Tanggal Instalasi" },
+    { key: "expirationDate", label: "Tanggal Kadaluarsa" },
   ];
 
   return (
@@ -246,6 +259,7 @@ export default function ProductsPage() {
                     <th className="px-4 py-3">Spesifikasi</th>
                     <th className="px-4 py-3">Vendor</th>
                     <th className="px-4 py-3">Pemeliharaan</th>
+                    <th className="px-4 py-3">Kontrak</th>
                     <th className="px-4 py-3">Aksi</th>
                   </tr>
                 </thead>
@@ -268,9 +282,8 @@ export default function ProductsPage() {
                       </td>
                       <td className="px-4 py-3">{product.name}</td>
                       <td className="px-4 py-3">{product.productType}</td>
-                      <td className="px-4 py-3">{product.brand}</td>
-                      <td className="px-4 py-3">{product.brandType}</td>
-                      {/* Single column for all specs */}
+                      <td className="px-4 py-3">{product.specs.brand}</td>
+                      <td className="px-4 py-3">{product.specs.brandType}</td>
                       <td className="px-4 py-3">
                         {product.specs &&
                         Object.keys(product.specs).length > 0 ? (
@@ -279,14 +292,26 @@ export default function ProductsPage() {
                               .filter(
                                 (col) =>
                                   product.specs[col.key] !== undefined &&
-                                  product.specs[col.key] !== "",
+                                  product.specs[col.key] !== "" &&
+                                  product.specs[col.key] !== null,
                               )
                               .map((col) => (
                                 <li key={col.key}>
                                   <span className="font-medium">
                                     {col.label}:
                                   </span>{" "}
-                                  {typeof product.specs[col.key] === "boolean"
+                                  {[
+                                    "manufactureDate",
+                                    "installationDate",
+                                    "expirationDate",
+                                  ].includes(col.key)
+                                    ? product.specs[col.key]?.toDate
+                                      ? product.specs[col.key]
+                                          .toDate()
+                                          .toLocaleDateString()
+                                      : product.specs[col.key] || "-"
+                                    : typeof product.specs[col.key] ===
+                                      "boolean"
                                     ? product.specs[col.key]
                                       ? "Ya"
                                       : "Tidak"
@@ -310,6 +335,14 @@ export default function ProductsPage() {
                               ),
                             )} Bulan`
                           : "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {/* Tampilkan info contract */}
+                        {product.contract ? (
+                          <span className="text-green-700">Ada</span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex space-x-2">

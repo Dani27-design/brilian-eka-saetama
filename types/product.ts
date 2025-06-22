@@ -1,3 +1,5 @@
+import { DocumentReference, Timestamp } from "firebase/firestore";
+
 export type ProductType =
   | "APAR"
   | "HYDRANT"
@@ -6,67 +8,84 @@ export type ProductType =
   | "ACCESS_DOOR"
   | "PATROL_GUARD";
 
+export type BaseSpecs = {
+  brand?: string;
+  brandType?: string;
+  manufactureDate?: Timestamp | null;
+  installationDate?: Timestamp | null;
+  expirationDate?: Timestamp | null;
+  serialNumber?: string | null;
+};
+
 export type ProductSpecs =
-  | {
+  | ({
       // APAR
-      weight: number;
-      height: number;
-      width: number;
-      pressure: number;
-      capacity: number;
-      agentType: string;
-    }
-  | {
+      height?: number | null;
+      width?: number | null;
+      pressure?: number | null;
+      capacity?: number | null;
+      agentType?: string | null;
+      weight?: number | null; // berat total
+    } & BaseSpecs)
+  | ({
       // HYDRANT
-      weight: number;
-      height: number;
-      width: number;
-      flowRate: number;
-      pressure: number;
-      valveType: string;
-    }
-  | {
+      height?: number | null;
+      width?: number | null;
+      flowRate?: number | null;
+      pressure?: number | null;
+      valveType?: string | null;
+      hoseLength?: number | null; // panjang selang
+      material?: string | null; // material body
+    } & BaseSpecs)
+  | ({
       // CCTV
-      resolution: string;
-      lens: string;
-      nightVision: boolean;
-      power: string;
-      connectivity: string;
-    }
-  | {
+      resolution?: string | null;
+      lens?: string | null;
+      nightVision?: boolean | null;
+      power?: string | null;
+      connectivity?: string | null;
+      pan?: boolean | null;
+      tilt?: boolean | null;
+      storageCapacity?: string | null; // kapasitas penyimpanan
+    } & BaseSpecs)
+  | ({
       // FIRE_ALARM
-      sensorType: string;
-      power: string;
-      coverageArea: number;
-      soundLevel: number;
-    }
-  | {
+      sensorType?: string | null;
+      power?: string | null;
+      coverageArea?: number | null;
+      soundLevel?: number | null;
+      batteryBackup?: boolean | null; // cadangan baterai
+      connectivity?: string | null;
+    } & BaseSpecs)
+  | ({
       // ACCESS_DOOR
-      material: string;
-      lockType: string;
-      width: number;
-      height: number;
-    }
-  | {
+      material?: string | null;
+      lockType?: string | null;
+      width?: number | null;
+      height?: number | null;
+      openingSpeed?: number | null; // kecepatan buka (cm/s)
+    } & BaseSpecs)
+  | ({
       // PATROL_GUARD
-      deviceType: string;
-      batteryLife: string;
-      connectivity: string;
-    };
+      deviceType?: string | null;
+      batteryLife?: string | null;
+      connectivity?: string | null;
+      patrolInterval?: number | null; // interval patroli (menit)
+      firmwareVersion?: string | null;
+    } & BaseSpecs);
 
 export type Product = {
   id: string;
   name: string;
   productNumber: string;
-  brand: string;
-  brandType: string;
   productType: ProductType;
   specs: ProductSpecs;
   source: string; // e.g., "VENDOR ABC", "INTERNAL"
   maintenanceInterval: number; // in days
-  imageUrl?: string;
-  createdAt?: any;
-  createdBy?: any;
-  updatedAt?: any;
-  updatedBy?: any;
+  imageUrl: string;
+  contract: DocumentReference | null; // reference to the contract this product belongs to
+  createdAt?: Timestamp;
+  createdBy?: DocumentReference;
+  updatedAt?: Timestamp;
+  updatedBy?: DocumentReference;
 };

@@ -15,7 +15,7 @@ import type { Contract } from "@/types/contracts";
 
 type ContractTableRow = Contract & {
   customerName: string;
-  productNumbers: string[];
+  productDetailsDisplay: string[];
 };
 
 export default function ContractsPage() {
@@ -62,9 +62,13 @@ export default function ContractsPage() {
       const productSnaps = await Promise.all(
         Object.values(productRefs).map((ref) => getDoc(ref))
       );
-      const productMap: Record<string, string> = {};
+      const productMap: Record<string, { productNumber: string; name: string }> = {};
       productSnaps.forEach((snap) => {
-        if (snap.exists()) productMap[snap.id] = snap.data().productNumber || "-";
+        if (snap.exists())
+          productMap[snap.id] = {
+            productNumber: snap.data().productNumber || "-",
+            name: snap.data().name || "-",
+          };
       });
 
       // Build table data
@@ -74,16 +78,26 @@ export default function ContractsPage() {
         if (contract.customer && contract.customer.id) {
           customerName = customerMap[contract.customer.id] || "-";
         }
-        let productNumbers: string[] = [];
-        if (Array.isArray(contract.products)) {
-          productNumbers = contract.products
-            .map((prodRef) => prodRef && prodRef.id ? productMap[prodRef.id] : "-")
-            .filter(Boolean);
+        // Build product details display
+        let productDetailsDisplay: string[] = [];
+        if (Array.isArray(contract.productDetails)) {
+          productDetailsDisplay = contract.productDetails.map((pd) => {
+            const prod = pd.product && pd.product.id ? productMap[pd.product.id] : null;
+            const services = [
+              pd.maintenance ? "Maintenance" : null,
+              pd.service ? "Service" : null,
+              pd.rental ? "Rental" : null,
+              pd.sales ? "Sales" : null,
+            ].filter(Boolean).join(", ");
+            return prod
+              ? `${prod.productNumber} (${services})`
+              : `- (${services})`;
+          });
         }
         data.push({
           ...contract,
           customerName,
-          productNumbers,
+          productDetailsDisplay,
         });
       }
       setContracts(data);
@@ -107,7 +121,7 @@ export default function ContractsPage() {
     const matchesSearch = (
       c.contractNumber +
       c.customerName +
-      (c.productNumbers || []).join(",")
+      (c.productDetailsDisplay || []).join(",")
     )
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -199,12 +213,14 @@ export default function ContractsPage() {
                 <thead>
                   <tr className="border-b bg-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-black">
                     <th className="px-4 py-3">No. Kontrak</th>
+                    <th className="px-4 py-3">Nama Kontrak</th>
+                    <th className="px-4 py-3">Tipe</th>
+                    <th className="px-4 py-3">Deskripsi</th>
                     <th className="px-4 py-3">Pelanggan</th>
                     <th className="px-4 py-3">Tanggal Mulai</th>
                     <th className="px-4 py-3">Tanggal Selesai</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Maintenance</th>
-                    <th className="px-4 py-3">Produk</th>
+                    <th className="px-4 py-3">Produk & Layanan</th>
                     <th className="px-4 py-3">Aksi</th>
                   </tr>
                 </thead>
@@ -212,6 +228,9 @@ export default function ContractsPage() {
                   {currentContracts.map((contract) => (
                     <tr key={contract.id} className="text-sm">
                       <td className="px-4 py-3">{contract.contractNumber}</td>
+                      <td className="px-4 py-3">{contract.contractName}</td>
+                      <td className="px-4 py-3 capitalize">{contract.contractType}</td>
+                      <td className="px-4 py-3">{contract.contractDescription}</td>
                       <td className="px-4 py-3">{contract.customerName}</td>
                       <td className="px-4 py-3">
                         {contract.startDate && (contract.startDate as any).toDate
@@ -225,11 +244,8 @@ export default function ContractsPage() {
                       </td>
                       <td className="px-4 py-3 capitalize">{contract.status}</td>
                       <td className="px-4 py-3">
-                        {contract.includesMaintenance ? "Ya" : "Tidak"}
-                      </td>
-                      <td className="px-4 py-3">
-                        {contract.productNumbers && contract.productNumbers.length > 0
-                          ? contract.productNumbers.join(", ")
+                        {contract.productDetailsDisplay && contract.productDetailsDisplay.length > 0
+                          ? contract.productDetailsDisplay.join(", ")
                           : "-"}
                       </td>
                       <td className="px-4 py-3">

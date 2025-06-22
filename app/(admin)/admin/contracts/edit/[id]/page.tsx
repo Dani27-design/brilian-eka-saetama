@@ -21,12 +21,22 @@ export default function EditContractPage() {
 
   const [form, setForm] = useState({
     contractNumber: "",
+    contractName: "",
+    contractType: "",
+    contractDescription: "",
     customer: "",
     startDate: "",
     endDate: "",
     status: "active",
-    includesMaintenance: false,
     products: [] as string[],
+    productDetails: [] as Array<{
+      product: string;
+      location: string;
+      maintenance: boolean;
+      service: boolean;
+      rental: boolean;
+      sales: boolean;
+    }>,
   });
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -44,6 +54,9 @@ export default function EditContractPage() {
           const data = docSnap.data() as any;
           setForm({
             contractNumber: data.contractNumber || "",
+            contractName: data.contractName || "",
+            contractType: data.contractType || "",
+            contractDescription: data.contractDescription || "",
             customer: data.customer?.id || "",
             startDate: data.startDate?.toDate
               ? data.startDate.toDate().toISOString().slice(0, 10)
@@ -52,9 +65,18 @@ export default function EditContractPage() {
               ? data.endDate.toDate().toISOString().slice(0, 10)
               : "",
             status: data.status || "active",
-            includesMaintenance: !!data.includesMaintenance,
             products: Array.isArray(data.products)
               ? data.products.map((p: any) => p.id)
+              : [],
+            productDetails: Array.isArray(data.productDetails)
+              ? data.productDetails.map((pd: any) => ({
+                  product: pd.product?.id || "",
+                  location: pd.location || "",
+                  maintenance: !!pd.maintenance,
+                  service: !!pd.service,
+                  rental: !!pd.rental,
+                  sales: !!pd.sales,
+                }))
               : [],
           });
         } else {
@@ -97,14 +119,13 @@ export default function EditContractPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target;
-    if (name === "includesMaintenance") {
-      const checked = (e.target as HTMLInputElement).checked;
-      setForm({ ...form, [name]: checked });
-    } else {
-      setForm({ ...form, [name]: value });
-      if (name === "contractNumber") {
-        await checkContractNumberUnique(value);
-      }
+    setForm({
+      ...form,
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    });
+    if (name === "contractNumber") {
+      await checkContractNumberUnique(value);
     }
   };
 
@@ -128,25 +149,88 @@ export default function EditContractPage() {
     }));
   };
 
+  // Handle product details change
+  const handleProductDetailChange = (
+    index: number,
+    field: string,
+    value: any,
+  ) => {
+    setForm((prev) => {
+      const updatedDetails = [...prev.productDetails];
+      if (field === "product") {
+        updatedDetails[index] = {
+          product: value,
+          location: "",
+          maintenance: false,
+          service: false,
+          rental: false,
+          sales: false,
+        };
+      } else {
+        updatedDetails[index] = {
+          ...updatedDetails[index],
+          [field]: value,
+        };
+      }
+      return { ...prev, productDetails: updatedDetails };
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    // Final check for contractNumber uniqueness
-    const docsSnap = await getDocs(collection(firestore, "contracts"));
-    const exists = docsSnap.docs.some(
-      (d) => d.data().contractNumber === form.contractNumber && d.id !== id,
-    );
+    // Validasi mirip create
     if (
       !form.contractNumber ||
+      !form.contractName ||
+      !form.contractType ||
+      !form.contractDescription ||
       !form.customer ||
-      !form.startDate ||
-      !form.endDate
+      !form.startDate
     ) {
       setError("Semua field wajib diisi.");
       setLoading(false);
       return;
     }
+    if (form.products.length === 0) {
+      setError("Minimal satu produk harus dipilih.");
+      setLoading(false);
+      return;
+    }
+    for (const pd of form.productDetails) {
+      if (!pd.location) {
+        setError("Lokasi produk wajib diisi.");
+        setLoading(false);
+        return;
+      }
+      if (!(pd.maintenance || pd.service || pd.rental || pd.sales)) {
+        setError("Minimal satu layanan harus dipilih untuk setiap produk.");
+        setLoading(false);
+        return;
+      }
+    }
+    // Cek produk tidak boleh sama di kontrak lain
+    const allContractsSnap = await getDocs(collection(firestore, "contracts"));
+    for (const pd of form.productDetails) {
+      for (const docSnap of allContractsSnap.docs) {
+        const data = docSnap.data() as any;
+        if (
+          docSnap.id !== id &&
+          Array.isArray(data.products) &&
+          data.products.some((p: any) => p.id === pd.product)
+        ) {
+          setError("Produk sudah terdaftar di kontrak lain.");
+          setLoading(false);
+          return;
+        }
+      }
+    }
+    // Cek contractNumber unik
+    const docsSnap = await getDocs(collection(firestore, "contracts"));
+    const exists = docsSnap.docs.some(
+      (d) => d.data().contractNumber === form.contractNumber && d.id !== id,
+    );
     if (exists) {
       setContractNumberError(
         "No. Kontrak sudah digunakan, gunakan nomor lain.",
@@ -157,12 +241,22 @@ export default function EditContractPage() {
     try {
       await updateDoc(doc(firestore, "contracts", id), {
         contractNumber: form.contractNumber,
+        contractName: form.contractName,
+        contractType: form.contractType,
+        contractDescription: form.contractDescription,
         customer: doc(firestore, "customers", form.customer),
         startDate: new Date(form.startDate),
-        endDate: new Date(form.endDate),
+        endDate: form.endDate ? new Date(form.endDate) : null,
         status: form.status,
-        includesMaintenance: form.includesMaintenance,
         products: form.products.map((pid) => doc(firestore, "products", pid)),
+        productDetails: form.productDetails.map((pd) => ({
+          product: doc(firestore, "products", pd.product),
+          location: pd.location,
+          maintenance: pd.maintenance,
+          service: pd.service,
+          rental: pd.rental,
+          sales: pd.sales,
+        })),
         updatedAt: serverTimestamp(),
         updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
       });
@@ -176,7 +270,7 @@ export default function EditContractPage() {
 
   // Available products for dropdown (exclude already selected)
   const availableProducts = products.filter(
-    (p) => !form.products.includes(p.id)
+    (p) => !form.products.includes(p.id),
   );
 
   if (loading) return <div className="p-8 text-center">Memuat...</div>;
@@ -215,6 +309,51 @@ export default function EditContractPage() {
             {contractNumberError && (
               <p className="mt-1 text-xs text-red-600">{contractNumberError}</p>
             )}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Nama Kontrak
+            </label>
+            <input
+              name="contractName"
+              placeholder="Nama Kontrak"
+              value={form.contractName}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Tipe Kontrak
+            </label>
+            <select
+              name="contractType"
+              value={form.contractType}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              required
+            >
+              <option>Pilih Tipe Kontrak</option>
+              <option value="service">Perbaikan</option>
+              <option value="maintenance">Pemeliharaan</option>
+              <option value="rental">Penyewaan</option>
+              <option value="sales">Penjualan</option>
+              <option value="other">Lainnya</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Deskripsi Kontrak
+            </label>
+            <input
+              name="contractDescription"
+              placeholder="Deskripsi Kontrak"
+              value={form.contractDescription}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              required
+            />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -277,24 +416,6 @@ export default function EditContractPage() {
               <option value="terminated">Dihentikan</option>
             </select>
           </div>
-          <div>
-            <label
-              htmlFor="includesMaintenance"
-              className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Termasuk Maintenance
-            </label>
-            <div className="w-fit cursor-pointer bg-transparent py-2">
-              <input
-                name="includesMaintenance"
-                type="checkbox"
-                checked={form.includesMaintenance}
-                onChange={handleChange}
-                className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
-                id="includesMaintenance"
-              />
-            </div>
-          </div>
           {/* Produk dynamic add/remove */}
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -317,7 +438,7 @@ export default function EditContractPage() {
                     ))}
                 </select>
               </div>
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="mt-2 flex flex-wrap gap-2">
                 {form.products.map((pid) => {
                   const prod = products.find((p) => p.id === pid);
                   return (
@@ -338,6 +459,198 @@ export default function EditContractPage() {
                   );
                 })}
               </div>
+            </div>
+          </div>
+          {/* Detail produk */}
+          <div className="md:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Detail Produk
+            </label>
+            {form.productDetails.map((pd, index) => (
+              <div
+                key={index}
+                className="mb-4 rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark"
+              >
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Produk
+                    </label>
+                    <select
+                      value={pd.product}
+                      onChange={(e) =>
+                        handleProductDetailChange(
+                          index,
+                          "product",
+                          e.target.value,
+                        )
+                      }
+                      className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                      required
+                    >
+                      <option value="">Pilih produk</option>
+                      {availableProducts.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.productNumber} - {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Lokasi
+                    </label>
+                    <input
+                      name="location"
+                      placeholder="Lokasi"
+                      value={pd.location}
+                      onChange={(e) =>
+                        handleProductDetailChange(
+                          index,
+                          "location",
+                          e.target.value,
+                        )
+                      }
+                      className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Pemeliharaan
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        name="maintenance"
+                        type="checkbox"
+                        checked={pd.maintenance}
+                        onChange={(e) =>
+                          handleProductDetailChange(
+                            index,
+                            "maintenance",
+                            e.target.checked,
+                          )
+                        }
+                        className="mr-2 rounded border-stroke text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        Termasuk pemeliharaan
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Perbaikan
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        name="service"
+                        type="checkbox"
+                        checked={pd.service}
+                        onChange={(e) =>
+                          handleProductDetailChange(
+                            index,
+                            "service",
+                            e.target.checked,
+                          )
+                        }
+                        className="mr-2 rounded border-stroke text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        Termasuk perbaikan
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Penyewaan
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        name="rental"
+                        type="checkbox"
+                        checked={pd.rental}
+                        onChange={(e) =>
+                          handleProductDetailChange(
+                            index,
+                            "rental",
+                            e.target.checked,
+                          )
+                        }
+                        className="mr-2 rounded border-stroke text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        Termasuk penyewaan
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Penjualan
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        name="sales"
+                        type="checkbox"
+                        checked={pd.sales}
+                        onChange={(e) =>
+                          handleProductDetailChange(
+                            index,
+                            "sales",
+                            e.target.checked,
+                          )
+                        }
+                        className="mr-2 rounded border-stroke text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        Termasuk penjualan
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        productDetails: prev.productDetails.filter(
+                          (_, i) => i !== index,
+                        ),
+                      }))
+                    }
+                    className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+                  >
+                    Hapus Produk
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    productDetails: [
+                      ...prev.productDetails,
+                      {
+                        product: "",
+                        location: "",
+                        maintenance: false,
+                        service: false,
+                        rental: false,
+                        sales: false,
+                      },
+                    ],
+                  }))
+                }
+                className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90"
+              >
+                Tambah Detail Produk
+              </button>
             </div>
           </div>
         </div>

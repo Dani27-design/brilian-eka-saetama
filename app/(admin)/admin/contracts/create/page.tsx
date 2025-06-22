@@ -17,12 +17,22 @@ import { useAdmin } from "@/app/context/AdminContext";
 export default function CreateContractPage() {
   const [form, setForm] = useState({
     contractNumber: "",
+    contractName: "",
+    contractType: "",
+    contractDescription: "",
     customer: "",
     startDate: "",
     endDate: "",
     status: "active",
-    includesMaintenance: false,
     products: [] as string[],
+    productDetails: [] as Array<{
+      product: string;
+      location: string;
+      maintenance: boolean;
+      service: boolean;
+      rental: boolean;
+      sales: boolean;
+    }>,
   });
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -62,17 +72,18 @@ export default function CreateContractPage() {
   };
 
   const handleChange = async (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value, type } = e.target;
-    if (name === "includesMaintenance") {
-      const checked = (e.target as HTMLInputElement).checked;
-      setForm({ ...form, [name]: checked });
-    } else {
-      setForm({ ...form, [name]: value });
-      if (name === "contractNumber") {
-        await checkContractNumberUnique(value);
-      }
+    setForm({
+      ...form,
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    });
+    if (name === "contractNumber") {
+      await checkContractNumberUnique(value);
     }
   };
 
@@ -83,9 +94,19 @@ export default function CreateContractPage() {
       setForm((prev) => ({
         ...prev,
         products: [...prev.products, value],
+        productDetails: [
+          ...prev.productDetails,
+          {
+            product: value,
+            location: "",
+            maintenance: false,
+            service: false,
+            rental: false,
+            sales: false,
+          },
+        ],
       }));
     }
-    // Reset select after add
     e.target.selectedIndex = 0;
   };
 
@@ -94,13 +115,73 @@ export default function CreateContractPage() {
     setForm((prev) => ({
       ...prev,
       products: prev.products.filter((pid) => pid !== id),
+      productDetails: prev.productDetails.filter((pd) => pd.product !== id),
     }));
+  };
+
+  // Handle product detail change
+  const handleProductDetailChange = (
+    idx: number,
+    field: string,
+    value: string | boolean,
+  ) => {
+    setForm((prev) => {
+      const newDetails = [...prev.productDetails];
+      (newDetails[idx] as any)[field] = value;
+      return { ...prev, productDetails: newDetails };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    // Validasi
+    if (
+      !form.contractNumber ||
+      !form.contractName ||
+      !form.contractType ||
+      !form.contractDescription ||
+      !form.customer ||
+      !form.startDate
+    ) {
+      setError("Semua field wajib diisi.");
+      setLoading(false);
+      return;
+    }
+    if (form.products.length === 0) {
+      setError("Minimal satu produk harus dipilih.");
+      setLoading(false);
+      return;
+    }
+    // Validasi productDetails
+    for (const pd of form.productDetails) {
+      if (!pd.location) {
+        setError("Lokasi produk wajib diisi.");
+        setLoading(false);
+        return;
+      }
+      if (!(pd.maintenance || pd.service || pd.rental || pd.sales)) {
+        setError("Minimal satu layanan harus dipilih untuk setiap produk.");
+        setLoading(false);
+        return;
+      }
+    }
+    // Cek produk tidak boleh sama di kontrak lain
+    const allContractsSnap = await getDocs(collection(firestore, "contracts"));
+    for (const pd of form.productDetails) {
+      for (const docSnap of allContractsSnap.docs) {
+        const data = docSnap.data() as any;
+        if (
+          Array.isArray(data.products) &&
+          data.products.some((p: any) => p.id === pd.product)
+        ) {
+          setError("Produk sudah terdaftar di kontrak lain.");
+          setLoading(false);
+          return;
+        }
+      }
+    }
     const q = query(
       collection(firestore, "contracts"),
       where("contractNumber", "==", form.contractNumber),
@@ -126,12 +207,22 @@ export default function CreateContractPage() {
     try {
       await addDoc(collection(firestore, "contracts"), {
         contractNumber: form.contractNumber,
+        contractName: form.contractName,
+        contractType: form.contractType,
+        contractDescription: form.contractDescription,
         customer: doc(firestore, "customers", form.customer),
         startDate: new Date(form.startDate),
-        endDate: new Date(form.endDate),
+        endDate: form.endDate ? new Date(form.endDate) : null,
         status: form.status,
-        includesMaintenance: form.includesMaintenance,
         products: form.products.map((pid) => doc(firestore, "products", pid)),
+        productDetails: form.productDetails.map((pd) => ({
+          product: doc(firestore, "products", pd.product),
+          location: pd.location,
+          maintenance: pd.maintenance,
+          service: pd.service,
+          rental: pd.rental,
+          sales: pd.sales,
+        })),
         createdAt: serverTimestamp(),
         createdBy: user?.uid ? doc(firestore, "users", user.uid) : null,
       });
@@ -145,7 +236,7 @@ export default function CreateContractPage() {
 
   // Available products for dropdown (exclude already selected)
   const availableProducts = products.filter(
-    (p) => !form.products.includes(p.id)
+    (p) => !form.products.includes(p.id),
   );
 
   return (
@@ -245,22 +336,48 @@ export default function CreateContractPage() {
             </select>
           </div>
           <div>
-            <label
-              htmlFor="includesMaintenance"
-              className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Termasuk Maintenance
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Nama Kontrak
             </label>
-            <div className="w-fit cursor-pointer bg-transparent py-2">
-              <input
-                name="includesMaintenance"
-                type="checkbox"
-                checked={form.includesMaintenance}
-                onChange={handleChange}
-                className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
-                id="includesMaintenance"
-              />
-            </div>
+            <input
+              name="contractName"
+              placeholder="Nama Kontrak"
+              value={form.contractName}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Tipe Kontrak
+            </label>
+            <select
+              name="contractType"
+              value={form.contractType}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              required
+            >
+              <option>Pilih Tipe Kontrak</option>
+              <option value="service">Perbaikan</option>
+              <option value="maintenance">Pemeliharaan</option>
+              <option value="rental">Penyewaan</option>
+              <option value="sales">Penjualan</option>
+              <option value="other">Lainnya</option>
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Deskripsi Kontrak
+            </label>
+            <textarea
+              name="contractDescription"
+              value={form.contractDescription}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              required
+            />
           </div>
           {/* Produk dynamic add/remove */}
           <div className="md:col-span-2">
@@ -282,24 +399,105 @@ export default function CreateContractPage() {
                   ))}
                 </select>
               </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {form.products.map((pid) => {
+              <div className="mt-2 flex flex-col gap-2">
+                {form.products.map((pid, idx) => {
                   const prod = products.find((p) => p.id === pid);
+                  const pd = form.productDetails.find(
+                    (pd) => pd.product === pid,
+                  );
                   return (
-                    <span
+                    <div
                       key={pid}
-                      className="inline-flex items-center rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800"
+                      className="flex flex-col gap-2 rounded border border-blue-200 bg-blue-50 p-2"
                     >
-                      {prod ? `${prod.productNumber} - ${prod.name}` : pid}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveProduct(pid)}
-                        className="ml-2 rounded bg-blue-200 px-1 text-xs text-blue-900 hover:bg-red-200 hover:text-red-700"
-                        aria-label="Remove"
-                      >
-                        &times;
-                      </button>
-                    </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                          {prod ? `${prod.productNumber} - ${prod.name}` : pid}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProduct(pid)}
+                          className="ml-2 rounded bg-blue-200 px-1 text-xs text-blue-900 hover:bg-red-200 hover:text-red-700"
+                          aria-label="Remove"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                      <div className="flex flex-col gap-2 md:flex-row">
+                        <input
+                          type="text"
+                          placeholder="Lokasi produk"
+                          value={pd?.location || ""}
+                          onChange={(e) =>
+                            handleProductDetailChange(
+                              idx,
+                              "location",
+                              e.target.value,
+                            )
+                          }
+                          className="w-full rounded border border-stroke px-2 py-1 md:w-1/2"
+                          required
+                        />
+                        <div className="flex items-center gap-2">
+                          <label className="flex items-center gap-1">
+                            <input
+                              type="checkbox"
+                              checked={!!pd?.maintenance}
+                              onChange={(e) =>
+                                handleProductDetailChange(
+                                  idx,
+                                  "maintenance",
+                                  e.target.checked,
+                                )
+                              }
+                            />
+                            Pemeliharaan
+                          </label>
+                          <label className="flex items-center gap-1">
+                            <input
+                              type="checkbox"
+                              checked={!!pd?.service}
+                              onChange={(e) =>
+                                handleProductDetailChange(
+                                  idx,
+                                  "service",
+                                  e.target.checked,
+                                )
+                              }
+                            />
+                            Perbaikan
+                          </label>
+                          <label className="flex items-center gap-1">
+                            <input
+                              type="checkbox"
+                              checked={!!pd?.rental}
+                              onChange={(e) =>
+                                handleProductDetailChange(
+                                  idx,
+                                  "rental",
+                                  e.target.checked,
+                                )
+                              }
+                            />
+                            Penyewaan
+                          </label>
+                          <label className="flex items-center gap-1">
+                            <input
+                              type="checkbox"
+                              checked={!!pd?.sales}
+                              onChange={(e) =>
+                                handleProductDetailChange(
+                                  idx,
+                                  "sales",
+                                  e.target.checked,
+                                )
+                              }
+                            />
+                            Penjualan
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
               </div>

@@ -215,6 +215,21 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Berat Total (kg)
+              </label>
+              <input
+                name="weight"
+                type="number"
+                min={0}
+                step="any"
+                value={specs.weight || ""}
+                onChange={handleSpecsChange}
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              />
+            </div>
+            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
           </>
         );
       case "HYDRANT":
@@ -287,6 +302,32 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Panjang Selang (m)
+              </label>
+              <input
+                name="hoseLength"
+                type="number"
+                min={0}
+                step="any"
+                value={specs.hoseLength || ""}
+                onChange={handleSpecsChange}
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Material Body
+              </label>
+              <input
+                name="material"
+                value={specs.material || ""}
+                onChange={handleSpecsChange}
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              />
+            </div>
+            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
           </>
         );
       case "CCTV":
@@ -354,6 +395,42 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Pan
+              </label>
+              <input
+                name="pan"
+                type="checkbox"
+                checked={!!specs.pan}
+                onChange={handleSpecsChange}
+                className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Tilt
+              </label>
+              <input
+                name="tilt"
+                type="checkbox"
+                checked={!!specs.tilt}
+                onChange={handleSpecsChange}
+                className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Kapasitas Penyimpanan
+              </label>
+              <input
+                name="storageCapacity"
+                value={specs.storageCapacity || ""}
+                onChange={handleSpecsChange}
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              />
+            </div>
+            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
           </>
         );
       case "FIRE_ALARM":
@@ -409,6 +486,19 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Cadangan Baterai
+              </label>
+              <input
+                name="batteryBackup"
+                type="checkbox"
+                checked={!!specs.batteryBackup}
+                onChange={handleSpecsChange}
+                className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
+              />
+            </div>
+            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
           </>
         );
       case "ACCESS_DOOR":
@@ -464,6 +554,21 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Kecepatan Buka (cm/s)
+              </label>
+              <input
+                name="openingSpeed"
+                type="number"
+                min={0}
+                step="any"
+                value={specs.openingSpeed || ""}
+                onChange={handleSpecsChange}
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              />
+            </div>
+            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
           </>
         );
       case "PATROL_GUARD":
@@ -502,12 +607,98 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Interval Patroli (menit)
+              </label>
+              <input
+                name="patrolInterval"
+                type="number"
+                min={0}
+                step="any"
+                value={specs.patrolInterval || ""}
+                onChange={handleSpecsChange}
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Versi Firmware
+              </label>
+              <input
+                name="firmwareVersion"
+                value={specs.firmwareVersion || ""}
+                onChange={handleSpecsChange}
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              />
+            </div>
+            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
           </>
         );
       default:
         return null;
     }
   };
+
+  function BaseSpecsFields({
+    specs,
+    onChange,
+  }: {
+    specs: any;
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  }) {
+    return (
+      <>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Serial Number
+          </label>
+          <input
+            name="serialNumber"
+            value={specs.serialNumber || ""}
+            onChange={onChange}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Tanggal Produksi
+          </label>
+          <input
+            name="manufactureDate"
+            type="date"
+            value={specs.manufactureDate || ""}
+            onChange={onChange}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Tanggal Instalasi
+          </label>
+          <input
+            name="installationDate"
+            type="date"
+            value={specs.installationDate || ""}
+            onChange={onChange}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Tanggal Kadaluarsa
+          </label>
+          <input
+            name="expirationDate"
+            type="date"
+            value={specs.expirationDate || ""}
+            onChange={onChange}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+          />
+        </div>
+      </>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
