@@ -13,6 +13,7 @@ import { firestore } from "@/db/firebase/firebaseConfig";
 import Link from "next/link";
 import { Maintenance, MaintenanceStatus } from "@/types/maintenances";
 import { useAdmin } from "@/app/context/AdminContext";
+import Image from "next/image";
 
 type MaintenanceTableRow = {
   id: string;
@@ -491,7 +492,7 @@ export default function MaintenancesPage() {
                       </td>
                       <td className="px-2 py-3">
                         <div className="flex flex-col">
-                          {m.engineers.length ? (
+                          {m.engineers.length > 0 && (
                             <div className="mb-1 flex flex-wrap gap-1">
                               {m.engineers.map((eng) => (
                                 <span
@@ -502,76 +503,87 @@ export default function MaintenancesPage() {
                                 </span>
                               ))}
                             </div>
-                          ) : (
-                            <span className="text-gray-500">-</span>
                           )}
                           <button
                             onClick={() => openEngineerModal(m.id)}
                             disabled={actionLoading === m.id}
-                            className="mt-1 rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 hover:bg-blue-200"
+                            className="rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 hover:bg-blue-200"
                           >
                             {actionLoading === m.id ? "..." : "Kelola Engineer"}
                           </button>
                         </div>
                       </td>
                       <td className="px-2 py-3">
-                        {m.hasInspection ? (
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span className="inline-block rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
-                                Sudah diinspeksi
-                              </span>
-                              <button
-                                onClick={() => toggleInspectionExpand(m.id)}
-                                className="rounded-full bg-gray-200 p-1 text-xs text-gray-700 hover:bg-gray-300"
-                              >
-                                {expandedInspections.includes(m.id) ? "▲" : "▼"}
-                              </button>
-                            </div>
-
-                            <div className="mt-1 text-xs text-gray-600">
-                              <div>
-                                Foto: {m.inspection?.photos?.length || 0}
-                              </div>
-                              <div>
-                                Checklist:{" "}
-                                {m.inspection?.checklist?.length || 0} item
-                              </div>
-                            </div>
-
-                            {expandedInspections.includes(m.id) &&
-                              m.inspection?.checklist?.length > 0 && (
-                                <div className="mt-2 max-h-32 overflow-y-auto rounded border border-gray-200 bg-white text-xs">
-                                  <table className="w-full">
-                                    <thead className="sticky top-0 bg-gray-50">
-                                      <tr className="border-b text-left">
-                                        <th className="px-2 py-1">Item</th>
-                                        <th className="px-2 py-1">Status</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {m.inspection.checklist.map(
-                                        (item: any, idx: number) => (
-                                          <tr key={idx} className="border-b">
-                                            <td className="px-2 py-1">
-                                              {item.item}
-                                            </td>
-                                            <td className="px-2 py-1">
-                                              <span
-                                                className={`inline-block rounded px-1 py-0.5 text-xs font-semibold ${
-                                                  item.status
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-red-100 text-red-700"
-                                                }`}
-                                              >
-                                                {item.status ? "OK" : "NOK"}
-                                              </span>
-                                            </td>
-                                          </tr>
-                                        ),
+                        {m.hasInspection && m.inspection ? (
+                          <div className="flex flex-col gap-1 text-xs">
+                            <ul className="mb-1 ml-2 list-disc">
+                              {m.inspection.checklist.map(
+                                (item: any, idx: number) => (
+                                  <li key={idx}>
+                                    <span className="font-medium">
+                                      {item.item}:
+                                    </span>{" "}
+                                    <span
+                                      className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${
+                                        item.status
+                                          ? "bg-green-100 text-green-700"
+                                          : "bg-red-100 text-red-700"
+                                      }`}
+                                    >
+                                      {item.status ? (
+                                        <svg
+                                          className="h-3 w-3 text-green-500"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={3}
+                                            d="M5 13l4 4L19 7"
+                                          />
+                                        </svg>
+                                      ) : (
+                                        <svg
+                                          className="h-3 w-3 text-red-500"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={3}
+                                            d="M6 18L18 6M6 6l12 12"
+                                          />
+                                        </svg>
                                       )}
-                                    </tbody>
-                                  </table>
+                                    </span>
+                                    {item.remarks && (
+                                      <span className="ml-1 italic text-gray-500">
+                                        ({item.remarks})
+                                      </span>
+                                    )}
+                                  </li>
+                                ),
+                              )}
+                            </ul>
+                            {m.inspection.photos &&
+                              m.inspection.photos.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {m.inspection.photos.map(
+                                    (photoUrl: string, photoIdx: number) => (
+                                      <Image
+                                        key={photoIdx}
+                                        src={photoUrl}
+                                        alt={`Inspection photo ${photoIdx + 1}`}
+                                        width={32}
+                                        height={32}
+                                        className="h-8 w-8 rounded-md object-cover shadow-sm"
+                                      />
+                                    ),
+                                  )}
                                 </div>
                               )}
                           </div>
