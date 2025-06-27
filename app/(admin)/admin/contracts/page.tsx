@@ -9,6 +9,9 @@ import {
   doc,
   getDoc,
   DocumentReference,
+  query,
+  where,
+  updateDoc,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import type { Contract } from "@/types/contracts";
@@ -51,7 +54,7 @@ export default function ContractsPage() {
 
       // Batch fetch customers
       const customerSnaps = await Promise.all(
-        Object.values(customerRefs).map((ref) => getDoc(ref))
+        Object.values(customerRefs).map((ref) => getDoc(ref)),
       );
       const customerMap: Record<string, string> = {};
       customerSnaps.forEach((snap) => {
@@ -60,9 +63,12 @@ export default function ContractsPage() {
 
       // Batch fetch products
       const productSnaps = await Promise.all(
-        Object.values(productRefs).map((ref) => getDoc(ref))
+        Object.values(productRefs).map((ref) => getDoc(ref)),
       );
-      const productMap: Record<string, { productNumber: string; name: string }> = {};
+      const productMap: Record<
+        string,
+        { productNumber: string; name: string }
+      > = {};
       productSnaps.forEach((snap) => {
         if (snap.exists())
           productMap[snap.id] = {
@@ -82,13 +88,16 @@ export default function ContractsPage() {
         let productDetailsDisplay: string[] = [];
         if (Array.isArray(contract.productDetails)) {
           productDetailsDisplay = contract.productDetails.map((pd) => {
-            const prod = pd.product && pd.product.id ? productMap[pd.product.id] : null;
+            const prod =
+              pd.product && pd.product.id ? productMap[pd.product.id] : null;
             const services = [
               pd.maintenance ? "Maintenance" : null,
               pd.service ? "Service" : null,
               pd.rental ? "Rental" : null,
               pd.sales ? "Sales" : null,
-            ].filter(Boolean).join(", ");
+            ]
+              .filter(Boolean)
+              .join(", ");
             return prod
               ? `${prod.productNumber} (${services})`
               : `- (${services})`;
@@ -141,6 +150,23 @@ export default function ContractsPage() {
   const handleDelete = async (id: string) => {
     if (window.confirm("Hapus kontrak ini?")) {
       try {
+        // update afiliated products in contracts to remove this contract
+        // use query where products array contains this contract
+        const afiliatedProductsQuery = await getDocs(
+          query(
+            collection(firestore, "products"),
+            where("contract", "==", doc(firestore, "contracts", id)),
+          ),
+        );
+        const afiliatedProductIds = afiliatedProductsQuery.docs.map(
+          (doc) => doc.id,
+        );
+        for (const productId of afiliatedProductIds) {
+          // update field contract in product to null
+          await updateDoc(doc(firestore, "products", productId), {
+            contract: null,
+          });
+        }
         await deleteDoc(doc(firestore, "contracts", id));
         setContracts(contracts.filter((c) => c.id !== id));
       } catch {
@@ -229,22 +255,34 @@ export default function ContractsPage() {
                     <tr key={contract.id} className="text-sm">
                       <td className="px-4 py-3">{contract.contractNumber}</td>
                       <td className="px-4 py-3">{contract.contractName}</td>
-                      <td className="px-4 py-3 capitalize">{contract.contractType}</td>
-                      <td className="px-4 py-3">{contract.contractDescription}</td>
+                      <td className="px-4 py-3 capitalize">
+                        {contract.contractType}
+                      </td>
+                      <td className="px-4 py-3">
+                        {contract.contractDescription}
+                      </td>
                       <td className="px-4 py-3">{contract.customerName}</td>
                       <td className="px-4 py-3">
-                        {contract.startDate && (contract.startDate as any).toDate
-                          ? (contract.startDate as any).toDate().toLocaleDateString()
+                        {contract.startDate &&
+                        (contract.startDate as any).toDate
+                          ? (contract.startDate as any)
+                              .toDate()
+                              .toLocaleDateString()
                           : "-"}
                       </td>
                       <td className="px-4 py-3">
                         {contract.endDate && (contract.endDate as any).toDate
-                          ? (contract.endDate as any).toDate().toLocaleDateString()
+                          ? (contract.endDate as any)
+                              .toDate()
+                              .toLocaleDateString()
                           : "-"}
                       </td>
-                      <td className="px-4 py-3 capitalize">{contract.status}</td>
+                      <td className="px-4 py-3 capitalize">
+                        {contract.status}
+                      </td>
                       <td className="px-4 py-3">
-                        {contract.productDetailsDisplay && contract.productDetailsDisplay.length > 0
+                        {contract.productDetailsDisplay &&
+                        contract.productDetailsDisplay.length > 0
                           ? contract.productDetailsDisplay.join(", ")
                           : "-"}
                       </td>

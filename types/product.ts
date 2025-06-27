@@ -75,7 +75,7 @@ export type ProductSpecs =
     } & BaseSpecs);
 
 export type Product = {
-  id: string;
+  id?: string;
   name: string;
   productNumber: string;
   productType: ProductType;
@@ -85,7 +85,7 @@ export type Product = {
   imageUrl: string;
   contract: DocumentReference | null; // reference to the contract this product belongs to
   createdAt?: Timestamp;
-  createdBy?: DocumentReference;
+  createdBy?: DocumentReference | null; // reference to the user who created the product
   updatedAt?: Timestamp;
-  updatedBy?: DocumentReference;
+  updatedBy?: DocumentReference | null; // reference to the user who updated the product
 };

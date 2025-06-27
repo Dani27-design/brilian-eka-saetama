@@ -2,22 +2,39 @@
 
 import { useEffect, useState } from "react";
 import {
+  collection,
+  addDoc,
   doc,
+  serverTimestamp,
   getDoc,
   updateDoc,
-  serverTimestamp,
-  DocumentReference,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
-import { useRouter, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import ImageUploader from "@/components/Admin/ImageUploader";
 import { useAdmin } from "@/app/context/AdminContext";
-import type { ProductType } from "@/types/product";
+import type { Product, ProductSpecs, ProductType } from "@/types/product";
+import { query, where, getDocs } from "firebase/firestore";
+import React from "react";
+import { Timestamp } from "firebase/firestore";
 
 type UserMeta = {
   name?: string;
   role?: string;
 };
+
+const toNumberOrNull = (v: any) =>
+  v === "" || v === undefined ? null : Number(v);
+const toStringOrNull = (v: any) => (v === "" || v === undefined ? null : v);
+const toBoolOrNull = (v: any) => (typeof v === "boolean" ? v : !!v);
+const toTimestampOrNull = (v: any) =>
+  v ? Timestamp.fromDate(new Date(v)) : null;
+
+function toDateInputValue(ts: any) {
+  if (!ts) return "";
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  return date.toISOString().slice(0, 10);
+}
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -25,17 +42,15 @@ export default function EditProductPage() {
   const id = params?.id as string;
   const { user } = useAdmin();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<Omit<Product, "specs" | "contract">>({
     name: "",
     productNumber: "",
-    brand: "",
-    brandType: "",
-    productType: "",
     imageUrl: "",
     source: "",
-    maintenanceInterval: "",
+    productType: "APAR",
+    maintenanceInterval: 0,
   });
-  const [specs, setSpecs] = useState<any>({});
+  const [specs, setSpecs] = useState<ProductSpecs>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [metaInfo, setMetaInfo] = useState<{
@@ -43,6 +58,7 @@ export default function EditProductPage() {
     date?: string;
     user?: UserMeta;
   } | null>(null);
+  const [productNumberError, setProductNumberError] = useState<string>("");
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -54,25 +70,35 @@ export default function EditProductPage() {
           setForm({
             name: data.name || "",
             productNumber: data.productNumber || "",
-            brand: data.brand || "",
-            brandType: data.brandType || "",
-            productType: data.productType || "",
+            productType: data.productType || "APAR",
             imageUrl: data.imageUrl || "",
             source: data.source || "",
-            maintenanceInterval: data.maintenanceInterval?.toString() || "",
+            maintenanceInterval: data.maintenanceInterval || 0,
           });
-          setSpecs(data.specs || {});
+          setSpecs({
+            ...data.specs,
+            brand: data.specs?.brand || "",
+            brandType: data.specs?.brandType || "",
+            manufactureDate: data.specs?.manufactureDate
+              ? toDateInputValue(data.specs.manufactureDate)
+              : "",
+            installationDate: data.specs?.installationDate
+              ? toDateInputValue(data.specs.installationDate)
+              : "",
+            expirationDate: data.specs?.expirationDate
+              ? toDateInputValue(data.specs.expirationDate)
+              : "",
+            serialNumber: data.specs?.serialNumber || "",
+          });
 
-          // Determine which meta to show: updated or created
+          // Meta info
           if (data.updatedAt && data.updatedBy) {
-            // Show updated info
             fetchUserMeta(
               data.updatedBy,
               data.updatedAt,
               "Terakhir diubah oleh",
             );
           } else if (data.createdAt && data.createdBy) {
-            // Show created info
             fetchUserMeta(data.createdBy, data.createdAt, "Dibuat oleh");
           } else {
             setMetaInfo(null);
@@ -87,17 +113,12 @@ export default function EditProductPage() {
       }
     };
 
-    // Helper to fetch user meta
-    const fetchUserMeta = async (
-      userRef: DocumentReference,
-      date: any,
-      label: string,
-    ) => {
+    const fetchUserMeta = async (userRef: any, date: any, label: string) => {
       try {
         const userSnap = await getDoc(userRef);
         let user: UserMeta = {};
         if (userSnap.exists()) {
-          const userData = userSnap.data();
+          const userData = userSnap.data() as UserMeta;
           user = {
             name: userData.name || "-",
             role: userData.role || "-",
@@ -121,16 +142,50 @@ export default function EditProductPage() {
     // eslint-disable-next-line
   }, [id]);
 
-  const handleChange = (
+  // Cek unik productNumber
+  const checkProductNumberUnique = async (value: string) => {
+    if (!value) {
+      setProductNumberError("");
+      return;
+    }
+    const q = query(
+      collection(firestore, "products"),
+      where("productNumber", "==", value),
+    );
+    const snapshot = await getDocs(q);
+    let isDuplicate = false;
+    snapshot.forEach((doc) => {
+      if (doc.id !== id) isDuplicate = true;
+    });
+    if (isDuplicate) {
+      setProductNumberError("No. Produk sudah digunakan, gunakan nomor lain.");
+    } else {
+      setProductNumberError("");
+    }
+  };
+
+  // Perbaiki handleChange agar brand & brandType masuk ke specs
+  const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "brand" || name === "brandType") {
+      setSpecs((prev: any) => ({
+        ...prev,
+        [name]: value,
+      }));
+    } else {
+      setForm((prev: any) => ({
+        ...prev,
+        [name]: e.target.type === "number" ? Number(value) : value,
+      }));
+    }
+    if (name === "productNumber") {
+      await checkProductNumberUnique(value);
+    }
   };
 
-  const handleImageChange = (url: string) => {
-    setForm((prev) => ({ ...prev, imageUrl: url }));
-  };
-
+  // Perbaiki handleSpecsChange agar sesuai type
   const handleSpecsChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -138,11 +193,18 @@ export default function EditProductPage() {
     setSpecs((prev: any) => ({
       ...prev,
       [name]:
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+        type === "checkbox"
+          ? toBoolOrNull((e.target as HTMLInputElement).checked)
+          : type === "number"
+          ? toNumberOrNull(value)
+          : value,
     }));
   };
 
-  // --- Render dynamic specs fields based on productType ---
+  const handleImageChange = (url: string) => {
+    setForm((prev) => ({ ...prev, imageUrl: url }));
+  };
+
   const renderSpecsFields = () => {
     switch (form.productType as ProductType) {
       case "APAR":
@@ -157,7 +219,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.height || ""}
+                value={(specs as any).height || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -171,7 +233,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.width || ""}
+                value={(specs as any).width || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -185,7 +247,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.pressure || ""}
+                value={(specs as any).pressure || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -199,7 +261,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.capacity || ""}
+                value={(specs as any).capacity || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -210,7 +272,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="agentType"
-                value={specs.agentType || ""}
+                value={(specs as any).agentType || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -224,12 +286,16 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.weight || ""}
+                value={(specs as any).weight || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
-            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
+            {/* BaseSpecs */}
+            {BaseSpecsFields({
+              specs,
+              onChange: handleSpecsChange,
+            })}
           </>
         );
       case "HYDRANT":
@@ -244,7 +310,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.height || ""}
+                value={(specs as any).height || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -258,7 +324,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.width || ""}
+                value={(specs as any).width || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -272,7 +338,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.flowRate || ""}
+                value={(specs as any).flowRate || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -286,7 +352,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.pressure || ""}
+                value={(specs as any).pressure || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -297,7 +363,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="valveType"
-                value={specs.valveType || ""}
+                value={(specs as any).valveType || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -311,7 +377,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.hoseLength || ""}
+                value={(specs as any).hoseLength || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -322,12 +388,15 @@ export default function EditProductPage() {
               </label>
               <input
                 name="material"
-                value={specs.material || ""}
+                value={(specs as any).material || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
-            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
+            {BaseSpecsFields({
+              specs,
+              onChange: handleSpecsChange,
+            })}
           </>
         );
       case "CCTV":
@@ -339,7 +408,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="resolution"
-                value={specs.resolution || ""}
+                value={(specs as any).resolution || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -350,7 +419,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="lens"
-                value={specs.lens || ""}
+                value={(specs as any).lens || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -366,7 +435,7 @@ export default function EditProductPage() {
                 <input
                   name="nightVision"
                   type="checkbox"
-                  checked={!!specs.nightVision}
+                  checked={!!(specs as any).nightVision}
                   onChange={handleSpecsChange}
                   className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
                   id="nightVision"
@@ -379,7 +448,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="power"
-                value={specs.power || ""}
+                value={(specs as any).power || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -390,7 +459,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="connectivity"
-                value={specs.connectivity || ""}
+                value={(specs as any).connectivity || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -402,7 +471,7 @@ export default function EditProductPage() {
               <input
                 name="pan"
                 type="checkbox"
-                checked={!!specs.pan}
+                checked={!!(specs as any).pan}
                 onChange={handleSpecsChange}
                 className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
               />
@@ -414,7 +483,7 @@ export default function EditProductPage() {
               <input
                 name="tilt"
                 type="checkbox"
-                checked={!!specs.tilt}
+                checked={!!(specs as any).tilt}
                 onChange={handleSpecsChange}
                 className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
               />
@@ -425,12 +494,15 @@ export default function EditProductPage() {
               </label>
               <input
                 name="storageCapacity"
-                value={specs.storageCapacity || ""}
+                value={(specs as any).storageCapacity || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
-            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
+            {BaseSpecsFields({
+              specs,
+              onChange: handleSpecsChange,
+            })}
           </>
         );
       case "FIRE_ALARM":
@@ -442,7 +514,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="sensorType"
-                value={specs.sensorType || ""}
+                value={(specs as any).sensorType || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -453,7 +525,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="power"
-                value={specs.power || ""}
+                value={(specs as any).power || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -467,7 +539,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.coverageArea || ""}
+                value={(specs as any).coverageArea || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -481,7 +553,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.soundLevel || ""}
+                value={(specs as any).soundLevel || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -493,12 +565,15 @@ export default function EditProductPage() {
               <input
                 name="batteryBackup"
                 type="checkbox"
-                checked={!!specs.batteryBackup}
+                checked={!!(specs as any).batteryBackup}
                 onChange={handleSpecsChange}
                 className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
               />
             </div>
-            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
+            {BaseSpecsFields({
+              specs,
+              onChange: handleSpecsChange,
+            })}
           </>
         );
       case "ACCESS_DOOR":
@@ -510,7 +585,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="material"
-                value={specs.material || ""}
+                value={(specs as any).material || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -521,7 +596,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="lockType"
-                value={specs.lockType || ""}
+                value={(specs as any).lockType || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -535,7 +610,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.width || ""}
+                value={(specs as any).width || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -549,7 +624,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.height || ""}
+                value={(specs as any).height || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -563,12 +638,15 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.openingSpeed || ""}
+                value={(specs as any).openingSpeed || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
-            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
+            {BaseSpecsFields({
+              specs,
+              onChange: handleSpecsChange,
+            })}
           </>
         );
       case "PATROL_GUARD":
@@ -580,7 +658,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="deviceType"
-                value={specs.deviceType || ""}
+                value={(specs as any).deviceType || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -591,7 +669,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="batteryLife"
-                value={specs.batteryLife || ""}
+                value={(specs as any).batteryLife || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -602,7 +680,7 @@ export default function EditProductPage() {
               </label>
               <input
                 name="connectivity"
-                value={specs.connectivity || ""}
+                value={(specs as any).connectivity || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -616,7 +694,7 @@ export default function EditProductPage() {
                 type="number"
                 min={0}
                 step="any"
-                value={specs.patrolInterval || ""}
+                value={(specs as any).patrolInterval || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
@@ -627,12 +705,15 @@ export default function EditProductPage() {
               </label>
               <input
                 name="firmwareVersion"
-                value={specs.firmwareVersion || ""}
+                value={(specs as any).firmwareVersion || ""}
                 onChange={handleSpecsChange}
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               />
             </div>
-            <BaseSpecsFields specs={specs} onChange={handleSpecsChange} />
+            {BaseSpecsFields({
+              specs,
+              onChange: handleSpecsChange,
+            })}
           </>
         );
       default:
@@ -645,7 +726,9 @@ export default function EditProductPage() {
     onChange,
   }: {
     specs: any;
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+    onChange: (
+      e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    ) => void;
   }) {
     return (
       <>
@@ -655,8 +738,9 @@ export default function EditProductPage() {
           </label>
           <input
             name="serialNumber"
-            value={specs.serialNumber || ""}
+            value={specs.serialNumber ?? ""}
             onChange={onChange}
+            autoComplete="off"
             className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
           />
         </div>
@@ -667,7 +751,7 @@ export default function EditProductPage() {
           <input
             name="manufactureDate"
             type="date"
-            value={specs.manufactureDate || ""}
+            value={specs.manufactureDate ?? ""}
             onChange={onChange}
             className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
           />
@@ -679,7 +763,7 @@ export default function EditProductPage() {
           <input
             name="installationDate"
             type="date"
-            value={specs.installationDate || ""}
+            value={specs.installationDate ?? ""}
             onChange={onChange}
             className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
           />
@@ -691,7 +775,7 @@ export default function EditProductPage() {
           <input
             name="expirationDate"
             type="date"
-            value={specs.expirationDate || ""}
+            value={specs.expirationDate ?? ""}
             onChange={onChange}
             className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
           />
@@ -703,7 +787,46 @@ export default function EditProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setLoading(false);
+
+    // Final check before submit
+    const q = query(
+      collection(firestore, "products"),
+      where("productNumber", "==", form.productNumber),
+    );
+    const snapshot = await getDocs(q);
+    let isDuplicate = false;
+    snapshot.forEach((doc) => {
+      if (doc.id !== id) isDuplicate = true;
+    });
+    if (!form.productNumber || !form.name) {
+      setError("No. Produk dan Nama Produk wajib diisi.");
+      setLoading(false);
+      return;
+    }
+    if (isDuplicate) {
+      setProductNumberError("No. Produk sudah digunakan, gunakan nomor lain.");
+      setLoading(false);
+      return;
+    }
+
+    // Build specs sesuai type
+    const finalSpecs: ProductSpecs = {
+      ...specs,
+      brand: toStringOrNull(specs.brand),
+      brandType: toStringOrNull(specs.brandType),
+      manufactureDate: specs.manufactureDate
+        ? toTimestampOrNull(specs.manufactureDate)
+        : null,
+      installationDate: specs.installationDate
+        ? toTimestampOrNull(specs.installationDate)
+        : null,
+      expirationDate: specs.expirationDate
+        ? toTimestampOrNull(specs.expirationDate)
+        : null,
+      serialNumber: toStringOrNull(specs.serialNumber),
+    };
+
     try {
       await updateDoc(doc(firestore, "products", id), {
         ...form,
@@ -715,7 +838,7 @@ export default function EditProductPage() {
             ? "INTERNAL"
             : form.source
           : "INTERNAL",
-        specs,
+        specs: finalSpecs,
         updatedAt: serverTimestamp(),
         updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
       });
@@ -740,21 +863,14 @@ export default function EditProductPage() {
         </p>
         {metaInfo && (
           <div className="mt-3 rounded bg-blue-50 px-4 py-2 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-            <span className="font-semibold">{metaInfo.label}</span>
-            {metaInfo.user && (
-              <>
-                {" "}
-                <span>
-                  {metaInfo.user.name} ({metaInfo.user.role})
-                </span>
-              </>
+            {metaInfo.label}{" "}
+            {metaInfo.user?.name && (
+              <span>
+                <b>{metaInfo.user.name}</b>
+                {metaInfo.user.role ? ` (${metaInfo.user.role})` : ""}
+              </span>
             )}
-            {metaInfo.date && (
-              <>
-                {" "}
-                <span className="text-gray-500">pada {metaInfo.date}</span>
-              </>
-            )}
+            {metaInfo.date && <span className="ml-2">{metaInfo.date}</span>}
           </div>
         )}
       </div>
@@ -796,9 +912,14 @@ export default function EditProductPage() {
               placeholder="No. Produk"
               value={form.productNumber}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className={`w-full rounded-lg border ${
+                productNumberError ? "border-red-500" : "border-stroke"
+              } bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white`}
               required
             />
+            {productNumberError && (
+              <p className="mt-1 text-xs text-red-600">{productNumberError}</p>
+            )}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -840,7 +961,7 @@ export default function EditProductPage() {
             <input
               name="brand"
               placeholder="Brand"
-              value={form.brand}
+              value={specs.brand || ""}
               onChange={handleChange}
               className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               required
@@ -853,7 +974,7 @@ export default function EditProductPage() {
             <input
               name="brandType"
               placeholder="Jenis"
-              value={form.brandType}
+              value={specs.brandType || ""}
               onChange={handleChange}
               className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
               required
@@ -886,8 +1007,6 @@ export default function EditProductPage() {
               className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
             />
           </div>
-        </div>
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           {renderSpecsFields()}
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -901,6 +1020,7 @@ export default function EditProductPage() {
             />
           </div>
         </div>
+
         <div className="flex justify-end space-x-4">
           <button
             type="button"

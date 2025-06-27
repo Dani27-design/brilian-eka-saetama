@@ -9,13 +9,16 @@ import {
   doc,
   Timestamp,
   DocumentReference,
+  getDoc,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import Image from "next/image";
 import type { Product, ProductType } from "@/types/product";
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<
+    (Product & { contractData?: any })[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,9 +35,42 @@ export default function ProductsPage() {
       const querySnapshot = await getDocs(collection(firestore, "products"));
       const data: Product[] = [];
       querySnapshot.forEach((docSnap) => {
-        data.push({ id: docSnap.id, ...docSnap.data() } as Product);
+        data.push({ ...docSnap.data(), id: docSnap.id } as Product);
       });
-      setProducts(data);
+      // fetch contract details for each product
+      const productsWithContracts = await Promise.all(
+        data.map(async (product) => {
+          const contractRef = product.contract as DocumentReference;
+          if (contractRef) {
+            const contractSnap = await getDoc(contractRef);
+            if (contractSnap.exists()) {
+              const contractData = contractSnap.data();
+              // Fetch customer inside contract
+              let customerData: any = null;
+              if (contractData.customer && contractData.customer.id) {
+                try {
+                  const customerSnap = await getDoc(contractData.customer);
+                  if (customerSnap.exists()) {
+                    customerData = {
+                      id: customerSnap.id,
+                      ...(customerSnap.data() || {}),
+                    };
+                  }
+                } catch {}
+              }
+              return {
+                ...product,
+                contractData: {
+                  ...contractData,
+                  customerData: customerData,
+                },
+              };
+            }
+          }
+          return product;
+        }),
+      );
+      setProducts(productsWithContracts);
     } catch (err) {
       setError("Gagal memuat produk");
     } finally {
@@ -250,41 +286,25 @@ export default function ProductsPage() {
               <table className="w-full table-auto">
                 <thead>
                   <tr className="border-b bg-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-black">
-                    <th className="px-4 py-3">No</th>
-                    <th className="px-4 py-3">Gambar</th>
-                    <th className="px-4 py-3">Nama</th>
-                    <th className="px-4 py-3">Tipe</th>
-                    <th className="px-4 py-3">Merk</th>
-                    <th className="px-4 py-3">Jenis</th>
-                    <th className="px-4 py-3">Spesifikasi</th>
-                    <th className="px-4 py-3">Vendor</th>
-                    <th className="px-4 py-3">Pemeliharaan</th>
-                    <th className="px-4 py-3">Kontrak</th>
-                    <th className="px-4 py-3">Aksi</th>
+                    <th className="px-2 py-3">No</th>
+                    <th className="px-2 py-3">Nama</th>
+                    <th className="px-2 py-3">Tipe</th>
+                    <th className="px-2 py-3">Merk</th>
+                    <th className="px-2 py-3">Spesifikasi</th>
+                    <th className="px-2 py-3">Kontrak</th>
+                    <th className="px-2 py-3">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentProducts.map((product) => (
                     <tr key={product.id} className="text-sm">
-                      <td className="px-4 py-3">{product.productNumber}</td>
-                      <td className="px-4 py-3">
-                        {product.imageUrl ? (
-                          <Image
-                            src={product.imageUrl}
-                            alt={product.name}
-                            width={48}
-                            height={48}
-                            className="rounded object-cover"
-                          />
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
+                      <td className="px-2 py-3">{product.productNumber}</td>
+                      <td className="px-2 py-3">{product.name}</td>
+                      <td className="px-2 py-3">{product.productType}</td>
+                      <td className="px-2 py-3">
+                        {product.specs.brand} - {product.specs.brandType}
                       </td>
-                      <td className="px-4 py-3">{product.name}</td>
-                      <td className="px-4 py-3">{product.productType}</td>
-                      <td className="px-4 py-3">{product.specs.brand}</td>
-                      <td className="px-4 py-3">{product.specs.brandType}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-3">
                         {product.specs &&
                         Object.keys(product.specs).length > 0 ? (
                           <ul className="list-disc pl-4">
@@ -323,29 +343,55 @@ export default function ProductsPage() {
                           <span className="text-gray-400">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">{product.source ?? "-"}</td>
-                      <td className="px-4 py-3">
-                        {Number(product.maintenanceInterval) > 0
-                          ? `${Math.round(
-                              Math.max(
-                                Math.max(
-                                  Number(product.maintenanceInterval),
-                                  0,
-                                ) / 30,
-                              ),
-                            )} Bulan`
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-3">
                         {/* Tampilkan info contract */}
                         {product.contract ? (
-                          <span className="text-green-700">Ada</span>
+                          <ul className="list-disc pl-4">
+                            <li>
+                              <span className="font-medium">Perusahaan:</span>{" "}
+                              {product.contractData?.customerData?.name ?? "-"}
+                            </li>
+                            <li>
+                              <span className="font-medium">Nama Kontrak:</span>{" "}
+                              {product.contractData?.contractName ?? "-"}
+                            </li>
+                            <li>
+                              <span className="font-medium">
+                                Nomor Kontrak:
+                              </span>{" "}
+                              {product.contractData?.contractNumber ?? "-"}
+                            </li>
+                            <li>
+                              <span className="font-medium">
+                                Tanggal Mulai:
+                              </span>{" "}
+                              {product.contractData?.startDate
+                                ? product.contractData.startDate
+                                    .toDate()
+                                    .toLocaleDateString()
+                                : "-"}
+                            </li>
+                            <li>
+                              <span className="font-medium">
+                                Tanggal Selesai:
+                              </span>{" "}
+                              {product.contractData?.endDate
+                                ? product.contractData.endDate
+                                    .toDate()
+                                    .toLocaleDateString()
+                                : "Ongoing"}
+                            </li>
+                            <li>
+                              <span className="font-medium">Status:</span>{" "}
+                              {product.contractData?.status ?? "-"}
+                            </li>
+                          </ul>
                         ) : (
                           <span className="text-gray-400">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex space-x-2">
+                      <td className="px-2 py-3">
+                        <div className="p-auto flex flex-col flex-wrap gap-2">
                           <Link
                             href={`/admin/products/edit/${product.id}`}
                             className="flex w-18 items-center justify-center rounded-lg bg-blue-200 px-1.5 py-1.5 text-xs font-medium text-gray-800 transition-colors hover:bg-yellow-200"
@@ -367,8 +413,13 @@ export default function ProductsPage() {
                             Edit
                           </Link>
                           <button
-                            onClick={() => handleDelete(product.id)}
-                            className="flex w-18 items-center justify-center rounded-lg border border-red-300 bg-white px-1.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                            disabled={product.contract ? true : false}
+                            onClick={() => handleDelete(product?.id ?? "")}
+                            className={`flex w-18 items-center justify-center rounded-lg border border-red-300 bg-white px-1.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 ${
+                              product.contract
+                                ? "cursor-not-allowed opacity-50 hover:bg-white"
+                                : ""
+                            }`}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"

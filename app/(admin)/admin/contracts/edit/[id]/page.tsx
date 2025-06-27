@@ -8,10 +8,17 @@ import {
   getDocs,
   collection,
   serverTimestamp,
+  where,
+  query,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter, useParams } from "next/navigation";
 import { useAdmin } from "@/app/context/AdminContext";
+
+type UserMeta = {
+  name?: string;
+  role?: string;
+};
 
 export default function EditContractPage() {
   const router = useRouter();
@@ -38,11 +45,19 @@ export default function EditContractPage() {
       sales: boolean;
     }>,
   });
+  console.log("Form state:", form);
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [metaInfo, setMetaInfo] = useState<{
+    label: string;
+    date?: string;
+    user?: UserMeta;
+  } | null>(null);
   const [contractNumberError, setContractNumberError] = useState("");
+  const [legacyProducts, setLegacyProducts] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,22 +94,99 @@ export default function EditContractPage() {
                 }))
               : [],
           });
+          // Meta info
+          if (data.updatedAt && data.updatedBy) {
+            fetchUserMeta(
+              data.updatedBy,
+              data.updatedAt,
+              "Terakhir diubah oleh",
+            );
+          } else if (data.createdAt && data.createdBy) {
+            fetchUserMeta(data.createdBy, data.createdAt, "Dibuat oleh");
+          } else {
+            setMetaInfo(null);
+          }
         } else {
           setError("Kontrak tidak ditemukan");
         }
         // Fetch customers and products
         const custSnap = await getDocs(collection(firestore, "customers"));
-        setCustomers(custSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        const prodSnap = await getDocs(collection(firestore, "products"));
-        setProducts(prodSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setCustomers(custSnap.docs.map((d) => ({ ...d.data(), id: d.id })));
       } catch {
         setError("Gagal memuat data kontrak");
       } finally {
         setLoading(false);
       }
     };
+
+    const fetchUserMeta = async (userRef: any, date: any, label: string) => {
+      try {
+        const userSnap = await getDoc(userRef);
+        let user: UserMeta = {};
+        if (userSnap.exists()) {
+          const userData = userSnap.data() as UserMeta;
+          user = {
+            name: userData.name || "-",
+            role: userData.role || "-",
+          };
+        }
+        setMetaInfo({
+          label,
+          date: date?.toDate ? date.toDate().toLocaleString() : "-",
+          user,
+        });
+      } catch {
+        setMetaInfo({
+          label,
+          date: date?.toDate ? date.toDate().toLocaleString() : "-",
+          user: { name: "-", role: "-" },
+        });
+      }
+    };
     if (id) fetchData();
   }, [id]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsSnap = await getDocs(
+          query(
+            collection(firestore, "products"),
+            where("contract", "==", null),
+          ),
+        );
+        const allProducts = productsSnap.docs.map((d) => ({
+          ...d.data(),
+          id: d.id,
+        }));
+
+        // get products that are already in the contract use legacyProducts
+        const legacyProductsSnap = await getDocs(
+          query(
+            collection(firestore, "products"),
+            where("contract", "==", doc(firestore, "contracts", id)),
+          ),
+        );
+        const legacyProducts = legacyProductsSnap.docs.map((d) => ({
+          ...d.data(),
+          id: d.id,
+        }));
+        setLegacyProducts(legacyProducts);
+        const mergedProducts = [...allProducts, ...legacyProducts];
+        // Set all products including legacy
+        setProducts(mergedProducts);
+        // Filter products that are not already in the contract
+        const selectedProductIds = new Set(form.products);
+        const filteredProducts = mergedProducts.filter(
+          (p) => !selectedProductIds.has(p.id),
+        );
+        setAvailableProducts(filteredProducts);
+      } catch {
+        setError("Gagal memuat produk");
+      }
+    };
+    fetchProducts();
+  }, [id, form.products]);
 
   const checkContractNumberUnique = async (value: string) => {
     if (!value) {
@@ -129,26 +221,6 @@ export default function EditContractPage() {
     }
   };
 
-  // Add product to list
-  const handleAddProduct = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (value && !form.products.includes(value)) {
-      setForm((prev) => ({
-        ...prev,
-        products: [...prev.products, value],
-      }));
-    }
-    e.target.selectedIndex = 0;
-  };
-
-  // Remove product from list
-  const handleRemoveProduct = (id: string) => {
-    setForm((prev) => ({
-      ...prev,
-      products: prev.products.filter((pid) => pid !== id),
-    }));
-  };
-
   // Handle product details change
   const handleProductDetailChange = (
     index: number,
@@ -157,14 +229,21 @@ export default function EditContractPage() {
   ) => {
     setForm((prev) => {
       const updatedDetails = [...prev.productDetails];
+      let updatedProducts = [...prev.products];
+
       if (field === "product") {
+        // Remove previous product from products array if exists
+        const prevProductId = updatedDetails[index]?.product;
+        if (prevProductId) {
+          updatedProducts = updatedProducts.filter((p) => p !== prevProductId);
+        }
+        // Add new product if not empty and not already in products
+        if (value && !updatedProducts.includes(value)) {
+          updatedProducts.push(value);
+        }
         updatedDetails[index] = {
+          ...updatedDetails[index],
           product: value,
-          location: "",
-          maintenance: false,
-          service: false,
-          rental: false,
-          sales: false,
         };
       } else {
         updatedDetails[index] = {
@@ -172,7 +251,20 @@ export default function EditContractPage() {
           [field]: value,
         };
       }
-      return { ...prev, productDetails: updatedDetails };
+
+      // Ensure products only contains products in productDetails
+      const currentProductIds = updatedDetails
+        .map((pd) => pd.product)
+        .filter(Boolean);
+      updatedProducts = updatedProducts.filter((pid) =>
+        currentProductIds.includes(pid),
+      );
+
+      return {
+        ...prev,
+        productDetails: updatedDetails,
+        products: updatedProducts,
+      };
     });
   };
 
@@ -260,18 +352,39 @@ export default function EditContractPage() {
         updatedAt: serverTimestamp(),
         updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
       });
+
+      for (const pid of form.products) {
+        const productRef = doc(firestore, "products", pid);
+        await updateDoc(productRef, {
+          contract: doc(firestore, "contracts", id),
+          updatedAt: serverTimestamp(),
+          updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
+        });
+      }
+
+      // get difference between legacy and updated products
+      const removedProducts = legacyProducts.filter(
+        (p) => !form.products.includes(p.id),
+      );
+      if (removedProducts.length === 0) {
+        // No products removed, just redirect
+        router.push("/admin/contracts");
+        return;
+      }
+      for (const product of removedProducts) {
+        // update field contract in product to null
+        await updateDoc(doc(firestore, "products", product.id), {
+          contract: null,
+        });
+      }
       router.push("/admin/contracts");
-    } catch {
+    } catch (error) {
+      console.error("Error updating contract:", error);
       setError("Gagal mengupdate kontrak");
     } finally {
       setLoading(false);
     }
   };
-
-  // Available products for dropdown (exclude already selected)
-  const availableProducts = products.filter(
-    (p) => !form.products.includes(p.id),
-  );
 
   if (loading) return <div className="p-8 text-center">Memuat...</div>;
 
@@ -284,6 +397,18 @@ export default function EditContractPage() {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Ubah data kontrak sesuai kebutuhan.
         </p>
+        {metaInfo && (
+          <div className="mt-3 rounded bg-blue-50 px-4 py-2 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+            {metaInfo.label}{" "}
+            {metaInfo.user?.name && (
+              <span>
+                <b>{metaInfo.user.name}</b>
+                {metaInfo.user.role ? ` (${metaInfo.user.role})` : ""}
+              </span>
+            )}
+            {metaInfo.date && <span className="ml-2">{metaInfo.date}</span>}
+          </div>
+        )}
       </div>
       {error && (
         <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
@@ -416,55 +541,10 @@ export default function EditContractPage() {
               <option value="terminated">Dihentikan</option>
             </select>
           </div>
-          {/* Produk dynamic add/remove */}
+          {/* Detail produk (dynamic add/remove, sekaligus memilih produk) */}
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Produk (bisa pilih lebih dari satu)
-            </label>
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                <select
-                  onChange={handleAddProduct}
-                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-                  value=""
-                >
-                  <option value="">Tambah produk...</option>
-                  {products
-                    .filter((p) => !form.products.includes(p.id))
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.productNumber} - {p.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {form.products.map((pid) => {
-                  const prod = products.find((p) => p.id === pid);
-                  return (
-                    <span
-                      key={pid}
-                      className="inline-flex items-center rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800"
-                    >
-                      {prod ? `${prod.productNumber} - ${prod.name}` : pid}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveProduct(pid)}
-                        className="ml-2 rounded bg-blue-200 px-1 text-xs text-blue-900 hover:bg-red-200 hover:text-red-700"
-                        aria-label="Remove"
-                      >
-                        &times;
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-          {/* Detail produk */}
-          <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Detail Produk
+              Produk (bisa tambah lebih dari satu)
             </label>
             {form.productDetails.map((pd, index) => (
               <div
@@ -489,11 +569,20 @@ export default function EditContractPage() {
                       required
                     >
                       <option value="">Pilih produk</option>
-                      {availableProducts.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.productNumber} - {p.name}
-                        </option>
-                      ))}
+                      {products
+                        .filter(
+                          (p) =>
+                            // Show if not selected by other productDetails, or if it's the current value
+                            !form.productDetails.some(
+                              (detail, i) =>
+                                detail.product === p.id && i !== index,
+                            ) || pd.product === p.id,
+                        )
+                        .map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.productNumber} - {p.name}
+                          </option>
+                        ))}
                     </select>
                   </div>
                   <div>
@@ -619,6 +708,7 @@ export default function EditContractPage() {
                         productDetails: prev.productDetails.filter(
                           (_, i) => i !== index,
                         ),
+                        products: prev.products.filter((p) => p !== pd.product),
                       }))
                     }
                     className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
@@ -639,17 +729,24 @@ export default function EditContractPage() {
                       {
                         product: "",
                         location: "",
-                        maintenance: false,
-                        service: false,
-                        rental: false,
-                        sales: false,
+                        maintenance:
+                          prev.contractType === "maintenance" ? true : false,
+                        service: prev.contractType === "service" ? true : false,
+                        rental: prev.contractType === "rental" ? true : false,
+                        sales: prev.contractType === "sales" ? true : false,
                       },
                     ],
                   }))
                 }
-                className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90"
+                disabled={loading || availableProducts.length === 0}
+                className={
+                  "rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90" +
+                  (loading || availableProducts.length === 0
+                    ? " cursor-not-allowed opacity-50"
+                    : "")
+                }
               >
-                Tambah Detail Produk
+                Tambah Produk
               </button>
             </div>
           </div>

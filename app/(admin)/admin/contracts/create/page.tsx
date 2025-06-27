@@ -9,6 +9,7 @@ import {
   serverTimestamp,
   query,
   where,
+  updateDoc,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,7 @@ export default function CreateContractPage() {
   });
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [contractNumberError, setContractNumberError] = useState("");
@@ -45,12 +47,37 @@ export default function CreateContractPage() {
   useEffect(() => {
     const fetchData = async () => {
       const custSnap = await getDocs(collection(firestore, "customers"));
-      setCustomers(custSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      const prodSnap = await getDocs(collection(firestore, "products"));
-      setProducts(prodSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setCustomers(custSnap.docs.map((d) => ({ ...d.data(), id: d.id })));
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsSnap = await getDocs(
+          query(
+            collection(firestore, "products"),
+            where("contract", "==", null),
+          ),
+        );
+        const allProducts = productsSnap.docs.map((d) => ({
+          ...d.data(),
+          id: d.id,
+        }));
+        setProducts(allProducts);
+        // Filter products that are not already in the contract
+        const selectedProductIds = new Set(form.products);
+        const filteredProducts = allProducts.filter(
+          (p) => !selectedProductIds.has(p.id),
+        );
+        setAvailableProducts(filteredProducts);
+      } catch {
+        setError("Gagal memuat produk");
+      }
+    };
+    fetchProducts();
+  }, [form.products]);
 
   const checkContractNumberUnique = async (value: string) => {
     if (!value) {
@@ -90,6 +117,8 @@ export default function CreateContractPage() {
   // Add product to list
   const handleAddProduct = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
+    console.log("Selected product:", value);
+    console.log("Current products:", form.products);
     if (value && !form.products.includes(value)) {
       setForm((prev) => ({
         ...prev,
@@ -99,10 +128,10 @@ export default function CreateContractPage() {
           {
             product: value,
             location: "",
-            maintenance: false,
-            service: false,
-            rental: false,
-            sales: false,
+            maintenance: form.contractType === "maintenance" ? true : false,
+            service: form.contractType === "service" ? true : false,
+            rental: form.contractType === "rental" ? true : false,
+            sales: form.contractType === "sales" ? true : false,
           },
         ],
       }));
@@ -205,7 +234,7 @@ export default function CreateContractPage() {
       return;
     }
     try {
-      await addDoc(collection(firestore, "contracts"), {
+      const setContract = await addDoc(collection(firestore, "contracts"), {
         contractNumber: form.contractNumber,
         contractName: form.contractName,
         contractType: form.contractType,
@@ -226,6 +255,16 @@ export default function CreateContractPage() {
         createdAt: serverTimestamp(),
         createdBy: user?.uid ? doc(firestore, "users", user.uid) : null,
       });
+      console.log("Contract created with ID:", setContract.id);
+      // update afiliated products
+      for (const pid of form.products) {
+        const productRef = doc(firestore, "products", pid);
+        await updateDoc(productRef, {
+          contract: doc(firestore, "contracts", setContract.id),
+          updatedAt: serverTimestamp(),
+          updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
+        });
+      }
       router.push("/admin/contracts");
     } catch {
       setError("Gagal menambah kontrak");
@@ -233,11 +272,6 @@ export default function CreateContractPage() {
       setLoading(false);
     }
   };
-
-  // Available products for dropdown (exclude already selected)
-  const availableProducts = products.filter(
-    (p) => !form.products.includes(p.id),
-  );
 
   return (
     <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-2 dark:border-strokedark md:p-6 xl:p-7.5">
@@ -394,7 +428,7 @@ export default function CreateContractPage() {
                   <option value="">Tambah produk...</option>
                   {availableProducts.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.productNumber} - {p.name}
+                      {p.productNumber} - {p.name} - {p.productType}
                     </option>
                   ))}
                 </select>
