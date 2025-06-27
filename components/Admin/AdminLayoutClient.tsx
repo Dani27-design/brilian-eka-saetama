@@ -183,37 +183,37 @@ export default function AdminLayout({
     <html lang="id">
       <body className={inter.className}>
         {isAuthenticated && (
-          <ThemeProvider attribute="class">
-            <LanguageProvider>
-              <div className="flex h-screen bg-gray-50 dark:bg-blacksection">
-                <AdminSidebar
-                  onToggle={handleSidebarToggle}
-                  isOpen={isMobile ? mobileSidebarOpen : sidebarOpen}
-                  onClose={handleMobileSidebarClose}
-                  isMobile={isMobile}
-                  userData={userData}
+          // <ThemeProvider attribute="class">
+          <LanguageProvider>
+            <div className="flex h-screen bg-gray-50 dark:bg-blacksection">
+              <AdminSidebar
+                onToggle={handleSidebarToggle}
+                isOpen={isMobile ? mobileSidebarOpen : sidebarOpen}
+                onClose={handleMobileSidebarClose}
+                isMobile={isMobile}
+                userData={userData}
+              />
+              <div className="flex flex-1 flex-col overflow-hidden">
+                <AdminHeader
+                  sidebarOpen={sidebarOpen}
+                  onMobileMenuToggle={handleMobileMenuToggle}
+                  userData={userData} // Pastikan ini dikirim
                 />
-                <div className="flex flex-1 flex-col overflow-hidden">
-                  <AdminHeader
-                    sidebarOpen={sidebarOpen}
-                    onMobileMenuToggle={handleMobileMenuToggle}
-                    userData={userData} // Pastikan ini dikirim
-                  />
-                  <main
-                    className={`${
-                      !isMobile && sidebarOpen
-                        ? "lg:ml-64"
-                        : !isMobile
-                        ? "lg:ml-20"
-                        : ""
-                    } flex-1 overflow-y-auto p-2 transition-all duration-300 md:p-4 lg:p-6 xl:p-8`}
-                  >
-                    {children}
-                  </main>
-                </div>
+                <main
+                  className={`${
+                    !isMobile && sidebarOpen
+                      ? "lg:ml-64"
+                      : !isMobile
+                      ? "lg:ml-20"
+                      : ""
+                  } flex-1 overflow-y-auto p-2 transition-all duration-300 md:p-4 lg:p-6 xl:p-8`}
+                >
+                  {children}
+                </main>
               </div>
-            </LanguageProvider>
-          </ThemeProvider>
+            </div>
+          </LanguageProvider>
+          // {/* </ThemeProvider> */}
         )}
       </body>
     </html>

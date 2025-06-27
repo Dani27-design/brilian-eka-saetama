@@ -373,6 +373,66 @@ export default function AdminSidebar({
               </Link>
             </li>
 
+            {/* Maintenance Management Menu Item */}
+            <li className="group relative">
+              <Link
+                href="/admin/maintenances"
+                onClick={isMobile ? onClose : undefined}
+                className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                  pathname === "/admin/maintenances" ||
+                  (pathname && pathname.startsWith("/admin/maintenances/"))
+                    ? "bg-primary text-white"
+                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                }`}
+              >
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 32 32"
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g
+                      id="SVGRepo_tracerCarrier"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></g>
+                    <g id="SVGRepo_iconCarrier">
+                      {" "}
+                      <title>tools</title>{" "}
+                      <desc>Created with Sketch Beta.</desc> <defs> </defs>{" "}
+                      <g
+                        id="Page-1"
+                        stroke="none"
+                        stroke-width="1"
+                        fill="none"
+                        fill-rule="evenodd"
+                      >
+                        {" "}
+                        <g
+                          id="Icon-Set"
+                          transform="translate(-569.000000, -308.000000)"
+                          fill="#000000"
+                        >
+                          {" "}
+                          <path
+                            d="M594.884,322.281 C592.585,324.575 589.129,324.958 586.406,323.494 L574.556,335.322 C573.754,336.122 572.454,336.122 571.651,335.322 C570.85,334.521 570.85,333.225 571.651,332.424 L583.503,320.596 C582.038,317.88 582.422,314.433 584.72,312.139 C586.098,310.764 587.896,310.11 589.701,310.088 C587.81,312.096 587.835,315.248 589.802,317.211 C591.768,319.173 594.926,319.198 596.938,317.311 C596.916,319.112 596.262,320.906 594.884,322.281 L594.884,322.281 Z M598.159,313.37 C597.653,313.938 596.813,314.661 595.609,315.762 C594.334,317.034 592.529,317.034 591.254,315.762 C589.978,314.488 589.978,312.688 591.254,311.415 C592.429,310.242 593.692,308.853 593.672,308.847 C590.257,307.274 586.082,307.882 583.268,310.69 C580.703,313.249 579.972,316.935 581.051,320.146 L570.2,330.976 C568.596,332.576 568.596,335.171 570.2,336.771 C571.804,338.371 574.404,338.371 576.008,336.771 L586.858,325.942 C590.078,327.021 593.771,326.289 596.336,323.73 C599.146,320.925 599.73,316.775 598.159,313.37 L598.159,313.37 Z"
+                            id="tools"
+                          >
+                            {" "}
+                          </path>{" "}
+                        </g>{" "}
+                      </g>{" "}
+                    </g>
+                  </svg>
+                </div>
+                {isOpen && <span>Manajemen Pemeliharaan</span>}
+                <Tooltip text="Manajemen Pemeliharaan" />
+              </Link>
+            </li>
+
             {/* Website Content Section - parent menu */}
             <li className="group relative mb-1">
               <div

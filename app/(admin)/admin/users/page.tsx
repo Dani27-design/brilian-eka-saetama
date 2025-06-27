@@ -399,7 +399,7 @@ export default function UserManagementPage() {
   };
 
   return (
-    <>
+    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-black dark:text-white">
@@ -874,6 +874,6 @@ export default function UserManagementPage() {
           </div>
         </form>
       </Modal>
-    </>
+    </div>
   );
 }

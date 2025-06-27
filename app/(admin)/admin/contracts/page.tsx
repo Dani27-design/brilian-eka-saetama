@@ -18,7 +18,11 @@ import type { Contract } from "@/types/contracts";
 
 type ContractTableRow = Contract & {
   customerName: string;
-  productDetailsDisplay: string[];
+  productDetailsDisplay: {
+    productName: string;
+    productNumber: string;
+    serviceType?: string[];
+  }[];
 };
 
 export default function ContractsPage() {
@@ -41,7 +45,7 @@ export default function ContractsPage() {
       const customerRefs: Record<string, DocumentReference> = {};
       const productRefs: Record<string, DocumentReference> = {};
       querySnapshot.forEach((docSnap) => {
-        const contract = { id: docSnap.id, ...docSnap.data() } as Contract;
+        const contract = { ...docSnap.data(), id: docSnap.id } as Contract;
         if (contract.customer) {
           customerRefs[contract.customer.id] = contract.customer;
         }
@@ -79,28 +83,39 @@ export default function ContractsPage() {
 
       // Build table data
       for (const docSnap of querySnapshot.docs) {
-        const contract = { id: docSnap.id, ...docSnap.data() } as Contract;
+        const contract = { ...docSnap.data(), id: docSnap.id } as Contract;
         let customerName = "-";
         if (contract.customer && contract.customer.id) {
           customerName = customerMap[contract.customer.id] || "-";
         }
         // Build product details display
-        let productDetailsDisplay: string[] = [];
+        let productDetailsDisplay: {
+          productName: string;
+          productNumber: string;
+          serviceType?: string[];
+        }[] = [];
         if (Array.isArray(contract.productDetails)) {
           productDetailsDisplay = contract.productDetails.map((pd) => {
             const prod =
               pd.product && pd.product.id ? productMap[pd.product.id] : null;
-            const services = [
-              pd.maintenance ? "Maintenance" : null,
-              pd.service ? "Service" : null,
-              pd.rental ? "Rental" : null,
-              pd.sales ? "Sales" : null,
-            ]
-              .filter(Boolean)
-              .join(", ");
-            return prod
-              ? `${prod.productNumber} (${services})`
-              : `- (${services})`;
+            const services: string[] = [];
+            if (pd.maintenance) {
+              services.push("Maintenance");
+            }
+            if (pd.service) {
+              services.push("Service");
+            }
+            if (pd.rental) {
+              services.push("Rental");
+            }
+            if (pd.sales) {
+              services.push("Sales");
+            }
+            return {
+              productName: prod?.name ?? "",
+              productNumber: prod?.productNumber ?? "",
+              serviceType: services ?? [],
+            };
           });
         }
         data.push({
@@ -238,31 +253,31 @@ export default function ContractsPage() {
               <table className="w-full table-auto">
                 <thead>
                   <tr className="border-b bg-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-black">
-                    <th className="px-4 py-3">No. Kontrak</th>
-                    <th className="px-4 py-3">Nama Kontrak</th>
-                    <th className="px-4 py-3">Tipe</th>
-                    <th className="px-4 py-3">Deskripsi</th>
-                    <th className="px-4 py-3">Pelanggan</th>
-                    <th className="px-4 py-3">Tanggal Mulai</th>
-                    <th className="px-4 py-3">Tanggal Selesai</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Produk & Layanan</th>
-                    <th className="px-4 py-3">Aksi</th>
+                    <th className="px-2 py-3">No. Kontrak</th>
+                    <th className="px-2 py-3">Nama Kontrak</th>
+                    <th className="px-2 py-3">Tipe</th>
+                    <th className="px-2 py-3">Deskripsi</th>
+                    <th className="px-2 py-3">Pelanggan</th>
+                    <th className="px-2 py-3">Tanggal Mulai</th>
+                    <th className="px-2 py-3">Tanggal Selesai</th>
+                    <th className="px-2 py-3">Status</th>
+                    <th className="px-2 py-3">Produk & Layanan</th>
+                    <th className="px-2 py-3">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentContracts.map((contract) => (
                     <tr key={contract.id} className="text-sm">
-                      <td className="px-4 py-3">{contract.contractNumber}</td>
-                      <td className="px-4 py-3">{contract.contractName}</td>
-                      <td className="px-4 py-3 capitalize">
+                      <td className="px-2 py-3">{contract.contractNumber}</td>
+                      <td className="px-2 py-3">{contract.contractName}</td>
+                      <td className="px-2 py-3 capitalize">
                         {contract.contractType}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-3">
                         {contract.contractDescription}
                       </td>
-                      <td className="px-4 py-3">{contract.customerName}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-3">{contract.customerName}</td>
+                      <td className="px-2 py-3">
                         {contract.startDate &&
                         (contract.startDate as any).toDate
                           ? (contract.startDate as any)
@@ -270,24 +285,44 @@ export default function ContractsPage() {
                               .toLocaleDateString()
                           : "-"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-3">
                         {contract.endDate && (contract.endDate as any).toDate
                           ? (contract.endDate as any)
                               .toDate()
                               .toLocaleDateString()
                           : "-"}
                       </td>
-                      <td className="px-4 py-3 capitalize">
-                        {contract.status}
-                      </td>
-                      <td className="px-4 py-3">
-                        {contract.productDetailsDisplay &&
-                        contract.productDetailsDisplay.length > 0
-                          ? contract.productDetailsDisplay.join(", ")
+                      <td className="px-2 py-3 capitalize">
+                        {contract.status === "active"
+                          ? "Aktif"
+                          : contract.status === "inactive"
+                          ? "Tidak Aktif"
+                          : contract.status === "terminated"
+                          ? "Dihentikan"
                           : "-"}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex space-x-2">
+                      <td className="px-2 py-3">
+                        {contract.productDetailsDisplay &&
+                        contract.productDetailsDisplay.length > 0 ? (
+                          <ul className="list-disc pl-4">
+                            {contract.productDetailsDisplay.map((item, idx) => (
+                              <div className="mb-2 flex flex-col">
+                                <li key={idx}>
+                                  Produk : {item.productName} (
+                                  {item.productNumber})
+                                </li>
+                                <li key={idx}>
+                                  Layanan : {item.serviceType?.join(", ")}
+                                </li>
+                              </div>
+                            ))}
+                          </ul>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td className="px-2 py-3">
+                        <div className="p-auto flex flex-col flex-wrap gap-2">
                           <Link
                             href={`/admin/contracts/edit/${contract.id}`}
                             className="flex w-18 items-center justify-center rounded-lg bg-blue-200 px-1.5 py-1.5 text-xs font-medium text-gray-800 transition-colors hover:bg-yellow-200"

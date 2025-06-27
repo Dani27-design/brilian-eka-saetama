@@ -144,7 +144,7 @@ export default function AdminHeader({
         </div>
 
         {/* Theme switcher */}
-        <button
+        {/* <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
         >
@@ -179,7 +179,7 @@ export default function AdminHeader({
               />
             </svg>
           )}
-        </button>
+        </button> */}
 
         {/* Profile dropdown - tanpa foto profil */}
         <div className="relative" ref={profileRef}>

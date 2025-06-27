@@ -14,6 +14,7 @@ import {
 import { firestore } from "@/db/firebase/firebaseConfig";
 import Image from "next/image";
 import type { Product, ProductType } from "@/types/product";
+import { Contract } from "@/types/contracts";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<
@@ -44,7 +45,10 @@ export default function ProductsPage() {
           if (contractRef) {
             const contractSnap = await getDoc(contractRef);
             if (contractSnap.exists()) {
-              const contractData = contractSnap.data();
+              const contractData: any = {
+                ...contractSnap.data(),
+                id: contractSnap.id,
+              };
               // Fetch customer inside contract
               let customerData: any = null;
               if (contractData.customer && contractData.customer.id) {
@@ -52,8 +56,8 @@ export default function ProductsPage() {
                   const customerSnap = await getDoc(contractData.customer);
                   if (customerSnap.exists()) {
                     customerData = {
-                      id: customerSnap.id,
                       ...(customerSnap.data() || {}),
+                      id: customerSnap.id,
                     };
                   }
                 } catch {}
