@@ -7,13 +7,44 @@ import {
   doc,
   serverTimestamp,
   getDoc,
+  query,
+  where,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
 import { useAdmin } from "@/app/context/AdminContext";
+import { ProductType } from "@/types/product";
+
+type Contract = {
+  id: string;
+  contractNumber: string;
+  contractName: string;
+  products: any[];
+};
+
+type Product = {
+  id: string;
+  productNumber: string;
+  name: string;
+  productType: ProductType;
+};
+
+type MaintenanceStatus =
+  | "pending"
+  | "scheduled"
+  | "in-progress"
+  | "completed"
+  | "cancelled";
 
 export default function CreateMaintenancePage() {
-  const [contracts, setContracts] = useState<any[]>([]);
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [engineers, setEngineers] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [selectedEngineers, setSelectedEngineers] = useState<string[]>([]);
+  const [searchEngineer, setSearchEngineer] = useState("");
+  const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
   const [form, setForm] = useState({
     contract: "",
     startDate: "",
@@ -26,11 +57,129 @@ export default function CreateMaintenancePage() {
 
   useEffect(() => {
     const fetchContracts = async () => {
-      const snap = await getDocs(collection(firestore, "contracts"));
-      setContracts(snap.docs.map((d) => ({ ...d.data(), id: d.id })));
+      try {
+        const snap = await getDocs(collection(firestore, "contracts"));
+        const contractList: Contract[] = [];
+
+        for (const docSnap of snap.docs) {
+          const data = docSnap.data();
+          contractList.push({
+            id: docSnap.id,
+            contractNumber: data.contractNumber || "",
+            contractName: data.contractName || "",
+            products: data.products || [],
+          });
+        }
+
+        setContracts(contractList);
+      } catch (err) {
+        setError("Gagal memuat data kontrak");
+      }
     };
+
     fetchContracts();
   }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!form.contract) {
+        setSelectedProducts([]);
+        return;
+      }
+
+      try {
+        const contractRef = doc(firestore, "contracts", form.contract);
+        const contractSnap = await getDoc(contractRef);
+
+        if (!contractSnap.exists()) {
+          setError("Kontrak tidak ditemukan");
+          return;
+        }
+
+        const contractData = contractSnap.data();
+        const productRefs = contractData.products || [];
+
+        if (!productRefs.length) {
+          setError("Kontrak tidak memiliki produk");
+          return;
+        }
+
+        const products: Product[] = [];
+
+        for (const prodRef of productRefs) {
+          const prodSnap = await getDoc(prodRef);
+          if (prodSnap.exists()) {
+            const prodData = prodSnap.data() as Product;
+            products.push({
+              id: prodSnap.id,
+              productNumber: prodData.productNumber || "",
+              name: prodData.name || "",
+              productType: prodData.productType || "unknown",
+            });
+          }
+        }
+
+        setSelectedProducts(products);
+        setError("");
+      } catch (err: any) {
+        setError(err.message || "Gagal memuat produk");
+      }
+    };
+
+    fetchProducts();
+  }, [form.contract]);
+
+  // Add this useEffect to fetch engineers
+  useEffect(() => {
+    const fetchEngineers = async () => {
+      try {
+        const engSnap = await getDocs(
+          query(
+            collection(firestore, "users"),
+            where("role", "==", "engineer"),
+          ),
+        );
+        const engineersList = engSnap.docs.map((d) => ({
+          id: d.id,
+          name: d.data().name || d.id,
+        }));
+        setEngineers(engineersList);
+      } catch (err) {
+        console.error("Failed to load engineers:", err);
+      }
+    };
+
+    fetchEngineers();
+  }, []);
+
+  // Add functions to handle engineers
+  const addEngineer = (engineerId: string) => {
+    if (!selectedEngineers.includes(engineerId)) {
+      setSelectedEngineers([...selectedEngineers, engineerId]);
+    }
+    setSearchEngineer("");
+    setShowEngineerDropdown(false);
+  };
+
+  const removeEngineer = (engineerId: string) => {
+    setSelectedEngineers(selectedEngineers.filter((id) => id !== engineerId));
+  };
+
+  // Filter engineers based on search input
+  const filteredEngineers = engineers.filter(
+    (engineer) =>
+      engineer.name.toLowerCase().includes(searchEngineer.toLowerCase()) &&
+      !selectedEngineers.includes(engineer.id),
+  );
+
+  // Get selected engineers with their names
+  const displaySelectedEngineers = selectedEngineers.map((id) => {
+    const engineer = engineers.find((e) => e.id === id);
+    return {
+      id,
+      name: engineer?.name || id,
+    };
+  });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -42,29 +191,43 @@ export default function CreateMaintenancePage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     if (!form.contract || !form.startDate || !form.endDate) {
       setError("Semua field wajib diisi.");
       setLoading(false);
       return;
     }
+
+    if (selectedProducts.length === 0) {
+      setError("Kontrak tidak memiliki produk atau produk belum dimuat.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Get contract doc and its products
       const contractRef = doc(firestore, "contracts", form.contract);
-      const contractSnap = await getDoc(contractRef);
-      if (!contractSnap.exists()) throw new Error("Kontrak tidak ditemukan");
-      const contractData = contractSnap.data();
-      const products: any[] = contractData.products || [];
-      if (!products.length) throw new Error("Kontrak tidak memiliki produk");
 
       // Create maintenance for each product
       await Promise.all(
-        products.map(async (prodRef: any) => {
+        selectedProducts.map(async (product) => {
+          const productRef = doc(firestore, "products", product.id);
+
+          // Determine status based on whether engineers are assigned
+          const status: MaintenanceStatus =
+            selectedEngineers.length > 0 ? "scheduled" : "pending";
+
           await addDoc(collection(firestore, "maintenances"), {
             contract: contractRef,
-            product: prodRef,
-            engineer: null,
+            product: productRef,
+            productType: product.productType,
+            engineer:
+              selectedEngineers.length > 0
+                ? selectedEngineers.map((engId) =>
+                    doc(firestore, "users", engId),
+                  )
+                : null,
             inspection: null,
-            status: "scheduled",
+            status: status,
             startDate: new Date(form.startDate),
             endDate: new Date(form.endDate),
             createdAt: serverTimestamp(),
@@ -72,6 +235,7 @@ export default function CreateMaintenancePage() {
           });
         }),
       );
+
       router.push("/admin/maintenances");
     } catch (err: any) {
       setError(err.message || "Gagal membuat maintenance");
@@ -91,11 +255,13 @@ export default function CreateMaintenancePage() {
           maintenance akan dibuat untuk setiap produk pada kontrak.
         </p>
       </div>
+
       {error && (
         <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
           <div className="ml-3">{error}</div>
         </div>
       )}
+
       <form onSubmit={handleSubmit}>
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
@@ -117,6 +283,31 @@ export default function CreateMaintenancePage() {
               ))}
             </select>
           </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Produk yang akan dijadwalkan
+            </label>
+            <div className="rounded-lg border border-stroke bg-gray-50 p-3 dark:border-strokedark dark:bg-gray-800">
+              {selectedProducts.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  Pilih kontrak terlebih dahulu untuk melihat produk
+                </p>
+              ) : (
+                <ul className="max-h-32 overflow-y-auto">
+                  {selectedProducts.map((product) => (
+                    <li key={product.id} className="mb-1 text-sm">
+                      {product.productNumber} - {product.name}
+                      <span className="ml-2 inline-block rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
+                        {product.productType}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Tanggal Mulai
@@ -130,6 +321,7 @@ export default function CreateMaintenancePage() {
               required
             />
           </div>
+
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Tanggal Selesai
@@ -143,21 +335,83 @@ export default function CreateMaintenancePage() {
               required
             />
           </div>
-          <div>
+
+          <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status
+              Engineer (Opsional)
             </label>
-            <input
-              type="text"
-              value="scheduled"
-              disabled
-              className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500 dark:border-strokedark dark:bg-gray-800 dark:text-gray-400"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Status default: scheduled
-            </p>
+            <div className="mb-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Cari engineer..."
+                  value={searchEngineer}
+                  onChange={(e) => {
+                    setSearchEngineer(e.target.value);
+                    setShowEngineerDropdown(true);
+                  }}
+                  onFocus={() => setShowEngineerDropdown(true)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                />
+                {showEngineerDropdown && filteredEngineers.length > 0 && (
+                  <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                    {filteredEngineers.map((engineer) => (
+                      <div
+                        key={engineer.id}
+                        className="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => addEngineer(engineer.id)}
+                      >
+                        {engineer.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="mt-1 text-xs text-gray-500">
+                Pilih satu atau lebih engineer untuk maintenance (opsional)
+              </div>
+            </div>
+
+            {/* Selected engineers */}
+            {displaySelectedEngineers.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Engineer yang dipilih:
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {displaySelectedEngineers.map((engineer) => (
+                    <span
+                      key={engineer.id}
+                      className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                    >
+                      {engineer.name}
+                      <button
+                        type="button"
+                        onClick={() => removeEngineer(engineer.id)}
+                        className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 dark:bg-blue-800 dark:text-blue-200 dark:hover:bg-blue-700"
+                      >
+                        <svg
+                          className="h-3 w-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
         <div className="flex justify-end space-x-4">
           <button
             type="button"
