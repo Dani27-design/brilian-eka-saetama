@@ -9,6 +9,7 @@ import {
   getDoc,
   query,
   where,
+  Timestamp,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
@@ -145,7 +146,7 @@ export default function CreateMaintenancePage() {
         }));
         setEngineers(engineersList);
       } catch (err) {
-        console.error("Failed to load engineers:", err);
+        console.error("Gagal menampilkan teknisi:", err);
       }
     };
 
@@ -207,6 +208,52 @@ export default function CreateMaintenancePage() {
     try {
       const contractRef = doc(firestore, "contracts", form.contract);
 
+      // Convert form dates to Date objects for comparison
+      const newStartDate = new Date(form.startDate);
+      const newEndDate = new Date(form.endDate);
+
+      // Create Timestamp objects for Firestore query
+      const newStartTimestamp = Timestamp.fromDate(newStartDate);
+      const newEndTimestamp = Timestamp.fromDate(newEndDate);
+
+      // Query for existing maintenances for the same contract
+      // We can only use one inequality filter in Firestore.
+      // So, we'll query for maintenances that *could* overlap
+      // (i.e., their startDate is before or on the newEndDate)
+      // and then filter more precisely on the client side.
+      const q = query(
+        collection(firestore, "maintenances"),
+        where("contract", "==", contractRef),
+        where("startDate", "<=", newEndTimestamp),
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      // Client-side check for actual date overlaps
+      const isOverlap = querySnapshot.docs.some((docSnap) => {
+        const existingMaintenance = docSnap.data();
+        const existingStartDate = (
+          existingMaintenance.startDate as Timestamp
+        ).toDate();
+        const existingEndDate = (
+          existingMaintenance.endDate as Timestamp
+        ).toDate();
+
+        // Check for overlap: [newStartDate, newEndDate] overlaps with [existingStartDate, existingEndDate]
+        // if newStartDate <= existingEndDate AND newEndDate >= existingStartDate
+        return (
+          newStartDate <= existingEndDate && newEndDate >= existingStartDate
+        );
+      });
+
+      if (isOverlap) {
+        setError(
+          "Maintenance untuk kontrak ini sudah ada dalam periode yang dipilih atau terjadi tumpang tindih tanggal.",
+        );
+        setLoading(false);
+        return;
+      }
+
       // Create maintenance for each product
       await Promise.all(
         selectedProducts.map(async (product) => {
@@ -228,8 +275,8 @@ export default function CreateMaintenancePage() {
                 : null,
             inspection: null,
             status: status,
-            startDate: new Date(form.startDate),
-            endDate: new Date(form.endDate),
+            startDate: newStartDate, // Use Date object, Firestore will convert to Timestamp
+            endDate: newEndDate, // Use Date object, Firestore will convert to Timestamp
             createdAt: serverTimestamp(),
             createdBy: user?.uid ? doc(firestore, "users", user.uid) : null,
           });
@@ -330,21 +377,32 @@ export default function CreateMaintenancePage() {
               type="date"
               name="endDate"
               value={form.endDate}
+              min={
+                form.startDate
+                  ? new Date(new Date(form.startDate).getTime() + 86400000)
+                      .toISOString()
+                      .split("T")[0]
+                  : undefined
+              }
+              disabled={!form.startDate}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className={
+                "w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white" +
+                (!form.startDate ? " opacity-50" : "")
+              }
               required
             />
           </div>
 
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Engineer (Opsional)
+              Teknisi
             </label>
             <div className="mb-2">
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Cari engineer..."
+                  placeholder="Cari teknisi..."
                   value={searchEngineer}
                   onChange={(e) => {
                     setSearchEngineer(e.target.value);
@@ -368,7 +426,7 @@ export default function CreateMaintenancePage() {
                 )}
               </div>
               <div className="mt-1 text-xs text-gray-500">
-                Pilih satu atau lebih engineer untuk maintenance (opsional)
+                Pilih satu atau lebih teknisi untuk pemeliharaan
               </div>
             </div>
 
@@ -376,7 +434,7 @@ export default function CreateMaintenancePage() {
             {displaySelectedEngineers.length > 0 && (
               <div className="mt-3 space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Engineer yang dipilih:
+                  Teknisi yang dipilih:
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {displaySelectedEngineers.map((engineer) => (

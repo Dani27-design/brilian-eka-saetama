@@ -15,6 +15,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useAdmin } from "@/app/context/AdminContext";
 import { Maintenance, MaintenanceStatus } from "@/types/maintenances";
 import { ProductType } from "@/types/product";
+import Image from "next/image";
 
 type UserMeta = {
   name?: string;
@@ -54,6 +55,13 @@ export default function EditMaintenancePage() {
     date?: string;
     user?: { name?: string; role?: string };
   } | null>(null);
+  const [inspectorInfo, setInspectorInfo] = useState<
+    {
+      label: string;
+      date?: string;
+      user?: { name?: string; role?: string };
+    }[]
+  >([]);
 
   const [contractDetails, setContractDetails] = useState({
     number: "",
@@ -137,6 +145,21 @@ export default function EditMaintenancePage() {
           setMetaInfo(null);
         }
 
+        if (data.inspection?.updatedAt && data.inspection.updatedBy) {
+          fetchInspectorMeta(
+            data.inspection.updatedBy,
+            data.inspection?.updatedAt,
+            "Di revisi oleh",
+          );
+        }
+        if (data.inspection?.createdAt && data.inspection.createdBy) {
+          fetchInspectorMeta(
+            data.inspection.createdBy,
+            data.inspection?.createdAt,
+            "Di inspeksi oleh",
+          );
+        }
+
         // Engineers
         const engSnap = await getDocs(
           query(
@@ -177,6 +200,73 @@ export default function EditMaintenancePage() {
       }
     };
 
+    const fetchInspectorMeta = async (
+      userRef: any,
+      date: any,
+      label: string,
+    ) => {
+      try {
+        const userSnap = await getDoc(userRef);
+        let user: UserMeta = {};
+        if (userSnap.exists()) {
+          const userData = userSnap.data() as UserMeta;
+          user = {
+            name: userData.name || "-",
+            role: userData.role || "-",
+          };
+        }
+        const formattedDate = date?.toDate
+          ? date.toDate().toLocaleString()
+          : "-";
+
+        setInspectorInfo((prev) => {
+          const newItem = { label, date: formattedDate, user };
+          // Check if item already exists
+          const exists = prev.some(
+            (item) =>
+              item.label === newItem.label &&
+              item.date === newItem.date &&
+              item.user?.name === newItem.user?.name &&
+              item.user?.role === newItem.user?.role,
+          );
+
+          if (!exists) {
+            const updated = [...prev, newItem];
+            // Sort by date descending
+            return updated.sort(
+              (a, b) =>
+                new Date(b.date || 0).getTime() -
+                new Date(a.date || 0).getTime(),
+            );
+          }
+          return prev;
+        });
+      } catch {
+        setInspectorInfo((prev) => {
+          const newItem = { label, date: "-", user: { name: "-", role: "-" } };
+          // Check if item already exists
+          const exists = prev.some(
+            (item) =>
+              item.label === newItem.label &&
+              item.date === newItem.date &&
+              item.user?.name === newItem.user?.name &&
+              item.user?.role === newItem.user?.role,
+          );
+
+          if (!exists) {
+            const updated = [...prev, newItem];
+            // Sort by date descending
+            return updated.sort(
+              (a, b) =>
+                new Date(b.date || 0).getTime() -
+                new Date(a.date || 0).getTime(),
+            );
+          }
+          return prev;
+        });
+      }
+    };
+
     if (id) fetchData();
     // eslint-disable-next-line
   }, [id]);
@@ -196,7 +286,7 @@ export default function EditMaintenancePage() {
         }));
         setAvailableEngineers(engineersList);
       } catch (err) {
-        console.error("Failed to load engineers:", err);
+        console.error("Gagal memuat teknisi:", err);
       }
     };
 
@@ -209,14 +299,6 @@ export default function EditMaintenancePage() {
     const { name, value } = e.target;
     if (!form) return;
     setForm({ ...form, [name]: value });
-  };
-
-  const handleEngineerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!form) return;
-    const selected = Array.from(e.target.selectedOptions).map(
-      (opt) => opt.value,
-    );
-    setForm({ ...form, engineer: selected });
   };
 
   // Add this function to handle adding an engineer
@@ -258,6 +340,39 @@ export default function EditMaintenancePage() {
       };
     }) || [];
 
+  // Function to handle checklist item changes (status and remarks)
+  const handleChecklistChange = (
+    index: number,
+    field: "status" | "remarks",
+    value: boolean | string,
+  ) => {
+    if (!form || !form.inspection || !user?.uid) return; // Ensure user is available for updatedBy
+
+    const updatedChecklist = [...form.inspection.checklist];
+    const itemToUpdate = { ...updatedChecklist[index] };
+
+    if (field === "status") {
+      itemToUpdate.status = value as boolean;
+    } else if (field === "remarks") {
+      itemToUpdate.remarks = value as string;
+    }
+
+    updatedChecklist[index] = itemToUpdate;
+
+    setForm((prevForm: any) => {
+      if (!prevForm || !prevForm.inspection) return prevForm;
+      return {
+        ...prevForm,
+        inspection: {
+          ...prevForm.inspection,
+          checklist: updatedChecklist,
+          updatedAt: serverTimestamp(), // Update inspection's updatedAt
+          updatedBy: doc(firestore, "users", user.uid), // Update inspection's updatedBy
+        },
+      };
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form) return;
@@ -279,7 +394,7 @@ export default function EditMaintenancePage() {
         newStatus = "pending";
       }
 
-      await updateDoc(doc(firestore, "maintenances", id), {
+      const updateData: { [key: string]: any } = {
         startDate: new Date(form.startDate),
         endDate: new Date(form.endDate),
         status: newStatus,
@@ -288,7 +403,23 @@ export default function EditMaintenancePage() {
         ),
         updatedAt: serverTimestamp(),
         updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
-      });
+      };
+
+      // Only update inspection data if it exists and has been modified
+      if (form.inspection) {
+        updateData.inspection = {
+          ...form.inspection,
+          // Ensure createdAt and createdBy are not overwritten if they exist
+          createdAt: form.inspection.createdAt || serverTimestamp(),
+          createdBy:
+            form.inspection.createdBy ||
+            (user?.uid ? doc(firestore, "users", user.uid) : null),
+          // Photos are not editable by admin, so they remain as is
+          photos: form.inspection.photos || [],
+        };
+      }
+
+      await updateDoc(doc(firestore, "maintenances", id), updateData);
 
       router.push("/admin/maintenances");
     } catch (err: any) {
@@ -366,17 +497,26 @@ export default function EditMaintenancePage() {
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status Inspeksi
+              Status
             </label>
-            <input
-              value={form.inspection ? "Sudah diinspeksi" : "Belum diinspeksi"}
-              disabled
-              className={`w-full rounded-lg border px-4 py-2 ${
+            <select
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              disabled={form.inspection ? false : true}
+              className={
                 form.inspection
-                  ? "border-green-200 bg-green-50 text-green-700"
-                  : "border-gray-200 bg-gray-100 text-gray-500"
-              }`}
-            />
+                  ? "w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  : "w-full rounded-lg border border-stroke bg-gray-200 px-4 py-2 text-gray-700 dark:border-strokedark dark:bg-gray-800 dark:text-gray-400"
+              }
+              required
+            >
+              <option value="pending">Tertunda</option>
+              <option value="scheduled">Dijadwalkan</option>
+              <option value="waiting_approval">Menunggu Disetujui</option>
+              <option value="approved">Disetujui</option>
+              <option value="rejected">Ditolak</option>
+            </select>
           </div>
 
           <div>
@@ -401,72 +541,77 @@ export default function EditMaintenancePage() {
               type="date"
               name="endDate"
               value={form.endDate}
+              min={
+                form.startDate
+                  ? new Date(new Date(form.startDate).getTime() + 86400000)
+                      .toISOString()
+                      .split("T")[0]
+                  : undefined
+              }
+              disabled={!form.startDate}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className={
+                "w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white" +
+                (!form.startDate ? " opacity-50" : "")
+              }
               required
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status
-            </label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-              required
-            >
-              <option value="pending">Pending</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="waiting_approval">Waiting Approval</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </div>
-
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Engineer
-            </label>
-            <div className="mb-2">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Cari engineer..."
-                  value={searchEngineer}
-                  onChange={(e) => {
-                    setSearchEngineer(e.target.value);
-                    setShowEngineerDropdown(true);
-                  }}
-                  onFocus={() => setShowEngineerDropdown(true)}
-                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-                />
-                {showEngineerDropdown && filteredEngineers.length > 0 && (
-                  <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                    {filteredEngineers.map((engineer) => (
-                      <div
-                        key={engineer.id}
-                        className="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => addEngineer(engineer.id)}
-                      >
-                        {engineer.name}
-                      </div>
-                    ))}
+            {!form.inspection && (
+              <>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Teknisi
+                </label>
+                <div className="mb-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Cari teknisi..."
+                      value={searchEngineer}
+                      onChange={(e) => {
+                        if (!form.inspection) {
+                          setSearchEngineer(e.target.value);
+                          setShowEngineerDropdown(true);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (!form.inspection) {
+                          setShowEngineerDropdown(true);
+                        }
+                      }}
+                      disabled={!!form.inspection}
+                      className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-strokedark dark:text-white dark:disabled:bg-gray-700"
+                    />
+                    {showEngineerDropdown &&
+                      filteredEngineers.length > 0 &&
+                      !form.inspection && (
+                        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                          {filteredEngineers.map((engineer) => (
+                            <div
+                              key={engineer.id}
+                              className="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              onClick={() => addEngineer(engineer.id)}
+                            >
+                              {engineer.name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                   </div>
-                )}
-              </div>
-              <div className="mt-1 text-xs text-gray-500">
-                Pilih satu atau lebih engineer (opsional)
-              </div>
-            </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Pilih satu atau lebih teknisi
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Selected engineers */}
             {selectedEngineers.length > 0 && (
               <div className="mt-3 space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Engineer yang dipilih:
+                  Teknisi yang dipilih:
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {selectedEngineers.map((engineer) => (
@@ -475,25 +620,27 @@ export default function EditMaintenancePage() {
                       className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
                     >
                       {engineer.name}
-                      <button
-                        type="button"
-                        onClick={() => removeEngineer(engineer.id)}
-                        className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 dark:bg-blue-800 dark:text-blue-200 dark:hover:bg-blue-700"
-                      >
-                        <svg
-                          className="h-3 w-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      {!form.inspection && (
+                        <button
+                          type="button"
+                          onClick={() => removeEngineer(engineer.id)}
+                          className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 dark:bg-blue-800 dark:text-blue-200 dark:hover:bg-blue-700"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
+                          <svg
+                            className="h-3 w-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      )}
                     </span>
                   ))}
                 </div>
@@ -504,35 +651,174 @@ export default function EditMaintenancePage() {
 
         {form.inspection && (
           <div className="mb-6">
-            <h3 className="mb-3 text-base font-medium text-gray-700 dark:text-gray-300">
+            <h3 className="mb-3 text-xl font-semibold text-black dark:text-white">
               Data Inspeksi
             </h3>
-            <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-800">
-              <div className="mb-3 text-sm">
-                <div className="mb-2">
-                  <strong>Tanggal Inspeksi:</strong>{" "}
-                  {form.inspection.createdAt?.toDate
-                    ? form.inspection.createdAt.toDate().toLocaleString()
-                    : "-"}
+            <div className="dark:bg-boxdark rounded-lg border border-stroke bg-white p-4 dark:border-strokedark">
+              {inspectorInfo?.map((info, index) => (
+                <div
+                  key={index}
+                  className="mb-2 mt-0 rounded bg-blue-50 px-4 py-2 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                >
+                  {info.label}{" "}
+                  {info.user?.name && (
+                    <span>
+                      <b>{info.user.name}</b>
+                      {info.user.role ? ` (${info.user.role})` : ""}
+                    </span>
+                  )}
+                  {info.date && <span className="ml-2">{info.date}</span>}
                 </div>
+              ))}
 
-                <div className="mb-2">
-                  <strong>Jumlah Foto:</strong>{" "}
-                  {form.inspection.photos?.length || 0} foto
-                </div>
-
-                <div>
-                  <strong>Checklist:</strong>{" "}
-                  {form.inspection.checklist?.length
-                    ? `${form.inspection.checklist.length} item`
-                    : "Tidak ada item"}
+              {/* Photos Section (Read-only) */}
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Foto Inspeksi:
+                </label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {form.inspection.photos &&
+                  form.inspection.photos.length > 0 ? (
+                    form.inspection.photos.map(
+                      (photoUrl: string, photoIdx: number) => (
+                        <div key={photoIdx} className="group relative">
+                          <Image
+                            src={photoUrl}
+                            alt={`Inspection photo ${photoIdx + 1}`}
+                            width={96}
+                            height={96}
+                            className="h-24 w-24 rounded-md object-cover shadow-sm"
+                          />
+                        </div>
+                      ),
+                    )
+                  ) : (
+                    <p className="text-gray-500">Tidak ada foto.</p>
+                  )}
                 </div>
               </div>
 
-              <p className="text-xs text-gray-600">
-                Catatan: Data inspeksi hanya dapat diubah oleh engineer melalui
-                aplikasi mobile.
-              </p>
+              {/* Checklist Section (Editable) */}
+              <div className="mb-6">
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    Checklist Inspeksi
+                  </h4>
+                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    {form.inspection.checklist?.length || 0} Item
+                  </span>
+                </div>
+
+                {form.inspection.checklist?.length ? (
+                  <div className="space-y-4">
+                    {form.inspection.checklist.map((item: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className={`rounded-lg border ${
+                          item.status
+                            ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
+                            : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20"
+                        } p-4 shadow-sm`}
+                      >
+                        <div className="mb-3 flex items-center justify-between">
+                          <h5 className="font-medium text-gray-800 dark:text-white">
+                            {item.item}
+                          </h5>
+                          <div className="flex items-center gap-2">
+                            <label className="relative inline-flex cursor-pointer items-center">
+                              <input
+                                type="checkbox"
+                                checked={item.status}
+                                onChange={(e) =>
+                                  handleChecklistChange(
+                                    idx,
+                                    "status",
+                                    e.target.checked,
+                                  )
+                                }
+                                className="peer sr-only"
+                              />
+                              <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary dark:border-gray-600 dark:bg-gray-700"></div>
+                              <span
+                                className={`ml-2 text-sm font-medium ${
+                                  item.status
+                                    ? "text-green-700 dark:text-green-300"
+                                    : "text-red-700 dark:text-red-300"
+                                }`}
+                              >
+                                {item.status ? "Baik" : "Tidak Baik"}
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <label
+                            className={`mb-1 block text-sm font-medium ${
+                              item.status
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
+                            }`}
+                          >
+                            Catatan
+                          </label>
+                          <textarea
+                            value={item.remarks || ""}
+                            onChange={(e) =>
+                              handleChecklistChange(
+                                idx,
+                                "remarks",
+                                e.target.value,
+                              )
+                            }
+                            placeholder={
+                              item.status
+                                ? "Tambahkan catatan (opsional)"
+                                : "Deskripsikan masalah yang ditemukan"
+                            }
+                            rows={2}
+                            className={`block w-full rounded-lg border ${
+                              item.status
+                                ? "border-green-200 focus:border-green-500 focus:ring-green-500 dark:border-green-800"
+                                : "border-red-200 focus:border-red-500 focus:ring-red-500 dark:border-red-800"
+                            } bg-white p-3 text-sm text-gray-900 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400`}
+                          />
+                          <div
+                            className={`mt-1 text-xs ${
+                              item.status
+                                ? "text-green-500 dark:text-green-400"
+                                : "text-red-500 dark:text-red-400"
+                            }`}
+                          >
+                            {item.status
+                              ? "Kondisi baik, catatan bersifat opsional"
+                              : "Wajib diisi untuk kondisi tidak baik"}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-stroke bg-gray-50 p-6 text-center dark:border-strokedark dark:bg-gray-700">
+                    <svg
+                      className="mx-auto h-12 w-12 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <h5 className="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Tidak ada item checklist
+                    </h5>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -14,6 +14,10 @@ import Link from "next/link";
 import { Maintenance, MaintenanceStatus } from "@/types/maintenances";
 import { useAdmin } from "@/app/context/AdminContext";
 import Image from "next/image";
+import moment from "moment";
+import "moment-with-locales-es6";
+import "moment/locale/id";
+import Modal from "@/components/Admin/Modal";
 
 type MaintenanceTableRow = {
   id: string;
@@ -44,11 +48,11 @@ const statusColor: Record<MaintenanceStatus, string> = {
 };
 
 const statusDisplay: Record<MaintenanceStatus, string> = {
-  scheduled: "Scheduled",
-  pending: "Pending",
-  waiting_approval: "Waiting Approval",
-  approved: "Approved",
-  rejected: "Rejected",
+  scheduled: "Dijadwalkan",
+  pending: "Tertunda",
+  waiting_approval: "Menunggu Disetujui",
+  approved: "Disetujui",
+  rejected: "Ditolak",
 };
 
 export default function MaintenancesPage() {
@@ -65,7 +69,8 @@ export default function MaintenancesPage() {
   const [selectedEngineers, setSelectedEngineers] = useState<string[]>([]);
   const [searchEngineer, setSearchEngineer] = useState("");
   const [error, setError] = useState("");
-  const [expandedInspections, setExpandedInspections] = useState<string[]>([]);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false); // State for modal visibility
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null); // State for selected photo URL
 
   useEffect(() => {
     const fetchEngineers = async () => {
@@ -266,8 +271,8 @@ export default function MaintenancesPage() {
 
       closeEngineerModal();
     } catch (error) {
-      setError("Failed to update engineers");
-      console.error("Error updating engineers:", error);
+      setError("Gagal mengelola teknisi");
+      console.error("Error pengelolaan teknisi:", error);
     } finally {
       setActionLoading(null);
     }
@@ -315,23 +320,13 @@ export default function MaintenancesPage() {
       !selectedEngineers.includes(engineer.id),
   );
 
-  const toggleInspectionExpand = (maintenanceId: string) => {
-    if (expandedInspections.includes(maintenanceId)) {
-      setExpandedInspections(
-        expandedInspections.filter((id) => id !== maintenanceId),
-      );
-    } else {
-      setExpandedInspections([...expandedInspections, maintenanceId]);
-    }
-  };
-
   return (
     <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">Manajemen Maintenance</h2>
+          <h2 className="text-2xl font-semibold">Manajemen Pemeliharaan</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Kelola jadwal maintenance
+            Kelola jadwal pemeliharaan
           </p>
         </div>
         <Link
@@ -352,7 +347,7 @@ export default function MaintenancesPage() {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Tambah Maintenance
+          Buat Jadwal Pemeliharaan
         </Link>
       </div>
 
@@ -399,9 +394,9 @@ export default function MaintenancesPage() {
                     <th className="px-2 py-3">Kontrak</th>
                     <th className="px-2 py-3">Produk</th>
                     <th className="px-2 py-3">Periode</th>
-                    <th className="px-2 py-3">Status</th>
-                    <th className="px-2 py-3">Engineer</th>
+                    <th className="px-2 py-3">Teknisi</th>
                     <th className="px-2 py-3">Inspeksi</th>
+                    <th className="px-2 py-3">Status</th>
                     <th className="px-2 py-3">Aksi</th>
                   </tr>
                 </thead>
@@ -437,57 +432,19 @@ export default function MaintenancesPage() {
                         <div className="flex flex-col">
                           <span>
                             {m.startDate
-                              ? m.startDate.toLocaleDateString()
+                              ? moment(new Date(m.startDate)).format(
+                                  "DD MMMM YYYY",
+                                )
                               : "-"}
                           </span>
                           <span className="text-xs text-gray-500">
                             s/d{" "}
-                            {m.endDate ? m.endDate.toLocaleDateString() : "-"}
+                            {m.endDate
+                              ? moment(new Date(m.endDate)).format(
+                                  "DD MMMM YYYY",
+                                )
+                              : "-"}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-2 py-3">
-                        <div className="flex flex-col">
-                          <div className="mb-1 flex items-center gap-1">
-                            <span
-                              className={`inline-block rounded px-2 py-1 text-xs font-semibold ${
-                                statusColor[m.status]
-                              }`}
-                            >
-                              {statusDisplay[m.status]}
-                            </span>
-
-                            {m.status === "waiting_approval" &&
-                              m.hasInspection && (
-                                <div className="flex space-x-1">
-                                  <button
-                                    onClick={() =>
-                                      updateStatus(m.id, "approved")
-                                    }
-                                    disabled={actionLoading === m.id}
-                                    className="rounded bg-green-500 px-2 py-1 text-xs font-medium text-white hover:bg-green-600"
-                                  >
-                                    {actionLoading === m.id ? "..." : "✓"}
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      updateStatus(m.id, "rejected")
-                                    }
-                                    disabled={actionLoading === m.id}
-                                    className="rounded bg-red-500 px-2 py-1 text-xs font-medium text-white hover:bg-red-600"
-                                  >
-                                    {actionLoading === m.id ? "..." : "✕"}
-                                  </button>
-                                </div>
-                              )}
-                          </div>
-
-                          {m.status === "waiting_approval" &&
-                            !m.hasInspection && (
-                              <div className="text-xs text-orange-500">
-                                Menunggu inspeksi
-                              </div>
-                            )}
                         </div>
                       </td>
                       <td className="px-2 py-3">
@@ -504,13 +461,48 @@ export default function MaintenancesPage() {
                               ))}
                             </div>
                           )}
-                          <button
-                            onClick={() => openEngineerModal(m.id)}
-                            disabled={actionLoading === m.id}
-                            className="rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 hover:bg-blue-200"
-                          >
-                            {actionLoading === m.id ? "..." : "Kelola Engineer"}
-                          </button>
+                          {!(
+                            m.inspection && m.inspection.checklist.length > 0
+                          ) && (
+                            <button
+                              onClick={() => openEngineerModal(m.id)}
+                              disabled={actionLoading === m.id}
+                              className="flex w-fit flex-row items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 hover:bg-blue-200"
+                            >
+                              <svg
+                                fill="#1e40af"
+                                height="10px"
+                                width="10px"
+                                version="1.1"
+                                id="Layer_1"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                                stroke="#1e40af"
+                              >
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                <g
+                                  id="SVGRepo_tracerCarrier"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                ></g>
+                                <g id="SVGRepo_iconCarrier">
+                                  {" "}
+                                  <g>
+                                    {" "}
+                                    <g>
+                                      {" "}
+                                      <path d="M511.956,308.448L512,206.866l-65.97-7.239c-3.584-12.101-8.323-23.822-14.165-35.037l42.198-52.531l-71.812-71.845 L350.48,81.766c-11.115-6.041-22.751-10.987-34.783-14.783l-7.318-66.961H206.797l-7.21,65.973 c-11.988,3.556-23.608,8.248-34.726,14.021l-52.475-42.265l-71.938,71.72l41.484,51.825c-6.058,11.109-11.02,22.741-14.831,34.763 L0.134,203.29L0,304.872l65.963,7.295c3.573,12.101,8.301,23.826,14.135,35.049L37.856,399.71l71.751,71.907l51.807-41.507 c11.112,6.052,22.744,11.008,34.769,14.815l7.261,66.966l101.582,0.088l7.266-65.967c12.1-3.578,23.826-8.313,35.043-14.149 l52.513,42.22l71.876-71.783l-41.529-51.788c6.046-11.112,10.997-22.747,14.8-34.777L511.956,308.448z M256.021,347.705 c-50.659,0-91.727-41.068-91.727-91.727s41.068-91.727,91.727-91.727c50.659,0,91.727,41.068,91.727,91.727 S306.681,347.705,256.021,347.705z"></path>{" "}
+                                    </g>{" "}
+                                  </g>{" "}
+                                </g>
+                              </svg>
+                              {actionLoading === m.id
+                                ? "..."
+                                : m.engineers.length > 0
+                                ? "Kelola Teknisi"
+                                : "Pilih Teknisi"}
+                            </button>
+                          )}
                         </div>
                       </td>
                       <td className="px-2 py-3">
@@ -569,19 +561,95 @@ export default function MaintenancesPage() {
                                 ),
                               )}
                             </ul>
+                            {/* {m.inspection.photos &&
+                              m.inspection.photos.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {m.inspection.photos.map(
+                                    (photoUrl: string, photoIdx: number) => (
+                                      <div
+                                        key={photoIdx}
+                                        className="group relative"
+                                      >
+                                        <button
+                                          onClick={() => {
+                                            // You'll need to implement a modal state management
+                                            // setSelectedPhoto(photoUrl);
+                                            // setIsPhotoModalOpen(true);
+                                          }}
+                                          className="focus:outline-none"
+                                        >
+                                          <Image
+                                            src={photoUrl}
+                                            alt={`Inspection photo ${
+                                              photoIdx + 1
+                                            }`}
+                                            width={32}
+                                            height={32}
+                                            className="h-8 w-8 rounded-md object-cover shadow-sm transition-transform hover:scale-110"
+                                          />
+                                          <div className="absolute inset-0 hidden items-center justify-center rounded-md bg-black bg-opacity-50 group-hover:flex">
+                                            <svg
+                                              className="h-4 w-4 text-white"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              stroke="currentColor"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                              />
+                                            </svg>
+                                          </div>
+                                        </button>
+                                      </div>
+                                    ),
+                                  )}
+                                </div>
+                              )} */}
                             {m.inspection.photos &&
                               m.inspection.photos.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                   {m.inspection.photos.map(
                                     (photoUrl: string, photoIdx: number) => (
-                                      <Image
+                                      <div
                                         key={photoIdx}
-                                        src={photoUrl}
-                                        alt={`Inspection photo ${photoIdx + 1}`}
-                                        width={32}
-                                        height={32}
-                                        className="h-8 w-8 rounded-md object-cover shadow-sm"
-                                      />
+                                        className="group relative"
+                                      >
+                                        <button
+                                          onClick={() => {
+                                            setSelectedPhoto(photoUrl); // Set the photo to display
+                                            setIsPhotoModalOpen(true); // Open the modal
+                                          }}
+                                          className="focus:outline-none"
+                                        >
+                                          <Image
+                                            src={photoUrl}
+                                            alt={`Inspection photo ${
+                                              photoIdx + 1
+                                            }`}
+                                            width={32}
+                                            height={32}
+                                            className="h-8 w-8 rounded-md object-cover shadow-sm transition-transform hover:scale-110"
+                                          />
+                                          <div className="absolute inset-0 hidden items-center justify-center rounded-md bg-black bg-opacity-50 group-hover:flex">
+                                            <svg
+                                              className="h-4 w-4 text-white"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              stroke="currentColor"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                              />
+                                            </svg>
+                                          </div>
+                                        </button>
+                                      </div>
                                     ),
                                   )}
                                 </div>
@@ -592,6 +660,50 @@ export default function MaintenancesPage() {
                             Belum diinspeksi
                           </span>
                         )}
+                      </td>
+                      <td className="px-2 py-3">
+                        <div className="flex flex-col">
+                          <div className="mb-1 flex items-center gap-1">
+                            <span
+                              className={`inline-block rounded px-2 py-1 text-xs font-semibold ${
+                                statusColor[m.status]
+                              }`}
+                            >
+                              {statusDisplay[m.status]}
+                            </span>
+
+                            {m.status === "waiting_approval" &&
+                              m.hasInspection && (
+                                <div className="flex space-x-1">
+                                  <button
+                                    onClick={() =>
+                                      updateStatus(m.id, "approved")
+                                    }
+                                    disabled={actionLoading === m.id}
+                                    className="rounded bg-green-500 px-2 py-1 text-xs font-medium text-white hover:bg-green-600"
+                                  >
+                                    {actionLoading === m.id ? "..." : "✓"}
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      updateStatus(m.id, "rejected")
+                                    }
+                                    disabled={actionLoading === m.id}
+                                    className="rounded bg-red-500 px-2 py-1 text-xs font-medium text-white hover:bg-red-600"
+                                  >
+                                    {actionLoading === m.id ? "..." : "✕"}
+                                  </button>
+                                </div>
+                              )}
+                          </div>
+
+                          {m.status === "waiting_approval" &&
+                            !m.hasInspection && (
+                              <div className="text-xs text-orange-500">
+                                Menunggu inspeksi
+                              </div>
+                            )}
+                        </div>
                       </td>
                       <td className="px-2 py-3">
                         <div className="flex flex-col gap-2">
@@ -686,7 +798,7 @@ export default function MaintenancesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-medium">Kelola Engineer</h3>
+              <h3 className="text-lg font-medium">Kelola Teknisi</h3>
               <button
                 onClick={closeEngineerModal}
                 className="text-gray-500 hover:text-gray-700"
@@ -713,7 +825,7 @@ export default function MaintenancesPage() {
               </label>
               <input
                 type="text"
-                placeholder="Ketik nama engineer..."
+                placeholder="Ketik nama teknisi..."
                 value={searchEngineer}
                 onChange={(e) => setSearchEngineer(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
@@ -737,7 +849,7 @@ export default function MaintenancesPage() {
             {selectedEngineers.length > 0 && (
               <div className="mb-4">
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Engineer Terpilih
+                  Teknisi Terpilih
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {selectedEngineers.map((id) => {
@@ -793,6 +905,24 @@ export default function MaintenancesPage() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+        title="Detail Foto Inspeksi"
+      >
+        {selectedPhoto && (
+          <div className="flex justify-center">
+            <Image
+              src={selectedPhoto}
+              alt="Zoomed Inspection Photo"
+              width={800} // Adjust as needed
+              height={600} // Adjust as needed
+              className="max-h-[80vh] w-auto object-contain"
+            />
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
