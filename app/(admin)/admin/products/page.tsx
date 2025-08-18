@@ -15,6 +15,13 @@ import { firestore } from "@/db/firebase/firebaseConfig";
 import Image from "next/image";
 import type { Product, ProductType } from "@/types/product";
 import { Contract } from "@/types/contracts";
+import { 
+  generateProductQRData, 
+  downloadQRCode, 
+  generateQRCodeDataURL,
+  getQRCodeSize 
+} from "@/utils/qrCodeGenerator";
+import { findProductLocation } from "@/utils/findProductLocation";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<
@@ -27,6 +34,7 @@ export default function ProductsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [brandFilter, setBrandFilter] = useState<string | null>(null);
+  const [generatingQR, setGeneratingQR] = useState<string | null>(null);
 
   // Fetch products
   const fetchProducts = async () => {
@@ -133,6 +141,51 @@ export default function ProductsPage() {
       } catch {
         setError("Gagal menghapus produk");
       }
+    }
+  };
+
+  /**
+   * Handles QR code generation and download for a product
+   * Creates QR code containing all product information for mobile scanning
+   * 
+   * @param product - The product to generate QR code for
+   */
+  const handleGenerateQR = async (product: Product & { contractData?: any }) => {
+    if (!product.id) return;
+
+    setGeneratingQR(product.id);
+    setError(null);
+
+    try {
+      // Get location from contract if available
+      let location: string | undefined;
+      if (product.contractData?.productDetails) {
+        location = findProductLocation(
+          doc(firestore, "products", product.id),
+          product.contractData.productDetails
+        );
+        if (location === "N/A") location = undefined;
+      }
+
+      // Generate QR data
+      const qrData = generateProductQRData(
+        product,
+        product.id,
+        product.contractData?.id,
+        location
+      );
+
+      // Download QR code with high quality for printing
+      await downloadQRCode(qrData, {
+        size: getQRCodeSize("print"),
+        errorCorrectionLevel: "H", // High error correction for better scanning
+      });
+
+    } catch (err: any) {
+      console.error("Error generating QR code:", err);
+      setError(err.message || "Gagal membuat QR code");
+    } finally {
+      setGeneratingQR(null);
     }
   };
 
@@ -440,6 +493,32 @@ export default function ProductsPage() {
                               />
                             </svg>
                             Hapus
+                          </button>
+                          <button
+                            onClick={() => handleGenerateQR(product)}
+                            disabled={generatingQR === product.id}
+                            className="flex w-18 items-center justify-center rounded-lg border border-green-300 bg-white px-1.5 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-50 disabled:opacity-50"
+                            title="Generate QR Code"
+                          >
+                            {generatingQR === product.id ? (
+                              <div className="mr-1 h-3 w-3 animate-spin rounded-full border border-green-600 border-t-transparent"></div>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="mr-1 h-3 w-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 16h4.01M12 16h4.01M12 20h4.01M12 8h4.01M12 4h4.01"
+                                />
+                              </svg>
+                            )}
+                            {generatingQR === product.id ? "..." : "QR"}
                           </button>
                         </div>
                       </td>

@@ -28,6 +28,7 @@ const translations = {
     userManagement: "Manajemen Pengguna", // Added translation for user management
     settings: "Pengaturan Akun", // Tambahkan ini
     productManagement: "Manajemen Produk", // Tambahkan ini
+    inspectionManagement: "Manajemen Inspeksi", // Tambahkan ini
   },
   en: {
     dashboard: "Dashboard",
@@ -49,6 +50,7 @@ const translations = {
     userManagement: "User Management", // Added translation for user management
     settings: "Account Settings", // Tambahkan ini
     productManagement: "Product Management", // Tambahkan ini
+    inspectionManagement: "Inspection Management", // Tambahkan ini
   },
 };
 
@@ -430,6 +432,39 @@ export default function AdminSidebar({
                 </div>
                 {isOpen && <span>Manajemen Pemeliharaan</span>}
                 <Tooltip text="Manajemen Pemeliharaan" />
+              </Link>
+            </li>
+
+            {/* Inspection Management Menu Item */}
+            <li className="group relative">
+              <Link
+                href="/admin/inspections"
+                onClick={isMobile ? onClose : undefined}
+                className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
+                  pathname === "/admin/inspections" ||
+                  (pathname && pathname.startsWith("/admin/inspections/"))
+                    ? "bg-primary text-white"
+                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                }`}
+              >
+                <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    />
+                  </svg>
+                </div>
+                {isOpen && <span>{t.inspectionManagement}</span>}
+                <Tooltip text={t.inspectionManagement} />
               </Link>
             </li>
 

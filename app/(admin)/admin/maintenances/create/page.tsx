@@ -98,6 +98,17 @@ export default function CreateMaintenancePage() {
         }
 
         const contractData = contractSnap.data();
+        
+        // Check if contract type is "maintenance" - prevent manual creation
+        if (contractData.contractType === "maintenance") {
+          setError(
+            "Maintenances untuk kontrak maintenance dibuat otomatis oleh sistem. " +
+            "Tidak dapat membuat maintenance manual untuk jenis kontrak ini."
+          );
+          setSelectedProducts([]);
+          return;
+        }
+        
         const productRefs = contractData.products || [];
 
         if (!productRefs.length) {
@@ -207,6 +218,20 @@ export default function CreateMaintenancePage() {
 
     try {
       const contractRef = doc(firestore, "contracts", form.contract);
+      
+      // Double-check contract type to prevent manual maintenance creation
+      const contractSnap = await getDoc(contractRef);
+      if (contractSnap.exists()) {
+        const contractData = contractSnap.data();
+        if (contractData.contractType === "maintenance") {
+          setError(
+            "Maintenances untuk kontrak maintenance dibuat otomatis oleh sistem. " +
+            "Tidak dapat membuat maintenance manual untuk jenis kontrak ini."
+          );
+          setLoading(false);
+          return;
+        }
+      }
 
       // Convert form dates to Date objects for comparison
       const newStartDate = new Date(form.startDate);

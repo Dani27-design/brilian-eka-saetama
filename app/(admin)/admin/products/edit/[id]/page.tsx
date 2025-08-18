@@ -17,6 +17,15 @@ import type { Product, ProductSpecs, ProductType } from "@/types/product";
 import { query, where, getDocs } from "firebase/firestore";
 import React from "react";
 import { Timestamp } from "firebase/firestore";
+import { 
+  generateProductQRData, 
+  downloadQRCode, 
+  generateQRCodeDataURL,
+  getQRCodeSize,
+  generateQRLabel 
+} from "@/utils/qrCodeGenerator";
+import { findProductLocation } from "@/utils/findProductLocation";
+import Image from "next/image";
 
 type UserMeta = {
   name?: string;
@@ -59,6 +68,9 @@ export default function EditProductPage() {
     user?: UserMeta;
   } | null>(null);
   const [productNumberError, setProductNumberError] = useState<string>("");
+  const [generatingQR, setGeneratingQR] = useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  const [contractData, setContractData] = useState<any>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -90,6 +102,21 @@ export default function EditProductPage() {
               : "",
             serialNumber: data.specs?.serialNumber || "",
           });
+
+          // Fetch contract data if product is assigned to a contract
+          if (data.contract) {
+            try {
+              const contractSnap = await getDoc(data.contract);
+              if (contractSnap.exists()) {
+                setContractData({
+                  id: contractSnap.id,
+                  ...contractSnap.data(),
+                });
+              }
+            } catch (contractError) {
+              console.warn("Failed to fetch contract data:", contractError);
+            }
+          }
 
           // Meta info
           if (data.updatedAt && data.updatedBy) {
@@ -784,6 +811,120 @@ export default function EditProductPage() {
     );
   }
 
+  /**
+   * Generates QR code preview for the current product
+   * Creates visual QR code for display in the form
+   */
+  const generateQRPreview = async () => {
+    if (!id) return;
+
+    setGeneratingQR(true);
+    setError("");
+
+    try {
+      // Get location from contract if available
+      let location: string | undefined;
+      if (contractData?.productDetails) {
+        location = findProductLocation(
+          doc(firestore, "products", id),
+          contractData.productDetails
+        );
+        if (location === "N/A") location = undefined;
+      }
+
+      // Build product data for QR
+      const productData: Product = {
+        id,
+        name: form.name,
+        productNumber: form.productNumber,
+        productType: form.productType,
+        imageUrl: form.imageUrl,
+        source: form.source,
+        maintenanceInterval: form.maintenanceInterval,
+        specs: specs as ProductSpecs,
+        contract: contractData ? doc(firestore, "contracts", contractData.id) : null,
+      };
+
+      // Generate QR data
+      const qrData = generateProductQRData(
+        productData,
+        id,
+        contractData?.id,
+        location
+      );
+
+      // Generate preview QR code
+      const qrDataUrl = await generateQRCodeDataURL(qrData, {
+        size: getQRCodeSize("web"),
+        errorCorrectionLevel: "M",
+      });
+
+      setQrCodeDataUrl(qrDataUrl);
+
+    } catch (err: any) {
+      console.error("Error generating QR preview:", err);
+      setError(err.message || "Gagal membuat preview QR code");
+    } finally {
+      setGeneratingQR(false);
+    }
+  };
+
+  /**
+   * Downloads QR code as PNG file
+   * High-quality QR code for printing
+   */
+  const downloadQRCodeFile = async () => {
+    if (!id) return;
+
+    setGeneratingQR(true);
+    setError("");
+
+    try {
+      // Get location from contract if available
+      let location: string | undefined;
+      if (contractData?.productDetails) {
+        location = findProductLocation(
+          doc(firestore, "products", id),
+          contractData.productDetails
+        );
+        if (location === "N/A") location = undefined;
+      }
+
+      // Build product data for QR
+      const productData: Product = {
+        id,
+        name: form.name,
+        productNumber: form.productNumber,
+        productType: form.productType,
+        imageUrl: form.imageUrl,
+        source: form.source,
+        maintenanceInterval: form.maintenanceInterval,
+        specs: specs as ProductSpecs,
+        contract: contractData ? doc(firestore, "contracts", contractData.id) : null,
+      };
+
+      // Generate QR data
+      const qrData = generateProductQRData(
+        productData,
+        id,
+        contractData?.id,
+        location
+      );
+
+      // Download QR code with high quality for printing
+      await downloadQRCode(qrData, {
+        size: getQRCodeSize("print"),
+        errorCorrectionLevel: "H",
+      });
+
+    } catch (err: any) {
+      console.error("Error downloading QR code:", err);
+      setError(err.message || "Gagal mendownload QR code");
+    } finally {
+      setGeneratingQR(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -1018,6 +1159,156 @@ export default function EditProductPage() {
               folder="products"
               aspectRatio="square"
             />
+          </div>
+        </div>
+
+        {/* QR Code Section */}
+        <div className="mb-6 rounded-lg border border-stroke bg-white p-4 shadow-default">
+          <h3 className="mb-4 text-lg font-semibold text-black dark:text-white">
+            QR Code Produk
+          </h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* QR Preview */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">
+                Preview QR Code
+              </label>
+              {qrCodeDataUrl ? (
+                <div className="rounded-lg border border-stroke bg-white p-4 text-center dark:border-strokedark dark:bg-boxdark">
+                  <Image
+                    src={qrCodeDataUrl}
+                    alt="QR Code Preview"
+                    width={200}
+                    height={200}
+                    className="mx-auto"
+                  />
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Scan untuk akses data produk lengkap
+                  </p>
+                  {contractData && (
+                    <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                      Termasuk data kontrak & lokasi
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-gray-600 dark:bg-gray-800">
+                  <svg 
+                    className="mx-auto h-12 w-12 text-gray-400" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={1} 
+                      d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 16h4.01M12 16h4.01M12 20h4.01M12 8h4.01M12 4h4.01" 
+                    />
+                  </svg>
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    Generate QR code untuk melihat preview
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* QR Actions */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-600 dark:text-gray-300">
+                Aksi QR Code
+              </label>
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={generateQRPreview}
+                  disabled={generatingQR}
+                  className="flex w-full items-center justify-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700"
+                >
+                  {generatingQR ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="mr-2 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                      Generate Preview
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={downloadQRCodeFile}
+                  disabled={generatingQR}
+                  className="flex w-full items-center justify-center rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 disabled:opacity-50 dark:bg-green-600 dark:hover:bg-green-700"
+                >
+                  {generatingQR ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="mr-2 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      Download QR (Print Quality)
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              {/* QR Info */}
+              <div className="mt-4 rounded-lg bg-gray-50 p-3 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                <p className="font-medium">QR Code berisi:</p>
+                <ul className="mt-1 list-disc pl-4 space-y-0.5">
+                  <li>ID & No. Produk</li>
+                  <li>Tipe Produk & Brand</li>
+                  <li>Interval Maintenance</li>
+                  <li>Serial Number</li>
+                  {contractData && (
+                    <>
+                      <li>Info Kontrak</li>
+                      <li>Lokasi Pemasangan</li>
+                    </>
+                  )}
+                  <li>Timestamp Generation</li>
+                </ul>
+                <p className="mt-2 text-xs italic text-gray-500 dark:text-gray-400">
+                  QR code dapat dipindai oleh aplikasi mobile untuk akses cepat data produk.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -71,6 +71,10 @@ export default function MaintenancesPage() {
   const [error, setError] = useState("");
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false); // State for modal visibility
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null); // State for selected photo URL
+  const [filterMonth, setFilterMonth] = useState(() => {
+    // Default to current month (1-based)
+    return new Date().getMonth() + 1;
+  });
 
   useEffect(() => {
     const fetchEngineers = async () => {
@@ -159,22 +163,48 @@ export default function MaintenancesPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, filterMonth]);
 
-  // Filtered maintenances
-  const filteredMaintenances = maintenances.filter((m) => {
-    const search = (
-      m.contractNumber +
-      m.contractName +
-      m.productNumber +
-      m.productName +
-      m.productType +
-      (m.engineers.map((e) => e.name) || []).join(",")
-    )
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return search;
-  });
+  // Apply filters function (similar to inspections page)
+  const applyFilters = () => {
+    let filtered = [...maintenances];
+
+    // Search filter
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter((m) => {
+        const searchContent = (
+          m.contractNumber +
+          m.contractName +
+          m.productNumber +
+          m.productName +
+          m.productType +
+          (m.engineers.map((e) => e.name) || []).join(",")
+        ).toLowerCase();
+        return searchContent.includes(search);
+      });
+    }
+
+    // Month filter (filter by startDate month)
+    if (filterMonth && filterMonth > 0) {
+      filtered = filtered.filter((m) => {
+        if (!m.startDate) return false;
+        return m.startDate.getMonth() + 1 === filterMonth;
+      });
+    }
+
+    // Sort by startDate ascending
+    filtered.sort((a, b) => {
+      if (!a.startDate && !b.startDate) return 0;
+      if (!a.startDate) return 1;
+      if (!b.startDate) return -1;
+      return a.startDate.getTime() - b.startDate.getTime();
+    });
+
+    return filtered;
+  };
+
+  const filteredMaintenances = applyFilters();
 
   // Pagination
   const totalPages = Math.ceil(filteredMaintenances.length / itemsPerPage);
@@ -376,6 +406,30 @@ export default function MaintenancesPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-lg border border-stroke px-4 py-2 outline-none focus:border-primary"
             />
+          </div>
+          <div className="w-full sm:w-48">
+            <label className="mb-1 block text-xs font-medium text-gray-600">
+              Filter Bulan
+            </label>
+            <select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(Number(e.target.value))}
+              className="w-full rounded-lg border border-stroke px-4 py-2 outline-none focus:border-primary"
+            >
+              <option value={0}>Semua Bulan</option>
+              <option value={1}>Januari</option>
+              <option value={2}>Februari</option>
+              <option value={3}>Maret</option>
+              <option value={4}>April</option>
+              <option value={5}>Mei</option>
+              <option value={6}>Juni</option>
+              <option value={7}>Juli</option>
+              <option value={8}>Agustus</option>
+              <option value={9}>September</option>
+              <option value={10}>Oktober</option>
+              <option value={11}>November</option>
+              <option value={12}>Desember</option>
+            </select>
           </div>
         </div>
       </div>

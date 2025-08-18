@@ -163,8 +163,24 @@ export default function ContractsPage() {
 
   // Delete contract
   const handleDelete = async (id: string) => {
-    if (window.confirm("Hapus kontrak ini?")) {
+    if (window.confirm("Hapus kontrak ini? PERHATIAN: Semua data maintenance yang terkait dengan kontrak ini juga akan dihapus.")) {
       try {
+        // Delete all related maintenances first
+        const relatedMaintenancesQuery = await getDocs(
+          query(
+            collection(firestore, "maintenances"),
+            where("contract", "==", doc(firestore, "contracts", id)),
+          ),
+        );
+        
+        // Delete each related maintenance document
+        const maintenanceDeletions = relatedMaintenancesQuery.docs.map(
+          (maintenanceDoc) => deleteDoc(doc(firestore, "maintenances", maintenanceDoc.id))
+        );
+        await Promise.all(maintenanceDeletions);
+        
+        console.log(`Deleted ${relatedMaintenancesQuery.docs.length} related maintenances for contract ${id}`);
+        
         // update afiliated products in contracts to remove this contract
         // use query where products array contains this contract
         const afiliatedProductsQuery = await getDocs(
@@ -184,8 +200,14 @@ export default function ContractsPage() {
         }
         await deleteDoc(doc(firestore, "contracts", id));
         setContracts(contracts.filter((c) => c.id !== id));
-      } catch {
-        setError("Gagal menghapus kontrak");
+        
+        // Show success message if maintenances were deleted
+        if (relatedMaintenancesQuery.docs.length > 0) {
+          alert(`Kontrak berhasil dihapus bersama dengan ${relatedMaintenancesQuery.docs.length} data maintenance terkait.`);
+        }
+      } catch (error) {
+        console.error("Error deleting contract:", error);
+        setError("Gagal menghapus kontrak dan data terkait");
       }
     }
   };
