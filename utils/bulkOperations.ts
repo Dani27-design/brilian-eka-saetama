@@ -1,4 +1,4 @@
-import { collection, writeBatch, doc, serverTimestamp, DocumentReference } from 'firebase/firestore';
+import { collection, writeBatch, doc, serverTimestamp, DocumentReference, WriteBatch } from 'firebase/firestore';
 import { firestore } from '@/db/firebase/firebaseConfig';
 import { Product } from '@/types/product';
 import { ImportConfig, ImportResult, ImportError, BulkEditOperation, UpdateResult } from '@/types/bulkOperations';
@@ -34,7 +34,7 @@ export async function bulkImportProducts(
     
     // Firebase batch operations are limited to 500
     const BATCH_SIZE = 500;
-    const batches = [];
+    const batches: WriteBatch[] = [];
     
     for (let i = 0; i < products.length; i += BATCH_SIZE) {
       const batchProducts = products.slice(i, i + BATCH_SIZE);

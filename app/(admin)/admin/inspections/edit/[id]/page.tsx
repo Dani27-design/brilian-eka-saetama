@@ -273,7 +273,7 @@ export default function EditInspectionPage() {
     try {
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
-        const userData = userSnap.data();
+        const userData = userSnap.data() as { name?: string; role?: string };
         return {
           name: userData.name || "Unknown",
           role: userData.role || "Unknown",
@@ -299,7 +299,7 @@ export default function EditInspectionPage() {
   ) => {
     if (!form || !user?.uid) return;
 
-    const updatedChecklist = [...form.inspection.checklist];
+    const updatedChecklist = [...form.inspection.checklist] as InspectionChecklist;
     const itemToUpdate = { ...updatedChecklist[index] };
 
     if (field === "status") {
@@ -316,7 +316,7 @@ export default function EditInspectionPage() {
         ...prev,
         inspection: {
           ...prev.inspection,
-          checklist: updatedChecklist,
+          checklist: updatedChecklist as InspectionChecklist,
           updatedAt: new Date(), // Will be replaced with serverTimestamp on save
           updatedBy: user.uid, // Will be replaced with doc reference on save
         },

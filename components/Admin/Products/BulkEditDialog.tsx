@@ -41,7 +41,7 @@ export default function BulkEditDialog({
   const [fieldsToUpdate, setFieldsToUpdate] = useState<Set<string>>(new Set());
   
   // Determine common product types
-  const productTypes = [...new Set(selectedProducts.map(p => p.productType))];
+  const productTypes = Array.from(new Set(selectedProducts.map(p => p.productType)));
   const isSingleType = productTypes.length === 1;
   const commonType = isSingleType ? productTypes[0] : null;
 
@@ -71,7 +71,7 @@ export default function BulkEditDialog({
     }));
     // Automatically add field to update list when user types
     if (!fieldsToUpdate.has(field) && value !== '') {
-      setFieldsToUpdate(new Set([...fieldsToUpdate, field]));
+      setFieldsToUpdate(new Set(Array.from(fieldsToUpdate).concat(field)));
     }
   };
 

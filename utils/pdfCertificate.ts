@@ -34,7 +34,7 @@ export interface CertificateData {
     totalItems: number;
     passedItems: number;
     failedItems: number;
-    details: InspectionChecklist[];
+    details: InspectionChecklist;
   };
   photos: string[];
   

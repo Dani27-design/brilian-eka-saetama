@@ -1,4 +1,5 @@
-import { ProductType, InspectionChecklist } from "@/types/maintenances";
+import { InspectionChecklist } from "@/types/maintenances";
+import { ProductType } from "@/types/product";
 
 /**
  * Gets the checklist item names for a specific product type

@@ -108,9 +108,10 @@ export default function EditProductPage() {
             try {
               const contractSnap = await getDoc(data.contract);
               if (contractSnap.exists()) {
+                const contractInfo = contractSnap.data() || {};
                 setContractData({
                   id: contractSnap.id,
-                  ...contractSnap.data(),
+                  ...(contractInfo as Record<string, any>),
                 });
               }
             } catch (contractError) {
