@@ -18,10 +18,25 @@ export async function initializeAnalytics() {
   if (typeof window === "undefined") return null;
 
   try {
+    // Check for blocked cookies/storage (common on mobile)
+    try {
+      localStorage.setItem('test', 'test');
+      localStorage.removeItem('test');
+    } catch (storageError) {
+      console.warn("Storage access blocked, analytics disabled");
+      return null;
+    }
+
     // Check if analytics is supported in this environment
     const analyticsSupported = await isSupported();
 
     if (analyticsSupported) {
+      // Check for required configuration
+      if (!app.options.measurementId) {
+        console.warn("Firebase Analytics measurement ID not configured");
+        return null;
+      }
+
       analyticsInstance = getFirebaseAnalytics(app);
       console.log("Firebase Analytics initialized successfully");
       return analyticsInstance;
@@ -30,6 +45,7 @@ export async function initializeAnalytics() {
     }
   } catch (error) {
     console.error("Failed to initialize analytics:", error);
+    // Don't throw, just return null to prevent app crashes
   }
 
   return null;

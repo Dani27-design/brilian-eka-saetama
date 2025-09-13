@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Inter } from "next/font/google";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, firestore } from "@/db/firebase/firebaseConfig";
-
-const inter = Inter({ subsets: ["latin"] });
+import { errorLogger } from "@/utils/errorLogger";
 
 interface UserData {
   uid: string;
@@ -53,6 +51,23 @@ export default function AdminLayout({
     setMobileSidebarOpen(false);
   }, [pathname]);
 
+  // Set persistence on mount
+  useEffect(() => {
+    const setupPersistence = async () => {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+      } catch (error) {
+        console.error("Error setting persistence:", error);
+        errorLogger?.logError({
+          message: "Failed to set auth persistence",
+          stack: error instanceof Error ? error.stack : undefined,
+          additional: { error }
+        });
+      }
+    };
+    setupPersistence();
+  }, []);
+
   // Authentication check
   useEffect(() => {
     if (isLoginPage) {
@@ -63,6 +78,19 @@ export default function AdminLayout({
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
+          // Refresh token if needed
+          try {
+            await user.getIdToken(true); // Force refresh token
+          } catch (tokenError) {
+            console.error("Token refresh failed:", tokenError);
+            errorLogger?.logError({
+              message: "Auth token refresh failed",
+              stack: tokenError instanceof Error ? tokenError.stack : undefined,
+              additional: { tokenError }
+            });
+            // Continue anyway, might still work
+          }
+
           // Check if user has proper role in Firestore
           const userDoc = await getDoc(doc(firestore, "users", user.uid));
 
@@ -112,9 +140,25 @@ export default function AdminLayout({
           }
         } catch (error) {
           console.error("Error checking user permissions:", error);
-          await auth.signOut();
+          errorLogger?.logError({
+            message: "Error checking user permissions",
+            stack: error instanceof Error ? error.stack : undefined,
+            additional: { 
+              error,
+              userId: user?.uid,
+              pathname
+            }
+          });
+          
+          // Try to sign out gracefully
+          try {
+            await auth.signOut();
+          } catch (signOutError) {
+            console.error("Error signing out:", signOutError);
+          }
+          
           setIsAuthenticated(false);
-          router.push("/");
+          router.push("/admin/login");
         } finally {
           setIsLoading(false);
         }
@@ -150,26 +194,18 @@ export default function AdminLayout({
   // Special case for login page - render without admin components
   if (isLoginPage) {
     return (
-      <html lang="id">
-        <body className={inter.className}>
-          <ThemeProvider attribute="class">
-            <LanguageProvider>{children}</LanguageProvider>
-          </ThemeProvider>
-        </body>
-      </html>
+      <ThemeProvider attribute="class">
+        <LanguageProvider>{children}</LanguageProvider>
+      </ThemeProvider>
     );
   }
 
   // Show loading state
   if (isLoading) {
     return (
-      <html lang="id">
-        <body className={inter.className}>
-          <div className="flex h-screen w-full items-center justify-center">
-            <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          </div>
-        </body>
-      </html>
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
     );
   }
 
@@ -180,42 +216,38 @@ export default function AdminLayout({
 
   // Admin layout with sidebar and header
   return (
-    <html lang="id">
-      <body className={inter.className}>
-        {isAuthenticated && (
-          // <ThemeProvider attribute="class">
-          <LanguageProvider>
-            <div className="flex h-screen bg-gray-50 dark:bg-blacksection">
-              <AdminSidebar
-                onToggle={handleSidebarToggle}
-                isOpen={isMobile ? mobileSidebarOpen : sidebarOpen}
-                onClose={handleMobileSidebarClose}
-                isMobile={isMobile}
-                userData={userData}
+    <>
+      {isAuthenticated && (
+        <LanguageProvider>
+          <div className="flex h-screen bg-gray-50 dark:bg-blacksection">
+            <AdminSidebar
+              onToggle={handleSidebarToggle}
+              isOpen={isMobile ? mobileSidebarOpen : sidebarOpen}
+              onClose={handleMobileSidebarClose}
+              isMobile={isMobile}
+              userData={userData}
+            />
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <AdminHeader
+                sidebarOpen={sidebarOpen}
+                onMobileMenuToggle={handleMobileMenuToggle}
+                userData={userData} // Pastikan ini dikirim
               />
-              <div className="flex flex-1 flex-col overflow-hidden">
-                <AdminHeader
-                  sidebarOpen={sidebarOpen}
-                  onMobileMenuToggle={handleMobileMenuToggle}
-                  userData={userData} // Pastikan ini dikirim
-                />
-                <main
-                  className={`${
-                    !isMobile && sidebarOpen
-                      ? "lg:ml-64"
-                      : !isMobile
-                      ? "lg:ml-20"
-                      : ""
-                  } flex-1 overflow-y-auto p-2 transition-all duration-300 md:p-4 lg:p-6 xl:p-8`}
-                >
-                  {children}
-                </main>
-              </div>
+              <main
+                className={`${
+                  !isMobile && sidebarOpen
+                    ? "lg:ml-64"
+                    : !isMobile
+                    ? "lg:ml-20"
+                    : ""
+                } flex-1 overflow-y-auto p-2 transition-all duration-300 md:p-4 lg:p-6 xl:p-8`}
+              >
+                {children}
+              </main>
             </div>
-          </LanguageProvider>
-          // {/* </ThemeProvider> */}
-        )}
-      </body>
-    </html>
+          </div>
+        </LanguageProvider>
+      )}
+    </>
   );
 }
