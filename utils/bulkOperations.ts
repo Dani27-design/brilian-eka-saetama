@@ -3,6 +3,7 @@ import { firestore } from '@/db/firebase/firebaseConfig';
 import { Product } from '@/types/product';
 import { ImportConfig, ImportResult, ImportError, BulkEditOperation, UpdateResult } from '@/types/bulkOperations';
 import { prepareProductForImport, checkMultipleProductNumbers } from './productValidator';
+import { ValidationMessages } from './validationMessages';
 
 /**
  * Performs bulk import of products to Firebase
@@ -224,15 +225,31 @@ export async function bulkUpdateProducts(
  * @returns Formatted summary string
  */
 export function generateImportSummary(result: ImportResult): string {
+  const productType = 'produk';
+  const total = result.success + result.failed + result.skipped;
+  
   const lines = [
-    `Import Summary:`,
-    `✅ Successfully imported: ${result.success} products`,
-    `⚠️ Skipped (duplicates): ${result.skipped} products`,
-    `❌ Failed: ${result.failed} products`
+    ValidationMessages.IMPORT_SUMMARY_HEADER,
+    '',
+    ValidationMessages.TOTAL_PROCESSED(total, productType),
+    ValidationMessages.SUCCESSFULLY_IMPORTED(result.success, productType),
+    ValidationMessages.SKIPPED_DUPLICATES(result.skipped, productType),
+    ValidationMessages.FAILED_IMPORT(result.failed, productType)
   ];
   
+  // Add status messages
+  if (result.success > 0) {
+    lines.push('', ValidationMessages.IMPORT_SUCCESS_MESSAGE(result.success, productType));
+  }
+  if (result.failed > 0) {
+    lines.push('', ValidationMessages.IMPORT_FAILURE_MESSAGE(result.failed, productType));
+  }
+  if (result.skipped > 0) {
+    lines.push('', ValidationMessages.IMPORT_SKIPPED_MESSAGE(result.skipped, productType));
+  }
+  
   if (result.errors.length > 0) {
-    lines.push('', 'Errors:');
+    lines.push('', 'Detail Error:');
     const errorGroups = new Map<string, number>();
     
     result.errors.forEach(error => {
@@ -241,7 +258,7 @@ export function generateImportSummary(result: ImportResult): string {
     });
     
     errorGroups.forEach((count, error) => {
-      lines.push(`  - ${error} (${count} occurrences)`);
+      lines.push(`  - ${error} (${count} kejadian)`);
     });
   }
   

@@ -243,84 +243,84 @@ export async function exportProducts(
 }
 
 /**
- * Generates a CSV template for product import
+ * Generates a CSV template for product import with Indonesian headers
  * @param productType - Optional specific product type for template
- * @returns CSV template string
+ * @returns CSV template string with beginner-friendly Indonesian headers
  */
 export function generateImportTemplate(productType?: ProductType): string {
   const headers = [
-    "productNumber",
-    "name", 
-    "productType",
-    "brand",
-    "brandType",
-    "source",
-    "maintenanceInterval",
-    "serialNumber",
-    "manufactureDate",
-    "installationDate",
-    "expirationDate"
+    "Nomor Produk",
+    "Nama Produk", 
+    "Tipe Produk",
+    "Brand",
+    "Tipe Brand",
+    "Sumber",
+    "Interval Maintenance",
+    "Nomor Seri",
+    "Tanggal Produksi",
+    "Tanggal Instalasi",
+    "Tanggal Kadaluarsa"
   ];
 
-  // Add type-specific headers
+  // Add type-specific Indonesian headers
   if (productType) {
     switch (productType) {
       case "APAR":
-        headers.push("height", "width", "pressure", "capacity", "agentType", "weight");
+        headers.push("Tinggi", "Lebar", "Tekanan", "Kapasitas", "Jenis Media", "Berat");
         break;
       case "HYDRANT":
-        headers.push("height", "width", "flowRate", "pressure", "valveType", "hoseLength", "material");
+        headers.push("Tinggi", "Lebar", "Debit Air", "Tekanan", "Tipe Valve", "Panjang Selang", "Material");
         break;
       case "CCTV":
-        headers.push("resolution", "lens", "nightVision", "power", "connectivity", "pan", "tilt", "storageCapacity");
+        headers.push("Resolusi", "Lensa", "Night Vision", "Daya", "Konektivitas", "Pan", "Tilt", "Kapasitas Storage");
         break;
       case "FIRE_ALARM":
-        headers.push("sensorType", "power", "coverageArea", "soundLevel", "batteryBackup", "connectivity");
+        headers.push("Tipe Sensor", "Daya", "Area Cakupan", "Level Suara", "Backup Baterai", "Konektivitas");
         break;
       case "ACCESS_DOOR":
-        headers.push("material", "lockType", "width", "height", "openingSpeed");
+        headers.push("Material", "Tipe Kunci", "Lebar", "Tinggi", "Kecepatan Buka");
         break;
       case "PATROL_GUARD":
-        headers.push("deviceType", "batteryLife", "connectivity", "patrolInterval", "firmwareVersion");
+        headers.push("Tipe Perangkat", "Daya Tahan Baterai", "Konektivitas", "Interval Patroli", "Versi Firmware");
         break;
     }
   }
 
-  // Create sample row
+  // Create sample row with realistic Indonesian data
   const sampleRow = [
     "PRD-001",
-    "Sample Product Name",
+    "APAR Portable ABC 3kg",
     productType || "APAR",
-    "Brand Name",
-    "Model/Type",
-    "VENDOR ABC",
+    "Yamato",
+    "YA-10X",
+    "CV Sumber Jaya",
     "30",
-    "SN123456",
+    "SN123456789",
     "2024-01-01",
     "2024-01-15",
     "2025-01-15"
   ];
 
-  // Add type-specific sample data
+  // Add type-specific sample data with Indonesian context
   if (productType) {
     switch (productType) {
       case "APAR":
-        sampleRow.push("70", "20", "15", "3", "Powder", "3.5");
+        sampleRow.push("70", "20", "15", "3", "ABC Powder", "3.5");
         break;
       case "HYDRANT":
-        sampleRow.push("150", "60", "500", "10", "Ball Valve", "30", "Steel");
+        sampleRow.push("150", "60", "500", "10", "Ball Valve", "30", "Stainless Steel");
         break;
       case "CCTV":
-        sampleRow.push("1080p", "3.6mm", "Yes", "12V", "WiFi", "Yes", "Yes", "256GB");
+        sampleRow.push("1080p", "3.6mm", "Ya", "12V", "WiFi", "Ya", "Ya", "256GB");
         break;
       case "FIRE_ALARM":
-        sampleRow.push("Smoke", "24V", "50", "85", "Yes", "Wired");
+        sampleRow.push("Smoke Detector", "24V", "50", "85", "Ya", "Wired");
         break;
       case "ACCESS_DOOR":
-        sampleRow.push("Steel", "Electronic", "90", "210", "5");
+        sampleRow.push("Stainless Steel", "Electronic Lock", "90", "210", "5");
         break;
       case "PATROL_GUARD":
-        sampleRow.push("Handheld", "8 hours", "Bluetooth", "60", "v2.1.0");
+        sampleRow.push("Handheld Reader", "8 jam", "Bluetooth", "60", "v2.1.0");
         break;
     }
   }

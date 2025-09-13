@@ -1,6 +1,7 @@
 import Papa from 'papaparse';
 import { ParsedData, ValidationResult, ValidationError, ValidationWarning } from '@/types/bulkOperations';
 import { ProductType } from '@/types/product';
+import { ValidationMessages, getFieldDisplayName } from './validationMessages';
 
 /**
  * Parses a CSV file and returns structured data
@@ -23,7 +24,7 @@ export async function parseCSV(file: File): Promise<ParsedData> {
         });
       },
       error: (error) => {
-        reject(new Error(`Failed to parse CSV: ${error.message}`));
+        reject(new Error(ValidationMessages.FAILED_TO_PARSE_CSV(error.message)));
       }
     });
   });
@@ -38,56 +39,63 @@ export async function parseCSV(file: File): Promise<ParsedData> {
 export function autoMapColumns(headers: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
   
-  // Common column name variations
+  // Common column name variations including Indonesian spaced headers with enhanced coverage
   const fieldMappings: Record<string, string[]> = {
-    'productNumber': ['productNumber', 'product_number', 'no', 'number', 'kode', 'code'],
-    'name': ['name', 'productName', 'product_name', 'nama', 'title'],
-    'productType': ['productType', 'product_type', 'type', 'tipe', 'jenis_produk'],
-    'brand': ['brand', 'merk', 'merek', 'manufacturer'],
-    'brandType': ['brandType', 'brand_type', 'model', 'tipe', 'jenis'],
-    'source': ['source', 'sumber', 'vendor', 'supplier'],
-    'maintenanceInterval': ['maintenanceInterval', 'maintenance_interval', 'interval', 'maintenance'],
-    'serialNumber': ['serialNumber', 'serial_number', 'serial', 'sn'],
-    'manufactureDate': ['manufactureDate', 'manufacture_date', 'tanggal_produksi', 'production_date'],
-    'installationDate': ['installationDate', 'installation_date', 'tanggal_instalasi', 'install_date'],
-    'expirationDate': ['expirationDate', 'expiration_date', 'tanggal_kadaluarsa', 'expire_date'],
+    'productNumber': ['productNumber', 'product_number', 'no', 'number', 'kode', 'code', 'Nomor Produk', 'nomor produk', 'nomor_produk'],
+    'name': ['name', 'productName', 'product_name', 'nama', 'title', 'Nama Produk', 'nama produk', 'nama_produk'],
+    'productType': ['productType', 'product_type', 'type', 'tipe', 'jenis_produk', 'Tipe Produk', 'tipe produk', 'tipe_produk'],
+    'brand': ['brand', 'merk', 'merek', 'manufacturer', 'Brand'],
+    'brandType': ['brandType', 'brand_type', 'model', 'tipe', 'jenis', 'Tipe Brand', 'tipe brand', 'tipe_brand'],
+    'source': ['source', 'sumber', 'vendor', 'supplier', 'Sumber'],
+    'maintenanceInterval': ['maintenanceInterval', 'maintenance_interval', 'interval', 'maintenance', 'Interval Maintenance', 'interval maintenance', 'interval_maintenance'],
+    'serialNumber': ['serialNumber', 'serial_number', 'serial', 'sn', 'Nomor Seri', 'nomor seri', 'nomor_seri'],
+    'manufactureDate': ['manufactureDate', 'manufacture_date', 'tanggal_produksi', 'production_date', 'Tanggal Produksi', 'tanggal produksi', 'tanggal_produksi'],
+    'installationDate': ['installationDate', 'installation_date', 'tanggal_instalasi', 'install_date', 'Tanggal Instalasi', 'tanggal instalasi', 'tanggal_instalasi'],
+    'expirationDate': ['expirationDate', 'expiration_date', 'tanggal_kadaluarsa', 'expire_date', 'Tanggal Kadaluarsa', 'tanggal kadaluarsa', 'tanggal_kadaluarsa'],
     // Type-specific fields
-    'height': ['height', 'tinggi'],
-    'width': ['width', 'lebar'],
-    'pressure': ['pressure', 'tekanan'],
-    'capacity': ['capacity', 'kapasitas'],
-    'agentType': ['agentType', 'agent_type', 'jenis_media', 'media'],
-    'weight': ['weight', 'berat'],
-    'flowRate': ['flowRate', 'flow_rate', 'debit'],
-    'valveType': ['valveType', 'valve_type', 'tipe_valve'],
-    'hoseLength': ['hoseLength', 'hose_length', 'panjang_selang'],
-    'material': ['material', 'bahan'],
-    'resolution': ['resolution', 'resolusi'],
-    'lens': ['lens', 'lensa'],
-    'nightVision': ['nightVision', 'night_vision'],
-    'power': ['power', 'daya'],
-    'connectivity': ['connectivity', 'konektivitas'],
-    'pan': ['pan'],
-    'tilt': ['tilt'],
-    'storageCapacity': ['storageCapacity', 'storage_capacity', 'storage'],
-    'sensorType': ['sensorType', 'sensor_type', 'tipe_sensor'],
-    'coverageArea': ['coverageArea', 'coverage_area', 'area'],
-    'soundLevel': ['soundLevel', 'sound_level', 'volume'],
-    'batteryBackup': ['batteryBackup', 'battery_backup', 'battery'],
-    'lockType': ['lockType', 'lock_type', 'tipe_kunci'],
-    'openingSpeed': ['openingSpeed', 'opening_speed', 'kecepatan_buka'],
-    'deviceType': ['deviceType', 'device_type', 'tipe_perangkat'],
-    'batteryLife': ['batteryLife', 'battery_life', 'baterai'],
-    'patrolInterval': ['patrolInterval', 'patrol_interval'],
-    'firmwareVersion': ['firmwareVersion', 'firmware_version', 'firmware']
+    'height': ['height', 'tinggi', 'Tinggi'],
+    'width': ['width', 'lebar', 'Lebar'],
+    'pressure': ['pressure', 'tekanan', 'Tekanan'],
+    'capacity': ['capacity', 'kapasitas', 'Kapasitas'],
+    'agentType': ['agentType', 'agent_type', 'jenis_media', 'media', 'Jenis Media', 'jenis media', 'jenis_media'],
+    'weight': ['weight', 'berat', 'Berat'],
+    'flowRate': ['flowRate', 'flow_rate', 'debit', 'Debit Air', 'debit air', 'debit_air'],
+    'valveType': ['valveType', 'valve_type', 'tipe_valve', 'Tipe Valve', 'tipe valve', 'tipe_valve'],
+    'hoseLength': ['hoseLength', 'hose_length', 'panjang_selang', 'Panjang Selang', 'panjang selang', 'panjang_selang'],
+    'material': ['material', 'bahan', 'Material'],
+    'resolution': ['resolution', 'resolusi', 'Resolusi'],
+    'lens': ['lens', 'lensa', 'Lensa'],
+    'nightVision': ['nightVision', 'night_vision', 'Night Vision', 'night vision', 'night_vision'],
+    'power': ['power', 'daya', 'Daya'],
+    'connectivity': ['connectivity', 'konektivitas', 'Konektivitas'],
+    'pan': ['pan', 'Pan'],
+    'tilt': ['tilt', 'Tilt'],
+    'storageCapacity': ['storageCapacity', 'storage_capacity', 'storage', 'Kapasitas Storage', 'kapasitas storage', 'kapasitas_storage'],
+    'sensorType': ['sensorType', 'sensor_type', 'tipe_sensor', 'Tipe Sensor', 'tipe sensor', 'tipe_sensor'],
+    'coverageArea': ['coverageArea', 'coverage_area', 'area', 'Area Cakupan', 'area cakupan', 'area_cakupan'],
+    'soundLevel': ['soundLevel', 'sound_level', 'volume', 'Level Suara', 'level suara', 'level_suara'],
+    'batteryBackup': ['batteryBackup', 'battery_backup', 'battery', 'Backup Baterai', 'backup baterai', 'backup_baterai'],
+    'lockType': ['lockType', 'lock_type', 'tipe_kunci', 'Tipe Kunci', 'tipe kunci', 'tipe_kunci'],
+    'openingSpeed': ['openingSpeed', 'opening_speed', 'kecepatan_buka', 'Kecepatan Buka', 'kecepatan buka', 'kecepatan_buka'],
+    'deviceType': ['deviceType', 'device_type', 'tipe_perangkat', 'Tipe Perangkat', 'tipe perangkat', 'tipe_perangkat'],
+    'batteryLife': ['batteryLife', 'battery_life', 'baterai', 'Daya Tahan Baterai', 'daya tahan baterai', 'daya_tahan_baterai'],
+    'patrolInterval': ['patrolInterval', 'patrol_interval', 'Interval Patroli', 'interval patroli', 'interval_patroli'],
+    'firmwareVersion': ['firmwareVersion', 'firmware_version', 'firmware', 'Versi Firmware', 'versi firmware', 'versi_firmware']
   };
   
-  // Try to match headers with known field names
+  // Try to match headers with known field names using robust normalization
   headers.forEach(header => {
-    const normalizedHeader = header.toLowerCase().replace(/\s+/g, '_');
+    const normalizedHeader = header.toLowerCase().trim();
     
     for (const [field, variations] of Object.entries(fieldMappings)) {
-      if (variations.some(v => v.toLowerCase() === normalizedHeader)) {
+      if (variations.some(v => {
+        const normalizedVariation = v.toLowerCase().trim();
+        // Direct match
+        if (normalizedVariation === normalizedHeader) return true;
+        // Space-underscore equivalence for flexible matching
+        if (normalizedVariation.replace(/\s+/g, '_') === normalizedHeader.replace(/\s+/g, '_')) return true;
+        return false;
+      })) {
         mapping[header] = field;
         break;
       }
@@ -123,7 +131,7 @@ export function validateProductData(
         row: rowNum,
         field: 'productNumber',
         value: row.productNumber,
-        message: 'Product number is required'
+        message: ValidationMessages.PRODUCT_NUMBER_REQUIRED
       });
     } else if (checkDuplicates) {
       // Check for duplicates within the file
@@ -132,7 +140,7 @@ export function validateProductData(
           row: rowNum,
           field: 'productNumber',
           value: row.productNumber,
-          message: 'Duplicate product number in file'
+          message: ValidationMessages.DUPLICATE_PRODUCT_NUMBER
         });
       }
       seenProductNumbers.add(row.productNumber);
@@ -143,7 +151,7 @@ export function validateProductData(
         row: rowNum,
         field: 'name',
         value: row.name,
-        message: 'Product name is required'
+        message: ValidationMessages.PRODUCT_NAME_REQUIRED
       });
     }
     
@@ -152,14 +160,14 @@ export function validateProductData(
         row: rowNum,
         field: 'productType',
         value: row.productType,
-        message: 'Product type is required'
+        message: ValidationMessages.PRODUCT_TYPE_REQUIRED
       });
     } else if (!validProductTypes.includes(row.productType as ProductType)) {
       errors.push({
         row: rowNum,
         field: 'productType',
         value: row.productType,
-        message: `Invalid product type. Must be one of: ${validProductTypes.join(', ')}`
+        message: ValidationMessages.INVALID_PRODUCT_TYPE(validProductTypes)
       });
     }
     
@@ -168,7 +176,7 @@ export function validateProductData(
         row: rowNum,
         field: 'brand',
         value: row.brand,
-        message: 'Brand is recommended'
+        message: ValidationMessages.BRAND_RECOMMENDED
       });
     }
     
@@ -182,7 +190,7 @@ export function validateProductData(
             row: rowNum,
             field,
             value: row[field],
-            message: `Invalid date format. Use YYYY-MM-DD`
+            message: ValidationMessages.INVALID_DATE_FORMAT
           });
         }
       }
@@ -198,7 +206,7 @@ export function validateProductData(
           row: rowNum,
           field,
           value: row[field],
-          message: `${field} must be a number`
+          message: ValidationMessages.INVALID_NUMBER_FORMAT(getFieldDisplayName(field))
         });
       }
     });
@@ -211,7 +219,7 @@ export function validateProductData(
           row: rowNum,
           field,
           value: row[field],
-          message: `${field} should be Yes/No`
+          message: ValidationMessages.INVALID_BOOLEAN_FORMAT(getFieldDisplayName(field))
         });
       }
     });

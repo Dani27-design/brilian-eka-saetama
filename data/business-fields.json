@@ -1,0 +1,23 @@
+[
+  { "id": "manufacturing", "name": "Manufacturing" },
+  { "id": "healthcare", "name": "Healthcare" },
+  { "id": "education", "name": "Education" },
+  { "id": "government", "name": "Government" },
+  { "id": "finance", "name": "Finance & Banking" },
+  { "id": "retail", "name": "Retail & Trade" },
+  { "id": "hospitality", "name": "Hospitality & Tourism" },
+  { "id": "transportation", "name": "Transportation & Logistics" },
+  { "id": "real_estate", "name": "Real Estate" },
+  { "id": "technology", "name": "Technology" },
+  { "id": "construction", "name": "Construction" },
+  { "id": "agriculture", "name": "Agriculture" },
+  { "id": "mining", "name": "Mining & Energy" },
+  { "id": "media", "name": "Media & Entertainment" },
+  { "id": "professional", "name": "Professional Services" },
+  { "id": "food_beverage", "name": "Food & Beverage" },
+  { "id": "textile", "name": "Textile & Garment" },
+  { "id": "automotive", "name": "Automotive" },
+  { "id": "chemical", "name": "Chemical & Pharmaceutical" },
+  { "id": "telecommunications", "name": "Telecommunications" },
+  { "id": "other", "name": "Other" }
+]

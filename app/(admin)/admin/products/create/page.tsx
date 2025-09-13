@@ -4,6 +4,7 @@ import { useState } from "react";
 import { collection, addDoc, doc, serverTimestamp } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import ImageUploader from "@/components/Admin/ImageUploader";
 import { useAdmin } from "@/app/context/AdminContext";
 import type { Product, ProductSpecs, ProductType } from "@/types/product";
@@ -741,43 +742,59 @@ export default function CreateProductPage() {
   };
 
   return (
-    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-2 dark:border-strokedark md:p-6 xl:p-7.5">
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-black dark:text-white">
-          Tambah Produk Baru
-        </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Lengkapi data produk untuk menambah produk baru ke dalam sistem.
-        </p>
+    <div className="mx-auto max-w-4xl">
+      {/* Enhanced Header */}
+      <div className="mb-8">
+        <nav className="mb-4 flex items-center text-sm text-gray-500">
+          <Link href="/admin/products" className="hover:text-gray-700">
+            Produk
+          </Link>
+          <svg className="mx-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span className="text-gray-900">Tambah Baru</span>
+        </nav>
+        
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">Tambah Produk Baru</h1>
+            <p className="mt-1 text-sm text-gray-600">Lengkapi data produk untuk menambah produk baru ke dalam sistem</p>
+          </div>
+          <Link
+            href="/admin/products"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 sm:w-auto"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Kembali ke Daftar
+          </Link>
+        </div>
       </div>
 
+      {/* Error Display */}
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
-          <div className="flex">
-            <div className="shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 112 0v4a1 1 0 11-2 0V9z"
-                  clipRule="evenodd"
-                />
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                Error
+              <h3 className="text-sm font-medium text-red-800">
+                Terjadi Kesalahan
               </h3>
-              <p className="mt-2 text-sm text-red-700 dark:text-red-300">
+              <div className="mt-2 text-sm text-red-700">
                 {error}
-              </p>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Product Form Container */}
+      <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-4 dark:border-strokedark md:p-6">
 
       <form onSubmit={handleSubmit}>
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -901,13 +918,12 @@ export default function CreateProductPage() {
         </div>
 
         <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/products")}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
+          <Link
+            href="/admin/products"
+            className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
           >
             Batal
-          </button>
+          </Link>
           <button
             type="submit"
             disabled={loading}
@@ -917,6 +933,7 @@ export default function CreateProductPage() {
           </button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

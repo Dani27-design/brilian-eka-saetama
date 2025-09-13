@@ -1,0 +1,494 @@
+[
+  {
+    "id": "1101010001",
+    "name": "LATIUNG",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010002",
+    "name": "LABUHAN BAJAU",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010003",
+    "name": "SUAK LAMATAN",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010004",
+    "name": "ANA AO",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010005",
+    "name": "LATALING",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010006",
+    "name": "PULAU BENGKALAK",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010007",
+    "name": "BADEGONG",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010008",
+    "name": "KEBUN BARU",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010009",
+    "name": "ULUL MAYANG",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010010",
+    "name": "PASIR TINGGI",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010011",
+    "name": "LABUHAN JAYA",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010012",
+    "name": "LABUHAN BAKTI",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010013",
+    "name": "BATU RALANG",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010014",
+    "name": "ALUS ALUS",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010015",
+    "name": "SEUNEUBOK",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010016",
+    "name": "BLANG SEBEL",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010017",
+    "name": "TRANS BARU",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010018",
+    "name": "TRANS MERANTI",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101010019",
+    "name": "TRANS JERNGE",
+    "districtId": "1101010",
+    "type": "desa"
+  },
+  {
+    "id": "1101020022",
+    "name": "AIR PINANG",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020023",
+    "name": "KUALA MAKMUR",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020024",
+    "name": "GANTING",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020025",
+    "name": "LINGGI",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020026",
+    "name": "LUGU",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020027",
+    "name": "SINABANG",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020028",
+    "name": "SUKA MAJU",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020029",
+    "name": "SUKA KARYA",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020030",
+    "name": "SUKA JAYA",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020031",
+    "name": "AIR DINGIN",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020032",
+    "name": "KOTA BATU",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020035",
+    "name": "SUAK BULUH",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020036",
+    "name": "UJUNG TINGGI",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020037",
+    "name": "PULAU SIUMAT",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020038",
+    "name": "SEFOYAN",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020039",
+    "name": "AMAITENG MULIA",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101020040",
+    "name": "AMERIA BAHAGIA",
+    "districtId": "1101020",
+    "type": "desa"
+  },
+  {
+    "id": "1101021001",
+    "name": "SITAL",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021002",
+    "name": "LEUBANG",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021003",
+    "name": "LEUBANG HULU",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021004",
+    "name": "AWE SEUBAL",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021005",
+    "name": "LANTIK",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021006",
+    "name": "AWE KECIL",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021007",
+    "name": "SALUR",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021008",
+    "name": "SALUR LATUN",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021009",
+    "name": "SALUR LASENGALU",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021010",
+    "name": "NANCALA",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021011",
+    "name": "MAUDIL",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021012",
+    "name": "INOR",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021013",
+    "name": "NAIBOS",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021014",
+    "name": "LAAYON",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021015",
+    "name": "ANGKEO",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021016",
+    "name": "BUNON",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021017",
+    "name": "SILENGAS",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101021018",
+    "name": "PULAU TEUPAH",
+    "districtId": "1101021",
+    "type": "desa"
+  },
+  {
+    "id": "1101022001",
+    "name": "KAHAT",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022002",
+    "name": "BUSUNG INDAH",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022003",
+    "name": "NANCAWA",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022004",
+    "name": "LABUAH",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022005",
+    "name": "ABAIL",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022006",
+    "name": "SIMPANG ABAIL",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022007",
+    "name": "LANTING",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022008",
+    "name": "LASIKIN",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022009",
+    "name": "MATANURUNG",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022010",
+    "name": "SUA SUA",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022011",
+    "name": "BATU BATU",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101022012",
+    "name": "SITUBUK",
+    "districtId": "1101022",
+    "type": "desa"
+  },
+  {
+    "id": "1101030001",
+    "name": "DIHIT",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030002",
+    "name": "LAUKE",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030003",
+    "name": "LAMBAYA",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030004",
+    "name": "LAKUBANG",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030005",
+    "name": "KAMPUNG AIE",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030006",
+    "name": "LAUREE",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030007",
+    "name": "LATITIK",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030008",
+    "name": "LAMAYANG",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030009",
+    "name": "WEL WEL",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030020",
+    "name": "SITUFA JAYA",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030021",
+    "name": "PUTRA JAYA",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030022",
+    "name": "LUAN SORIP",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030023",
+    "name": "SUAK BARU",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030024",
+    "name": "SEBBE",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030025",
+    "name": "KUTA BARU",
+    "districtId": "1101030",
+    "type": "desa"
+  },
+  {
+    "id": "1101030026",
+    "name": "WEL LANGKOM",
+    "districtId": "1101030",
+    "type": "desa"
+  }
+]

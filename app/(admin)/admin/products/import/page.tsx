@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { parseCSV, autoMapColumns, validateProductData, transformRowToProduct } from "@/utils/csvParser";
@@ -9,6 +9,7 @@ import { checkMultipleProductNumbers } from "@/utils/productValidator";
 import { downloadCSV } from "@/utils/exportGenerator";
 import { useAdmin } from "@/app/context/AdminContext";
 import { ImportConfig, ImportResult, ValidationResult } from "@/types/bulkOperations";
+import { getFieldDisplayName } from "@/utils/validationMessages";
 
 type ImportStep = 'upload' | 'mapping' | 'validation' | 'importing' | 'complete';
 
@@ -25,6 +26,7 @@ export default function ProductImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<{ headers: string[], rows: Record<string, any>[] } | null>(null);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+  const [originalAutoMapping, setOriginalAutoMapping] = useState<Record<string, string>>({});
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [importConfig, setImportConfig] = useState<ImportConfig>({
     mapping: {},
@@ -38,6 +40,10 @@ export default function ProductImportPage() {
   
   // Check for duplicates in database
   const [duplicateCheck, setDuplicateCheck] = useState<Set<string> | null>(null);
+  
+  // State for help section
+  const [isHelpSectionOpen, setIsHelpSectionOpen] = useState(false);
+  const helpSectionRef = useRef<HTMLDetailsElement>(null);
 
   /**
    * Handles file selection and initial parsing
@@ -62,6 +68,7 @@ export default function ProductImportPage() {
       // Auto-map columns
       const mapping = autoMapColumns(data.headers);
       setColumnMapping(mapping);
+      setOriginalAutoMapping(mapping); // Store original auto-mapping
       setImportConfig(prev => ({ ...prev, mapping }));
       
       setCurrentStep('mapping');
@@ -70,6 +77,28 @@ export default function ProductImportPage() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  /**
+   * Comprehensive reset function to clear all import states
+   */
+  const resetWizard = () => {
+    setCurrentStep('upload');
+    setFile(null);
+    setParsedData(null);
+    setColumnMapping({});
+    setOriginalAutoMapping({});
+    setValidationResult(null);
+    setImportConfig({
+      mapping: {},
+      skipDuplicates: true,
+      updateExisting: false,
+      validateBeforeImport: true
+    });
+    setImportResult(null);
+    setDuplicateCheck(null);
+    setError(null);
+    // Don't reset isProcessing or isHelpSectionOpen as they're UI state
   };
 
   /**
@@ -171,6 +200,33 @@ export default function ProductImportPage() {
     downloadCSV(errorCsv, 'import_errors.csv');
   };
 
+  /**
+   * Handles clicking the "Lihat Persyaratan" button
+   * Opens the help section and scrolls to it
+   */
+  const handleShowRequirements = () => {
+    setIsHelpSectionOpen(true);
+    
+    // Scroll to help section after state update
+    setTimeout(() => {
+      if (helpSectionRef.current) {
+        helpSectionRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
+    }, 100);
+  };
+
+  /**
+   * Handles manual toggle of help section
+   * Prevents default behavior and manages state
+   */
+  const handleToggleHelp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsHelpSectionOpen(!isHelpSectionOpen);
+  };
+
   // Product field options for mapping
   const productFields = [
     { value: 'productNumber', label: 'Nomor Produk' },
@@ -249,13 +305,58 @@ export default function ProductImportPage() {
       {/* Enhanced Progress Steps */}
       <div className="mb-8">
         <div className="overflow-x-auto">
-          <div className="flex min-w-max items-center justify-between px-4 sm:px-0">
+          <div className="flex min-w-max items-center px-4 sm:px-0">
             {[
-              { key: 'upload', label: 'Unggah File', description: 'Pilih CSV', icon: '📁' },
-              { key: 'mapping', label: 'Petakan Kolom', description: 'Sesuaikan field', icon: '🔗' },
-              { key: 'validation', label: 'Validasi', description: 'Periksa data', icon: '✅' },
-              { key: 'importing', label: 'Impor', description: 'Memproses', icon: '⚡' },
-              { key: 'complete', label: 'Selesai', description: 'Selesai', icon: '🎉' }
+              { 
+                key: 'upload', 
+                label: 'Unggah File', 
+                description: 'Pilih CSV', 
+                icon: (
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                )
+              },
+              { 
+                key: 'mapping', 
+                label: 'Petakan Kolom', 
+                description: 'Sesuaikan field', 
+                icon: (
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                )
+              },
+              { 
+                key: 'validation', 
+                label: 'Validasi', 
+                description: 'Periksa data', 
+                icon: (
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )
+              },
+              { 
+                key: 'importing', 
+                label: 'Impor', 
+                description: 'Memproses', 
+                icon: (
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                )
+              },
+              { 
+                key: 'complete', 
+                label: 'Selesai', 
+                description: 'Selesai', 
+                icon: (
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )
+              }
             ].map((step, index) => {
               const stepIndex = ['upload', 'mapping', 'validation', 'importing', 'complete'].indexOf(currentStep);
               const isActive = currentStep === step.key;
@@ -263,7 +364,7 @@ export default function ProductImportPage() {
               const isPending = index > stepIndex;
 
               return (
-                <div key={step.key} className="flex items-center">
+                <React.Fragment key={step.key}>
                   <div className="flex flex-col items-center">
                     <div
                       className={`flex h-14 w-14 items-center justify-center rounded-full border-2 text-2xl transition-all duration-200 ${
@@ -274,7 +375,7 @@ export default function ProductImportPage() {
                           : 'border-gray-300 bg-gray-100 text-gray-400'
                       }`}
                     >
-                      {step.icon}
+                      {React.isValidElement(step.icon) ? React.cloneElement(step.icon as React.ReactElement, { className: 'h-7 w-7' }) : step.icon}
                     </div>
                     <div className="mt-2 text-center">
                       <div className={`text-sm font-medium ${isActive ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-gray-500'}`}>
@@ -286,13 +387,15 @@ export default function ProductImportPage() {
                     </div>
                   </div>
                   {index < 4 && (
-                    <div
-                      className={`mx-4 h-1 w-16 rounded transition-colors duration-200 sm:w-24 ${
-                        index < stepIndex ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    />
+                    <div className="flex-1 flex items-center px-3">
+                      <div
+                        className={`h-0.5 w-full rounded-full transition-colors duration-300 ${
+                          index < stepIndex ? 'bg-green-500' : 'bg-gray-300'
+                        }`}
+                      />
+                    </div>
                   )}
-                </div>
+                </React.Fragment>
               );
             })}
           </div>
@@ -368,11 +471,7 @@ export default function ProductImportPage() {
                       {file.name} • {parsedData?.rows.length || 0} baris ditemukan
                     </p>
                     <button
-                      onClick={() => {
-                        setFile(null);
-                        setParsedData(null);
-                        setCurrentStep('upload');
-                      }}
+                      onClick={resetWizard}
                       className="mt-2 text-xs text-primary hover:text-primary/80"
                     >
                       Pilih file lain
@@ -413,16 +512,31 @@ export default function ProductImportPage() {
                 <p className="mt-1 text-xs text-gray-500">
                   Panduan format yang penting
                 </p>
-                <button className="mt-2 inline-flex items-center text-xs font-medium text-green-600 hover:text-green-500">
+                <button 
+                  onClick={handleShowRequirements}
+                  className="mt-2 inline-flex items-center text-xs font-medium text-green-600 hover:text-green-500 transition-colors"
+                >
                   Lihat Persyaratan →
                 </button>
               </div>
             </div>
 
             {/* Collapsible Help Section */}
-            <details className="rounded-lg border border-gray-200 bg-white">
-              <summary className="cursor-pointer p-4 text-sm font-medium text-gray-900 hover:bg-gray-50">
-                📋 Persyaratan Data & Panduan Format
+            <details 
+              ref={helpSectionRef}
+              open={isHelpSectionOpen}
+              className="rounded-lg border border-gray-200 bg-white"
+            >
+              <summary 
+                className="cursor-pointer p-4 text-sm font-medium text-gray-900 hover:bg-gray-50"
+                onClick={handleToggleHelp}
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Persyaratan Data & Panduan Format</span>
+                </div>
               </summary>
               <div className="border-t border-gray-200 p-4">
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -449,7 +563,12 @@ export default function ProductImportPage() {
                 </div>
                 <div className="mt-4 rounded-lg bg-amber-50 p-3">
                   <p className="text-xs text-amber-800">
-                    💡 <strong>Tips:</strong> Gunakan template kami untuk memastikan format yang benar dan menghindari kesalahan umum.
+                    <div className="flex items-start gap-2">
+                      <svg className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      <span><strong>Tips:</strong> Gunakan template kami untuk memastikan format yang benar dan menghindari kesalahan umum.</span>
+                    </div>
                   </p>
                 </div>
               </div>
@@ -488,7 +607,8 @@ export default function ProductImportPage() {
             <div className="space-y-4">
               {parsedData.headers.map(header => {
                 const mappedField = columnMapping[header];
-                const isAutoMapped = mappedField && Object.keys(columnMapping).includes(header);
+                const originalMapping = originalAutoMapping[header];
+                const isAutoMapped = mappedField && mappedField === originalMapping;
                 const fieldInfo = productFields.find(f => f.value === mappedField);
                 
                 // Group product fields by category for better UX
@@ -519,55 +639,120 @@ export default function ProductImportPage() {
                   }
                 ];
 
+                const mappingStatus = mappedField ? (isAutoMapped ? 'auto-mapped' : 'manual-mapped') : 'unmapped';
+                const requiredFields = ['productNumber', 'name', 'productType', 'brand'];
+                const isRequired = requiredFields.includes(mappedField || '');
+                
                 return (
-                  <div key={header} className={`rounded-lg border p-4 transition-colors ${
-                    isAutoMapped ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'
+                  <div key={header} className={`rounded-lg border-2 p-5 transition-all duration-200 ${
+                    mappingStatus === 'auto-mapped' ? 'border-green-300 bg-green-50/80 shadow-sm' :
+                    mappingStatus === 'manual-mapped' ? 'border-blue-300 bg-blue-50/80 shadow-sm' :
+                    'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                   }`}>
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                      {/* Column Info */}
+                    {/* Status indicator */}
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {mappingStatus === 'auto-mapped' && (
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex h-3 w-3 rounded-full bg-green-500"></div>
+                            <span className="text-xs font-medium text-green-700">Otomatis</span>
+                          </div>
+                        )}
+                        {mappingStatus === 'manual-mapped' && (
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex h-3 w-3 rounded-full bg-blue-500"></div>
+                            <span className="text-xs font-medium text-blue-700">Manual</span>
+                          </div>
+                        )}
+                        {mappingStatus === 'unmapped' && (
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex h-3 w-3 rounded-full bg-gray-400"></div>
+                            <span className="text-xs font-medium text-gray-500">Tidak Dipetakan</span>
+                          </div>
+                        )}
+                      </div>
+                      {isRequired && (
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          Wajib
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+                      {/* Data CSV Anda */}
                       <div className="flex-1">
+                        <div className="mb-2">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">KOLOM CSV ANDA</span>
+                        </div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-gray-900">{header}</h3>
-                          {isAutoMapped && (
+                          <h3 className="font-semibold text-gray-900">{header}</h3>
+                          {isAutoMapped && fieldInfo && (
                             <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
                               <svg className="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
-                              Terdeteksi otomatis
+                              Cocok dengan: {fieldInfo.label}
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600">
-                          Contoh: <span className="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">
+                        <p className="mt-1 text-sm text-gray-600">
+                          <span className="text-gray-500">Contoh data:</span> <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">
                             {parsedData.rows[0]?.[header] || 'Tidak ada data'}
                           </span>
                         </p>
                       </div>
 
-                      {/* Field Selection */}
+                      {/* System Mapping */}
                       <div className="flex-1 max-w-xs">
-                        <select
-                          value={mappedField || ''}
-                          onChange={(e) => handleMappingChange(header, e.target.value)}
-                          className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
-                            isAutoMapped ? 'border-green-300 bg-green-50' : 'border-gray-300 bg-white'
-                          }`}
-                        >
-                          <option value="">🚫 Lewati kolom ini</option>
-                          {fieldGroups.map(group => (
-                            <optgroup key={group.name} label={group.name}>
-                              {group.fields.map(field => (
-                                <option key={field.value} value={field.value}>
-                                  {field.label}
-                                </option>
+                        <div className="mb-2">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Akan Diimpor Sebagai</span>
+                        </div>
+                        
+                        {/* Visual arrow connector */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center text-gray-400">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <select
+                              value={mappedField || ''}
+                              onChange={(e) => handleMappingChange(header, e.target.value)}
+                              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
+                                isAutoMapped ? 'border-green-300 bg-green-50' : 'border-gray-300 bg-white'
+                              }`}
+                            >
+                              <option value="">Lewati kolom ini</option>
+                              {fieldGroups.map(group => (
+                                <optgroup key={group.name} label={group.name}>
+                                  {group.fields.map(field => (
+                                    <option key={field.value} value={field.value}>
+                                      {field.label}
+                                    </option>
+                                  ))}
+                                </optgroup>
                               ))}
-                            </optgroup>
-                          ))}
-                        </select>
+                            </select>
+                          </div>
+                        </div>
+                        
                         {mappedField && fieldInfo && (
-                          <p className="mt-1 text-xs text-gray-500">
-                            → Dipetakan ke: <span className="font-medium">{fieldInfo.label}</span>
-                          </p>
+                          <div className="mt-2 flex items-center gap-1 text-xs">
+                            <div className="flex h-2 w-2 rounded-full bg-green-500"></div>
+                            <span className="text-green-700 font-medium">
+                              Data akan tersimpan di field: {fieldInfo.label}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {!mappedField && (
+                          <div className="mt-2 flex items-center gap-1 text-xs">
+                            <div className="flex h-2 w-2 rounded-full bg-gray-400"></div>
+                            <span className="text-gray-500">
+                              Kolom ini akan diabaikan
+                            </span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -802,7 +987,12 @@ export default function ProductImportPage() {
                 {validationResult.errors.length > 0 && (
                   <details className="rounded-lg border border-red-200 bg-red-50">
                     <summary className="cursor-pointer p-4 font-medium text-red-900 hover:bg-red-100">
-                      🚨 {validationResult.errors.length} Error Kritis{validationResult.errors.length !== 1 ? '' : ''} (Harus Diperbaiki)
+                      <div className="flex items-center gap-2">
+                        <svg className="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <span>{validationResult.errors.length} Error Kritis{validationResult.errors.length !== 1 ? '' : ''} (Harus Diperbaiki)</span>
+                      </div>
                     </summary>
                     <div className="border-t border-red-200 p-4">
                       <div className="max-h-48 space-y-2 overflow-y-auto">
@@ -819,7 +1009,7 @@ export default function ProductImportPage() {
                                   Produk #{error.row - 1}
                                 </div>
                                 <div className="text-sm text-red-700">
-                                  {error.field}: {error.message}
+                                  {getFieldDisplayName(error.field)}: {error.message}
                                 </div>
                               </div>
                             </div>
@@ -839,7 +1029,12 @@ export default function ProductImportPage() {
                 {validationResult.warnings.length > 0 && (
                   <details className="rounded-lg border border-amber-200 bg-amber-50">
                     <summary className="cursor-pointer p-4 font-medium text-amber-900 hover:bg-amber-100">
-                      ⚠️ {validationResult.warnings.length} Peringatan{validationResult.warnings.length !== 1 ? '' : ''} (Opsional)
+                      <div className="flex items-center gap-2">
+                        <svg className="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <span>{validationResult.warnings.length} Peringatan{validationResult.warnings.length !== 1 ? '' : ''} (Opsional)</span>
+                      </div>
                     </summary>
                     <div className="border-t border-amber-200 p-4">
                       <div className="max-h-48 space-y-2 overflow-y-auto">
@@ -880,7 +1075,7 @@ export default function ProductImportPage() {
                   </div>
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-green-800">
-                      🎉 Semua data terlihat bagus!
+                      Semua data terlihat bagus!
                     </h3>
                     <div className="mt-2 text-sm text-green-700">
                       {parsedData?.rows.length || 0} produk Anda siap diimpor. Tidak ada masalah kritis ditemukan.
@@ -973,7 +1168,7 @@ export default function ProductImportPage() {
                 </svg>
               </div>
               <h2 className="mt-4 text-2xl font-semibold text-gray-900">
-                {importResult.success > 0 ? '🎉 Impor Selesai!' : 'Impor Selesai'}
+                {importResult.success > 0 ? 'Impor Selesai!' : 'Impor Selesai'}
               </h2>
               <p className="mt-2 text-sm text-gray-600">
                 {importResult.success > 0 
