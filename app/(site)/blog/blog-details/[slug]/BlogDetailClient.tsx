@@ -24,6 +24,7 @@ const BlogDetailClient = ({
   const { language } = useLanguage();
   const [hasMounted, setHasMounted] = useState(false);
   const [isContentReady, setIsContentReady] = useState(false);
+  const [renderedContent, setRenderedContent] = useState("");
 
   // Prepare blog data for rendering
   const currentBlog = useMemo(() => initialBlog, [initialBlog]);
@@ -35,31 +36,39 @@ const BlogDetailClient = ({
   useEffect(() => {
     setHasMounted(true);
 
+    // Render content asynchronously
+    const renderContentAsync = async () => {
+      const content = currentBlog.content || "";
+      if (!content) {
+        setRenderedContent("");
+        return;
+      }
+
+      try {
+        // Check if content is already HTML
+        if (content.includes("<") && content.includes(">")) {
+          setRenderedContent(content); // Already HTML, return as is
+        } else {
+          // Convert Markdown to HTML
+          const htmlContent = await marked.parse(content);
+          setRenderedContent(htmlContent);
+        }
+      } catch (error) {
+        console.error("Error parsing blog content:", error);
+        setRenderedContent(content); // Return original content if parsing fails
+      }
+    };
+
+    renderContentAsync();
+
     // Simulate minimum loading time for smooth transition
     const timer = setTimeout(() => {
       setIsContentReady(true);
     }, 200);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [currentBlog.content]);
 
-  // Function to convert Markdown to HTML
-  const renderContent = (content: string) => {
-    if (!content) return "";
-
-    try {
-      // Check if content is already HTML
-      if (content.includes("<") && content.includes(">")) {
-        return content; // Already HTML, return as is
-      }
-
-      // Convert Markdown to HTML
-      return marked.parse(content);
-    } catch (error) {
-      console.error("Error parsing blog content:", error);
-      return content; // Return original content if parsing fails
-    }
-  };
 
   // Handle client-side rendering to prevent hydration issues
   if (!hasMounted) {
@@ -144,7 +153,7 @@ const BlogDetailClient = ({
               <div className="blog-content blog-details">
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: renderContent(currentBlog.content || ""),
+                    __html: renderedContent,
                   }}
                   className="rich-text-content"
                 />

@@ -42,6 +42,10 @@ interface PublicCertificateData {
   rawMaintenanceData?: any;
   rawContractData?: any;
   rawProductData?: any;
+  // Resolved reference data
+  resolvedEngineerNames: string[];
+  resolvedApproverName: string;
+  resolvedLocation: string;
 }
 
 /**

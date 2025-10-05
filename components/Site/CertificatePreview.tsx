@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from "react";
 
+interface ChecklistItem {
+  item: string;
+  status: boolean;
+  remarks: string;
+}
+
 interface CertificateData {
   certificateNumber: string;
   issueDate: string;
@@ -36,7 +42,7 @@ interface CertificatePreviewProps {
 }
 
 export default function CertificatePreview({ certificate, companyInfo }: CertificatePreviewProps) {
-  const [checklistDetails, setChecklistDetails] = useState<any[]>([]);
+  const [checklistDetails, setChecklistDetails] = useState<ChecklistItem[]>([]);
 
   // Default company info if not provided
   const defaultCompanyInfo = {
@@ -51,7 +57,7 @@ export default function CertificatePreview({ certificate, companyInfo }: Certifi
   // Generate sample checklist details for preview
   useEffect(() => {
     const generateSampleChecklist = () => {
-      const items = [];
+      const items: ChecklistItem[] = [];
       const itemNames = {
         APAR: ["Hose", "Pressure", "Handle", "Body", "Safety Pin", "Exp Date"],
         HYDRANT: ["Height", "Width", "Flow Rate", "Pressure", "Valve Type", "Hose Length"],

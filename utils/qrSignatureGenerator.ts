@@ -146,11 +146,9 @@ export async function generateQRCodeDataURL(
     // Generate QR code as data URL
     const qrDataURL = await QRCode.toDataURL(qrDataString, {
       width: qrOptions.size,
-      height: qrOptions.size,
       margin: qrOptions.margin,
       color: qrOptions.color,
       errorCorrectionLevel: qrOptions.errorCorrectionLevel,
-      type: "image/png",
     });
     
     return qrDataURL;

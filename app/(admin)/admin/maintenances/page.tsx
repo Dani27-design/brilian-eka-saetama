@@ -15,7 +15,6 @@ import { Maintenance, MaintenanceStatus } from "@/types/maintenances";
 import { useAdmin } from "@/app/context/AdminContext";
 import Image from "next/image";
 import moment from "moment";
-import "moment-with-locales-es6";
 import "moment/locale/id";
 import Modal from "@/components/Admin/Modal";
 

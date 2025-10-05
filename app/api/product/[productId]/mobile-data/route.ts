@@ -10,6 +10,11 @@ import {
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { ProductQRData } from "@/utils/qrCodeGenerator";
 
+interface CustomerData {
+  name: string;
+  [key: string]: any;
+}
+
 /**
  * GET /api/product/[productId]/mobile-data
  * 
@@ -70,7 +75,8 @@ export async function GET(
         if (contractData.customer) {
           const customerDoc = await getDoc(contractData.customer);
           if (customerDoc.exists()) {
-            customerName = customerDoc.data().name;
+            const customerData = customerDoc.data() as CustomerData;
+            customerName = customerData.name;
           }
         }
       }

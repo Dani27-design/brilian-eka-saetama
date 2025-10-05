@@ -25,6 +25,7 @@
     "@types/react-dom": "^18.2.14",
     "@uiw/react-md-editor": "^4.0.7",
     "autoprefixer": "^10.4.16",
+    "caniuse-lite": "^1.0.30001747",
     "cookies-next": "^6.0.0",
     "critters": "^0.0.23",
     "draft-js": "^0.11.7",
