@@ -164,7 +164,7 @@ export function productsToCSV(
   // Create CSV rows
   const rows = products.map(product => {
     const baseData = {
-      productNumber: product.productNumber || "",
+      productNumber: product.productNumber?.toString() || "",
       name: product.name || "",
       productType: product.productType || "",
       source: product.source || "",

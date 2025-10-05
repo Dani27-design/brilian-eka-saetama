@@ -14,6 +14,7 @@ import {
 import { firestore, auth } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import Modal from "@/components/Admin/Modal";
+import PasswordInput from "@/components/Admin/PasswordInput";
 
 // Add to translations
 const translations = {
@@ -601,6 +602,26 @@ export default function UserManagementPage() {
                       <td className="px-4 py-3">
                         <div className="flex space-x-2">
                           <button
+                            onClick={() => router.push(`/admin/users/edit/${user.id}`)}
+                            className="flex w-16 items-center justify-center whitespace-nowrap rounded-lg bg-primary px-1.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-opacity-90"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="mr-1 h-3 w-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            {t.edit}
+                          </button>
+                          <button
                             onClick={() =>
                               toggleUserStatus(user.id, user.isActive)
                             }
@@ -829,8 +850,7 @@ export default function UserManagementPage() {
             >
               {t.password}
             </label>
-            <input
-              type="password"
+            <PasswordInput
               id="password"
               name="password"
               value={newUser.password}
@@ -847,8 +867,7 @@ export default function UserManagementPage() {
             >
               {t.confirmPassword}
             </label>
-            <input
-              type="password"
+            <PasswordInput
               id="confirmPassword"
               name="confirmPassword"
               value={newUser.confirmPassword}

@@ -6,6 +6,10 @@ import {
   getQRCodeSize,
   generateQRLabel 
 } from './qrCodeGenerator';
+import { 
+  generateDesignedQRBlob, 
+  getQRDesignOptions 
+} from './qrCodeDesigner';
 import { findProductLocation } from './findProductLocation';
 import { firestore } from '@/db/firebase/firebaseConfig';
 import { doc } from 'firebase/firestore';
@@ -18,6 +22,9 @@ export interface BulkQRConfig {
   includeLabels: boolean;
   errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
   format: 'png' | 'jpg';
+  useDesignedQR: boolean;
+  logoUrl?: string;
+  baseUrl?: string; // Base URL for public certificate viewing
 }
 
 /**
@@ -57,7 +64,9 @@ export async function generateBulkQRCodes(
     size: 'print',
     includeLabels: true,
     errorCorrectionLevel: 'H',
-    format: 'png'
+    format: 'png',
+    useDesignedQR: true,
+    logoUrl: '/images/logo/logo-light.png'
   },
   onProgress?: BulkQRProgressCallback
 ): Promise<BulkQRResult> {
@@ -97,8 +106,9 @@ export async function generateBulkQRCodes(
           throw new Error('Product ID is required');
         }
 
-        // Get location from contract if available
+        // Get location and customer name from contract if available
         let location: string | undefined;
+        let customerName: string | undefined;
         if (product.contractData?.productDetails) {
           location = findProductLocation(
             doc(firestore, "products", product.id),
@@ -106,26 +116,41 @@ export async function generateBulkQRCodes(
           );
           if (location === "N/A") location = undefined;
         }
+        if (product.contractData?.customerData?.name) {
+          customerName = product.contractData.customerData.name;
+        }
 
         // Generate QR data
         const qrData = generateProductQRData(
           product,
           product.id,
           product.contractData?.id,
-          location
+          location,
+          customerName,
+          config.baseUrl
         );
 
         // Generate QR code image
-        const qrDataUrl = await generateQRCodeDataURL(qrData, {
-          size: qrSize,
-          errorCorrectionLevel: config.errorCorrectionLevel
-        });
-
-        // Convert data URL to blob
-        const qrBlob = await dataURLToBlob(qrDataUrl);
+        let qrBlob: Blob;
+        if (config.useDesignedQR) {
+          // Use designed QR code with logo and styling
+          const designOptions = getQRDesignOptions(config.size);
+          qrBlob = await generateDesignedQRBlob(
+            qrData,
+            config.logoUrl,
+            designOptions
+          );
+        } else {
+          // Use traditional QR code
+          const qrDataUrl = await generateQRCodeDataURL(qrData, {
+            size: qrSize,
+            errorCorrectionLevel: config.errorCorrectionLevel
+          });
+          qrBlob = await dataURLToBlob(qrDataUrl);
+        }
         
         // Create safe filename
-        const safeProductNumber = product.productNumber.replace(/[^a-zA-Z0-9]/g, '_');
+        const safeProductNumber = product.productNumber.toString().replace(/[^a-zA-Z0-9]/g, '_');
         const safeProductName = product.name.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
         const filename = `${safeProductNumber}_${safeProductName}`;
 
@@ -239,6 +264,7 @@ function generateBulkQRSummary(
     `- Size: ${config.size}`,
     `- Error correction: ${config.errorCorrectionLevel}`,
     `- Format: ${config.format}`,
+    `- Designed QR: ${config.useDesignedQR ? 'Yes' : 'No'}`,
     `- Labels included: ${config.includeLabels ? 'Yes' : 'No'}`,
     '',
     'Contents:',

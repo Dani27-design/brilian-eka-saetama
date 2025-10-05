@@ -1,6 +1,66 @@
 import { Maintenance, InspectionChecklist } from "@/types/maintenances";
 import { ProductType } from "@/types/product";
 import { formatToWIB, formatDateOnlyWIB } from "./dateFormatter";
+import { generatePDFCertificate, downloadPDFCertificate } from "./pdfCertificateGenerator";
+import { openCertificateForPrint } from "./pdfCertificatePrint";
+
+/**
+ * Converts Firestore timestamp to Date object
+ * Handles various timestamp formats from Firestore
+ */
+function convertFirestoreTimestamp(timestamp: any): Date {
+  if (!timestamp) {
+    return new Date();
+  }
+  
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+  
+  if (typeof timestamp.toDate === 'function') {
+    return timestamp.toDate();
+  }
+  
+  if (typeof timestamp === 'object' && timestamp.seconds) {
+    // Handle Firestore timestamp object {seconds, nanoseconds}
+    return new Date(timestamp.seconds * 1000);
+  }
+  
+  // Fallback
+  return new Date(timestamp);
+}
+
+/**
+ * Safely converts any value to string, handling objects gracefully
+ */
+function safeStringify(value: any): string {
+  if (value === null || value === undefined) {
+    return 'N/A';
+  }
+  
+  if (typeof value === 'string') {
+    return value;
+  }
+  
+  if (typeof value === 'object') {
+    // Handle common object patterns
+    if (value.name) return value.name;
+    if (value.address) return value.address;
+    if (value.location) return value.location;
+    if (value.toString && typeof value.toString === 'function') {
+      const str = value.toString();
+      if (str !== '[object Object]') return str;
+    }
+    // Last resort: JSON stringify but try to extract meaningful info
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return 'N/A';
+    }
+  }
+  
+  return String(value);
+}
 
 /**
  * Certificate data structure for PDF generation
@@ -101,11 +161,11 @@ export function createCertificateData(
   productData: any,
   engineerNames: string[],
   approverName: string,
-  location: string
+  location: any
 ): CertificateData {
   const issueDate = formatToWIB(new Date());
-  const inspectionDate = formatToWIB(maintenanceData.inspection?.createdAt || new Date());
-  const approvedAt = formatToWIB(maintenanceData.updatedAt || new Date());
+  const inspectionDate = formatToWIB(convertFirestoreTimestamp(maintenanceData.inspection?.createdAt));
+  const approvedAt = formatToWIB(convertFirestoreTimestamp(maintenanceData.updatedAt));
   
   // Calculate validity period (typically 1 year from issue date)
   const validUntilDate = new Date();
@@ -128,30 +188,30 @@ export function createCertificateData(
     validUntil,
     
     // Contract Information
-    contractNumber: contractData.contractNumber || 'N/A',
-    contractName: contractData.contractName || 'N/A',
-    customerName: contractData.customerData?.name || 'N/A',
-    customerAddress: contractData.customerData?.address || undefined,
+    contractNumber: safeStringify(contractData.contractNumber),
+    contractName: safeStringify(contractData.contractName),
+    customerName: safeStringify(contractData.customerData?.name),
+    customerAddress: safeStringify(contractData.customerData?.address),
     
     // Product Information
-    productNumber: productData.productNumber || 'N/A',
-    productName: productData.name || 'N/A',
-    productBrand: productData.specs?.brand || 'N/A',
+    productNumber: safeStringify(productData.productNumber),
+    productName: safeStringify(productData.name),
+    productBrand: safeStringify(productData.specs?.brand),
     productType: maintenanceData.productType,
     serialNumber: productData.specs?.serialNumber || undefined,
-    location,
+    location: safeStringify(location),
     expirationDate: productData.specs?.expirationDate 
-      ? formatDateOnlyWIB(productData.specs.expirationDate)
+      ? formatDateOnlyWIB(convertFirestoreTimestamp(productData.specs.expirationDate))
       : undefined,
     
     // Inspection Information
     inspectionDate,
-    engineerNames,
+    engineerNames: engineerNames.map(name => safeStringify(name)),
     checklistResults,
     photos: maintenanceData.inspection?.photos || [],
     
     // Approval Information
-    approvedBy: approverName,
+    approvedBy: safeStringify(approverName),
     approvedAt,
     approvalNotes: undefined,
     
@@ -810,4 +870,86 @@ export function getCertificateStats(certificateData: CertificateData): {
     engineerCount: certificateData.engineerNames.length,
     estimatedPages
   };
+}
+
+/**
+ * Opens PDF certificate and triggers browser's native print dialog
+ * Simple browser print functionality without custom modal
+ * 
+ * @param certificateData - Complete certificate data
+ * @param inspectorId - ID of the inspector for QR signature
+ * @param approverId - ID of the approver for QR signature  
+ * @param windowTitle - Optional title for print window
+ * 
+ * @example
+ * await printPDFCertificate(certData, "inspector123", "approver456");
+ */
+export async function printPDFCertificate(
+  certificateData: CertificateData,
+  inspectorId: string,
+  approverId: string,
+  windowTitle?: string
+): Promise<void> {
+  try {
+    // Direct PDF print without fallback chain to avoid double popups
+    await openCertificateForPrint(certificateData, inspectorId, approverId, {
+      windowTitle: windowTitle || "Certificate",
+    });
+  } catch (error) {
+    console.error("Error opening certificate for print:", error);
+    // Pass through the actual error instead of masking it
+    if (error instanceof Error) {
+      throw error; // Pass through the actual error
+    } else {
+      throw new Error(`Certificate generation failed: ${String(error)}`);
+    }
+  }
+}
+
+/**
+ * Downloads PDF certificate directly (legacy method)
+ * Use this for bulk operations or when print preview is not needed
+ * 
+ * @param certificateData - Complete certificate data
+ * @param inspectorId - ID of the inspector for QR signature
+ * @param approverId - ID of the approver for QR signature  
+ * @param filename - Optional filename (without extension)
+ * 
+ * @example
+ * await downloadPDFCertificate(certData, "inspector123", "approver456", "certificate_PRD001");
+ */
+export async function downloadPDFCertificateDirectly(
+  certificateData: CertificateData,
+  inspectorId: string,
+  approverId: string,
+  filename?: string
+): Promise<void> {
+  try {
+    await downloadPDFCertificate(certificateData, inspectorId, approverId, filename);
+  } catch (error) {
+    console.error("Error generating PDF certificate:", error);
+    // No fallback - throw error for user to handle
+    throw error;
+  }
+}
+
+/**
+ * Generates PDF certificate blob for further processing
+ * Useful for bulk operations or custom handling
+ * 
+ * @param certificateData - Complete certificate data
+ * @param inspectorId - ID of the inspector for QR signature
+ * @param approverId - ID of the approver for QR signature
+ * @returns Promise that resolves to PDF blob
+ * 
+ * @example
+ * const pdfBlob = await generateCertificatePDFBlob(certData, "inspector123", "approver456");
+ * // Use blob for custom operations
+ */
+export async function generateCertificatePDFBlob(
+  certificateData: CertificateData,
+  inspectorId: string,
+  approverId: string
+): Promise<Blob> {
+  return await generatePDFCertificate(certificateData, inspectorId, approverId);
 }

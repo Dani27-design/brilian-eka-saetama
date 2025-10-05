@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import PasswordInput from "@/components/Admin/PasswordInput";
 
 const Signin = () => {
   const [data, setData] = useState({
@@ -138,8 +139,7 @@ const Signin = () => {
                   className="w-full border-b border-stroke !bg-white pb-3.5 focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none dark:border-strokedark dark:!bg-black dark:focus:border-manatee dark:focus:placeholder:text-white lg:w-1/2"
                 />
 
-                <input
-                  type="password"
+                <PasswordInput
                   placeholder="Password"
                   name="password"
                   value={data.password}

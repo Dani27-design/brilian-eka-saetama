@@ -8,16 +8,18 @@ import { DocumentReference } from "firebase/firestore";
  */
 export interface ProductQRData {
   productId: string;
-  productNumber: string;
+  productNumber: string; // Keep as string for QR code display
   productName: string;
   productType: ProductType;
   brand: string;
   serialNumber?: string;
   contractId?: string;
+  customerName?: string;
   maintenanceInterval: number;
   location?: string;
   generatedAt: string;
   version: string; // QR data format version for future compatibility
+  publicUrl?: string; // URL for public certificate viewing
 }
 
 /**
@@ -49,16 +51,18 @@ const DEFAULT_QR_OPTIONS: QRCodeOptions = {
 
 /**
  * Generates QR code data object from product information
- * Extracts and formats all necessary data for mobile app consumption
+ * Extracts and formats all necessary data for mobile app consumption and public certificate viewing
  * 
  * @param product - The product document data
  * @param productId - The Firestore document ID
  * @param contractId - Optional contract ID if product is assigned
  * @param location - Optional location from contract details
+ * @param customerName - Optional customer name from contract
+ * @param baseUrl - Optional base URL override for public certificate viewing
  * @returns Structured QR data object
  * 
  * @example
- * const qrData = generateProductQRData(productData, "prod123", "contract456", "Building A");
+ * const qrData = generateProductQRData(productData, "prod123", "contract456", "Building A", "ABC Corp");
  * // Returns: {
  * //   productId: "prod123",
  * //   productNumber: "PRD-001",
@@ -67,29 +71,42 @@ const DEFAULT_QR_OPTIONS: QRCodeOptions = {
  * //   brand: "ABC Fire",
  * //   maintenanceInterval: 30,
  * //   contractId: "contract456",
+ * //   customerName: "ABC Corp",
  * //   location: "Building A",
  * //   generatedAt: "2025-08-16T08:30:00.000Z",
- * //   version: "1.0"
+ * //   version: "1.0",
+ * //   publicUrl: "https://domain.com/product/prod123/certificates"
  * // }
  */
 export function generateProductQRData(
   product: Product,
   productId: string,
   contractId?: string,
-  location?: string
+  location?: string,
+  customerName?: string,
+  baseUrl?: string
 ): ProductQRData {
+  const productNumber = product.productNumber?.toString() || "0";
+  
+  // Generate public URL for certificate viewing using productId (globally unique)
+  const publicUrl = baseUrl 
+    ? `${baseUrl}/product/${productId}/certificates`
+    : `${process.env.NEXT_PUBLIC_APP_URL || 'https://localhost:3000'}/product/${productId}/certificates`;
+
   return {
     productId,
-    productNumber: product.productNumber || "N/A",
+    productNumber,
     productName: product.name || "Unknown Product",
     productType: product.productType,
     brand: product.specs?.brand || "N/A",
     serialNumber: product.specs?.serialNumber || undefined,
     contractId: contractId || undefined,
+    customerName: customerName || undefined,
     maintenanceInterval: product.maintenanceInterval || 0,
     location: location || undefined,
     generatedAt: new Date().toISOString(),
     version: "1.0", // Version for future QR format changes
+    publicUrl, // URL for public certificate viewing (uses productId for security)
   };
 }
 

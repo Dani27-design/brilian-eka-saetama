@@ -7,6 +7,7 @@ import Image from "next/image";
 import { auth } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { useAdmin } from "@/app/context/AdminContext";
+import PasswordInput from "@/components/Admin/PasswordInput";
 
 // Define translations
 const translations = {
@@ -144,8 +145,7 @@ export default function AdminLogin() {
             >
               {t.password}
             </label>
-            <input
-              type="password"
+            <PasswordInput
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

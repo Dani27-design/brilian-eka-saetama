@@ -77,7 +77,7 @@ export type ProductSpecs =
 export type Product = {
   id?: string;
   name: string;
-  productNumber: string;
+  productNumber: number;
   productType: ProductType;
   specs: ProductSpecs;
   source: string; // e.g., "VENDOR ABC", "INTERNAL"

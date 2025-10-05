@@ -27,7 +27,7 @@ export async function bulkImportProducts(
   
   try {
     // Check for existing product numbers if needed
-    let existingNumbers = new Set<string>();
+    let existingNumbers = new Set<number>();
     if (config.skipDuplicates || config.updateExisting) {
       const productNumbers = products.map(p => p.productNumber).filter(Boolean);
       existingNumbers = await checkMultipleProductNumbers(productNumbers);

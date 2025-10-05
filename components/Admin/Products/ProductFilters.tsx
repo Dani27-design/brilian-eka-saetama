@@ -42,7 +42,7 @@ export default function ProductFiltersComponent({
     filters.brand ||
     filters.source ||
     filters.contractStatus ||
-    filters.sortBy !== "name" ||
+    filters.sortBy !== "productNumber" ||
     filters.sortOrder !== "asc";
 
   const handleFilterChange = (key: keyof ProductFilters, value: any) => {
@@ -205,8 +205,8 @@ export default function ProductFiltersComponent({
                 onChange={(e) => handleFilterChange("sortBy", e.target.value)}
                 className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
               >
-                <option value="name">Nama Produk</option>
                 <option value="productNumber">Nomor Produk</option>
+                <option value="name">Nama Produk</option>
                 <option value="createdAt">Tanggal Dibuat</option>
                 <option value="updatedAt">Tanggal Diupdate</option>
               </select>
@@ -226,6 +226,7 @@ export default function ProductFiltersComponent({
               </select>
             </div>
           </div>
+
         </div>
       )}
     </div>

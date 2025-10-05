@@ -39,7 +39,7 @@ export default function ProductImportPage() {
   const [error, setError] = useState<string | null>(null);
   
   // Check for duplicates in database
-  const [duplicateCheck, setDuplicateCheck] = useState<Set<string> | null>(null);
+  const [duplicateCheck, setDuplicateCheck] = useState<Set<number> | null>(null);
   
   // State for help section
   const [isHelpSectionOpen, setIsHelpSectionOpen] = useState(false);
@@ -144,8 +144,8 @@ export default function ProductImportPage() {
       
       // Check for existing product numbers in database
       const productNumbers = transformedRows
-        .map(r => r.productNumber)
-        .filter(Boolean);
+        .map(r => Number(r.productNumber))
+        .filter(n => !isNaN(n));
       const existing = await checkMultipleProductNumbers(productNumbers);
       setDuplicateCheck(existing);
       

@@ -46,13 +46,22 @@ function toDateInputValue(ts: any) {
   return date.toISOString().slice(0, 10);
 }
 
+interface ProductForm {
+  name: string;
+  productNumber: string; // Keep as string for form input
+  imageUrl: string;
+  source: string;
+  productType: ProductType;
+  maintenanceInterval: number;
+}
+
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
   const { user } = useAdmin();
 
-  const [form, setForm] = useState<Omit<Product, "specs" | "contract">>({
+  const [form, setForm] = useState<ProductForm>({
     name: "",
     productNumber: "",
     imageUrl: "",
@@ -82,7 +91,7 @@ export default function EditProductPage() {
           const data = docSnap.data() as any;
           setForm({
             name: data.name || "",
-            productNumber: data.productNumber || "",
+            productNumber: data.productNumber?.toString() || "",
             productType: data.productType || "APAR",
             imageUrl: data.imageUrl || "",
             source: data.source || "",
@@ -838,7 +847,7 @@ export default function EditProductPage() {
       const productData: Product = {
         id,
         name: form.name,
-        productNumber: form.productNumber,
+        productNumber: Number(form.productNumber),
         productType: form.productType,
         imageUrl: form.imageUrl,
         source: form.source,
@@ -896,7 +905,7 @@ export default function EditProductPage() {
       const productData: Product = {
         id,
         name: form.name,
-        productNumber: form.productNumber,
+        productNumber: Number(form.productNumber),
         productType: form.productType,
         imageUrl: form.imageUrl,
         source: form.source,
@@ -932,21 +941,24 @@ export default function EditProductPage() {
     setError("");
     setLoading(false);
 
+    // Convert productNumber to number and validate
+    const productNumber = Number(form.productNumber);
+    if (!form.productNumber || !form.name || isNaN(productNumber)) {
+      setError("No. Produk harus berupa angka dan Nama Produk wajib diisi.");
+      setLoading(false);
+      return;
+    }
+
     // Final check before submit
     const q = query(
       collection(firestore, "products"),
-      where("productNumber", "==", form.productNumber),
+      where("productNumber", "==", productNumber),
     );
     const snapshot = await getDocs(q);
     let isDuplicate = false;
     snapshot.forEach((doc) => {
       if (doc.id !== id) isDuplicate = true;
     });
-    if (!form.productNumber || !form.name) {
-      setError("No. Produk dan Nama Produk wajib diisi.");
-      setLoading(false);
-      return;
-    }
     if (isDuplicate) {
       setProductNumberError("No. Produk sudah digunakan, gunakan nomor lain.");
       setLoading(false);
@@ -973,6 +985,7 @@ export default function EditProductPage() {
     try {
       await updateDoc(doc(firestore, "products", id), {
         ...form,
+        productNumber: productNumber,
         maintenanceInterval: form.maintenanceInterval
           ? Number(form.maintenanceInterval)
           : 0,
@@ -1070,6 +1083,7 @@ export default function EditProductPage() {
               No. Produk<span className="text-red-500">*</span>
             </label>
             <input
+              type="number"
               name="productNumber"
               placeholder="No. Produk"
               value={form.productNumber}

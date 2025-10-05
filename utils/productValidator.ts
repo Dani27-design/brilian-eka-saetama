@@ -8,7 +8,7 @@ import { Timestamp } from 'firebase/firestore';
  * @param productNumber - The product number to check
  * @returns Promise resolving to true if exists, false otherwise
  */
-export async function checkProductNumberExists(productNumber: string): Promise<boolean> {
+export async function checkProductNumberExists(productNumber: number): Promise<boolean> {
   try {
     const q = query(
       collection(firestore, 'products'),
@@ -28,9 +28,9 @@ export async function checkProductNumberExists(productNumber: string): Promise<b
  * @returns Promise resolving to set of existing product numbers
  */
 export async function checkMultipleProductNumbers(
-  productNumbers: string[]
-): Promise<Set<string>> {
-  const existingNumbers = new Set<string>();
+  productNumbers: number[]
+): Promise<Set<number>> {
+  const existingNumbers = new Set<number>();
   
   // Firebase 'in' query is limited to 10 items, so we need to batch
   const batchSize = 10;
@@ -178,7 +178,7 @@ export function prepareProductForImport(data: Record<string, any>): Omit<Product
   const productType = data.productType as ProductType;
   
   return {
-    productNumber: data.productNumber || '',
+    productNumber: data.productNumber ? Number(data.productNumber) : 0,
     name: data.name || '',
     productType: productType,
     specs: buildProductSpecs(data, productType),

@@ -12,8 +12,17 @@ import { query, where, getDocs } from "firebase/firestore";
 import React from "react";
 import { Timestamp } from "firebase/firestore";
 
+interface ProductForm {
+  name: string;
+  productNumber: string; // Keep as string for form input
+  imageUrl: string;
+  source: string;
+  productType: ProductType;
+  maintenanceInterval: number;
+}
+
 export default function CreateProductPage() {
-  const [form, setForm] = useState<Omit<Product, "specs" | "contract">>({
+  const [form, setForm] = useState<ProductForm>({
     name: "",
     productNumber: "",
     imageUrl: "",
@@ -680,17 +689,20 @@ export default function CreateProductPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    // Final check before submit
-    const q = query(
-      collection(firestore, "products"),
-      where("productNumber", "==", form.productNumber),
-    );
-    const snapshot = await getDocs(q);
-    if (!form.productNumber || !form.name) {
-      setError("No. Produk dan Nama Produk wajib diisi.");
+    // Convert productNumber to number and validate
+    const productNumber = Number(form.productNumber);
+    if (!form.productNumber || !form.name || isNaN(productNumber)) {
+      setError("No. Produk harus berupa angka dan Nama Produk wajib diisi.");
       setLoading(false);
       return;
     }
+    
+    // Final check before submit
+    const q = query(
+      collection(firestore, "products"),
+      where("productNumber", "==", productNumber),
+    );
+    const snapshot = await getDocs(q);
     if (!snapshot.empty) {
       setProductNumberError("No. Produk sudah digunakan, gunakan nomor lain.");
       setLoading(false);
@@ -717,6 +729,7 @@ export default function CreateProductPage() {
     // Build Product
     const productToSave: Product = {
       ...form,
+      productNumber: productNumber,
       specs: finalSpecs,
       maintenanceInterval: form.maintenanceInterval
         ? Number(form.maintenanceInterval)
@@ -803,6 +816,7 @@ export default function CreateProductPage() {
               No. Produk<span className="text-red-500">*</span>
             </label>
             <input
+              type="number"
               name="productNumber"
               placeholder="No. Produk"
               value={form.productNumber}

@@ -39,6 +39,8 @@ import {
 import {
   createCertificateData,
   printCertificate,
+  printPDFCertificate,
+  downloadPDFCertificateDirectly,
   validateCertificateData,
   getCertificateStats,
 } from "@/utils/pdfCertificate";
@@ -745,8 +747,12 @@ export default function InspectionsPage() {
         new Date().toISOString().split("T")[0]
       }`;
 
-      // Generate and download PDF
-      printCertificate(certificateData, filename);
+      // Get inspector and approver IDs for QR signatures
+      const inspectorId = maintenanceData.inspection?.createdBy?.id || "unknown";
+      const approverId = user?.uid || "unknown";
+
+      // Generate and download PDF with QR signatures
+      await printPDFCertificate(certificateData, inspectorId, approverId, filename);
     } catch (error: any) {
       console.error("Certificate generation error:", error);
       setError(error.message || "Gagal membuat sertifikat PDF");
@@ -855,9 +861,13 @@ export default function InspectionsPage() {
             new Date(inspection.inspectionDate).toISOString().split("T")[0]
           }`;
 
+          // Get inspector and approver IDs for QR signatures
+          const inspectorId = maintenanceData.inspection?.createdBy?.id || "unknown";
+          const approverId = user?.uid || "unknown";
+
           // Generate and download certificate (with delay to prevent browser blocking)
           await new Promise((resolve) => setTimeout(resolve, 1000 * i)); // 1 second delay between downloads
-          printCertificate(certificateData, filename);
+          await downloadPDFCertificateDirectly(certificateData, inspectorId, approverId, filename);
         } catch (error) {
           console.error(
             `Error generating certificate for inspection ${inspection.id}:`,

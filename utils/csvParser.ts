@@ -117,7 +117,7 @@ export function validateProductData(
 ): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
-  const seenProductNumbers = new Set<string>();
+  const seenProductNumbers = new Set<number>();
   
   // Valid product types
   const validProductTypes: ProductType[] = ['APAR', 'HYDRANT', 'CCTV', 'FIRE_ALARM', 'ACCESS_DOOR', 'PATROL_GUARD'];
@@ -125,8 +125,9 @@ export function validateProductData(
   rows.forEach((row, index) => {
     const rowNum = index + 2; // +2 because of header row and 0-index
     
-    // Check required fields
-    if (!row.productNumber || row.productNumber.trim() === '') {
+    // Check required fields and convert productNumber to number
+    const productNumber = Number(row.productNumber);
+    if (!row.productNumber || row.productNumber.toString().trim() === '' || isNaN(productNumber)) {
       errors.push({
         row: rowNum,
         field: 'productNumber',
@@ -135,7 +136,7 @@ export function validateProductData(
       });
     } else if (checkDuplicates) {
       // Check for duplicates within the file
-      if (seenProductNumbers.has(row.productNumber)) {
+      if (seenProductNumbers.has(productNumber)) {
         errors.push({
           row: rowNum,
           field: 'productNumber',
@@ -143,8 +144,11 @@ export function validateProductData(
           message: ValidationMessages.DUPLICATE_PRODUCT_NUMBER
         });
       }
-      seenProductNumbers.add(row.productNumber);
+      seenProductNumbers.add(productNumber);
     }
+    
+    // Update the row with numeric productNumber
+    row.productNumber = productNumber;
     
     if (!row.name || row.name.trim() === '') {
       errors.push({

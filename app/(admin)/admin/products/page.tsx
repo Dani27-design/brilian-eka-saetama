@@ -17,16 +17,17 @@ import type { Product, ProductType } from "@/types/product";
 import { Contract } from "@/types/contracts";
 import { 
   generateProductQRData, 
-  downloadQRCode, 
-  generateQRCodeDataURL,
-  getQRCodeSize 
+  ProductQRData
 } from "@/utils/qrCodeGenerator";
 import { findProductLocation } from "@/utils/findProductLocation";
 import BulkOperationsToolbar from "@/components/Admin/Products/BulkOperationsToolbar";
 import BulkEditDialog from "@/components/Admin/Products/BulkEditDialog";
 import ProductFiltersComponent, { ProductFilters } from "@/components/Admin/Products/ProductFilters";
+import SortableHeader from "@/components/Admin/Products/SortableHeader";
 import { exportProducts } from "@/utils/exportGenerator";
 import { generateBulkQRCodes, downloadBulkQRZip, BulkQRProgressCallback } from "@/utils/bulkQRGenerator";
+import QRCodePreviewModal from "@/components/Admin/QRCodePreviewModal";
+import { buildProductQuery, getSortingStrategy } from "@/utils/productQuery";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<
@@ -45,7 +46,7 @@ export default function ProductsPage() {
     brand: "",
     source: "",
     contractStatus: "",
-    sortBy: "name",
+    sortBy: "productNumber",
     sortOrder: "asc"
   });
   
@@ -62,17 +63,33 @@ export default function ProductsPage() {
   
   // Dropdown state for row actions
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  
+  // QR Preview Modal state
+  const [showQRPreview, setShowQRPreview] = useState(false);
+  const [selectedQRData, setSelectedQRData] = useState<ProductQRData | null>(null);
 
-  // Fetch products
+  // Fetch products with smart querying
   const fetchProducts = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const querySnapshot = await getDocs(collection(firestore, "products"));
+      const productsCollection = collection(firestore, "products");
+      const { query: productQuery, useClientSort } = buildProductQuery(productsCollection, filters);
+      
+      let querySnapshot;
+      if (productQuery) {
+        // Use Firestore query with sorting
+        querySnapshot = await getDocs(productQuery);
+      } else {
+        // Fallback to fetching all products for client-side processing
+        querySnapshot = await getDocs(productsCollection);
+      }
+      
       const data: Product[] = [];
       querySnapshot.forEach((docSnap) => {
         data.push({ ...docSnap.data(), id: docSnap.id } as Product);
       });
+      
       // fetch contract details for each product
       const productsWithContracts = await Promise.all(
         data.map(async (product) => {
@@ -111,6 +128,7 @@ export default function ProductsPage() {
       );
       setProducts(productsWithContracts);
     } catch (err) {
+      console.error("Error fetching products:", err);
       setError("Gagal memuat produk");
     } finally {
       setIsLoading(false);
@@ -119,7 +137,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -204,7 +222,7 @@ export default function ProductsPage() {
           comparison = a.name.localeCompare(b.name);
           break;
         case "productNumber":
-          comparison = a.productNumber.localeCompare(b.productNumber);
+          comparison = (a.productNumber || 0) - (b.productNumber || 0);
           break;
         case "createdAt":
           const aDate = a.createdAt?.toDate?.() || new Date(0);
@@ -248,8 +266,8 @@ export default function ProductsPage() {
   };
 
   /**
-   * Handles QR code generation and download for a product
-   * Creates QR code containing all product information for mobile scanning
+   * Handles QR code preview for a product
+   * Shows QR code preview modal with print and download options
    * 
    * @param product - The product to generate QR code for
    */
@@ -260,8 +278,9 @@ export default function ProductsPage() {
     setError(null);
 
     try {
-      // Get location from contract if available
+      // Get location and customer name from contract if available
       let location: string | undefined;
+      let customerName: string | undefined;
       if (product.contractData?.productDetails) {
         location = findProductLocation(
           doc(firestore, "products", product.id),
@@ -269,20 +288,22 @@ export default function ProductsPage() {
         );
         if (location === "N/A") location = undefined;
       }
+      if (product.contractData?.customerData?.name) {
+        customerName = product.contractData.customerData.name;
+      }
 
-      // Generate QR data
+      // Generate QR data with customer information
       const qrData = generateProductQRData(
         product,
         product.id,
         product.contractData?.id,
-        location
+        location,
+        customerName
       );
 
-      // Download QR code with high quality for printing
-      await downloadQRCode(qrData, {
-        size: getQRCodeSize("print"),
-        errorCorrectionLevel: "H", // High error correction for better scanning
-      });
+      // Show preview modal instead of downloading
+      setSelectedQRData(qrData);
+      setShowQRPreview(true);
 
     } catch (err: any) {
       console.error("Error generating QR code:", err);
@@ -297,6 +318,22 @@ export default function ProductsPage() {
     setFilters(newFilters);
   };
 
+  // Handle column sorting
+  const handleColumnSort = (sortBy: ProductFilters['sortBy']) => {
+    const newFilters = { ...filters };
+    
+    if (filters.sortBy === sortBy) {
+      // Toggle sort order for the same column
+      newFilters.sortOrder = filters.sortOrder === "asc" ? "desc" : "asc";
+    } else {
+      // New column, start with ascending
+      newFilters.sortBy = sortBy;
+      newFilters.sortOrder = "asc";
+    }
+    
+    setFilters(newFilters);
+  };
+
   // Clear all filters
   const handleClearFilters = () => {
     setFilters({
@@ -305,7 +342,7 @@ export default function ProductsPage() {
       brand: "",
       source: "",
       contractStatus: "",
-      sortBy: "name",
+      sortBy: "productNumber",
       sortOrder: "asc"
     });
   };
@@ -378,7 +415,9 @@ export default function ProductsPage() {
           size: 'print',
           includeLabels: true,
           errorCorrectionLevel: 'H',
-          format: 'png'
+          format: 'png',
+          useDesignedQR: true,
+          logoUrl: '/images/logo/logo-light.png'
         },
         progressCallback
       );
@@ -593,12 +632,22 @@ export default function ProductsPage() {
                         />
                       </th>
                     )}
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                    <SortableHeader
+                      sortKey="productNumber"
+                      currentSort={filters.sortBy}
+                      currentOrder={filters.sortOrder}
+                      onSort={handleColumnSort}
+                    >
                       No
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                    </SortableHeader>
+                    <SortableHeader
+                      sortKey="name"
+                      currentSort={filters.sortBy}
+                      currentOrder={filters.sortOrder}
+                      onSort={handleColumnSort}
+                    >
                       Nama
-                    </th>
+                    </SortableHeader>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
                       Tipe
                     </th>
@@ -773,7 +822,7 @@ export default function ProductsPage() {
                             onClick={() => handleGenerateQR(product)}
                             disabled={generatingQR === product.id}
                             className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 transition-colors hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 disabled:opacity-50"
-                            title="Buat Kode QR"
+                            title="Preview QR Kode"
                           >
                             {generatingQR === product.id ? (
                               <div className="h-3 w-3 animate-spin rounded-full border border-green-600 border-t-transparent"></div>
@@ -788,7 +837,13 @@ export default function ProductsPage() {
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 16h4.01M12 16h4.01M12 20h4.01M12 8h4.01M12 4h4.01"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                                 />
                               </svg>
                             )}
@@ -963,6 +1018,19 @@ export default function ProductsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* QR Code Preview Modal */}
+      {selectedQRData && (
+        <QRCodePreviewModal
+          isOpen={showQRPreview}
+          onClose={() => {
+            setShowQRPreview(false);
+            setSelectedQRData(null);
+          }}
+          qrData={selectedQRData}
+          logoUrl="/images/logo/logo-light.png"
+        />
       )}
     </div>
   );
