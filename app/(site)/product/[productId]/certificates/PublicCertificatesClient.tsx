@@ -5,6 +5,10 @@ import {
   createCertificateData,
   generateCertificatePDFBlob,
 } from "@/utils/pdfCertificate";
+import { MobileInspectionView } from "./MobileInspectionView";
+
+// Export the interface for other components
+export type { PublicCertificateData };
 
 interface PublicCertificateData {
   certificateNumber: string;
@@ -69,10 +73,30 @@ export default function PublicCertificatesClient({
   const [generatingPdf, setGeneratingPdf] = useState<{
     [certificateNumber: string]: boolean;
   }>({});
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     fetchCertificates();
   }, [productId]);
+
+  // Detect mobile devices and small screens
+  useEffect(() => {
+    const checkIfMobile = () => {
+      const isMobileDevice =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent,
+        );
+      const isSmallScreen = window.innerWidth <= 768;
+      const isTouchDevice = "ontouchstart" in window;
+
+      setIsMobile(isMobileDevice || isSmallScreen || isTouchDevice);
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
 
   const fetchCertificates = async () => {
     try {
@@ -89,8 +113,8 @@ export default function PublicCertificatesClient({
       const certificatesData: CertificatesResponse = await response.json();
       setData(certificatesData);
 
-      // Generate PDF blob URLs for each certificate
-      if (certificatesData.certificates.length > 0) {
+      // Generate PDF blob URLs for each certificate (skip on mobile for performance)
+      if (certificatesData.certificates.length > 0 && !isMobile) {
         generatePdfBlobUrls(certificatesData.certificates);
       }
     } catch (err) {
@@ -274,106 +298,66 @@ export default function PublicCertificatesClient({
   const { certificates, productInfo, totalCount } = data;
 
   return (
-    <div className="mt-16 min-h-screen bg-gray-50 py-4">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto mt-15 max-w-c-1280 px-4 md:px-8 xl:mt-20 xl:px-0">
+      <div className="mx-auto max-w-4xl px-2 sm:px-3 md:px-4 lg:px-6">
         {/* Compact Product Header */}
-        <div className="mb-4 rounded-lg bg-white shadow-sm">
-          <div className="px-4 py-3">
-            <div className="flex items-start justify-between">
+        <div className="mb-3 rounded-lg bg-white shadow-sm">
+          <div className="px-3 py-2">
+            <div className="flex items-start">
               <div className="min-w-0 flex-1">
                 <h1 className="truncate text-lg font-bold text-gray-900">
                   {productInfo.productName}
                 </h1>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-600">
-                  <span className="inline-flex items-center rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-gray-600">
+                  <span className="inline-flex items-center rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-800">
                     #{productInfo.productNumber}
                   </span>
-                  <span className="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-800">
+                  <span className="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-800">
                     {productInfo.productType}
                   </span>
-                  <span className="inline-flex items-center rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">
+                  <span className="inline-flex items-center rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-800">
                     {productInfo.brand}
                   </span>
                   {productInfo.currentLocation && (
-                    <span className="inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs text-purple-800">
-                      📍 {productInfo.currentLocation}
+                    <span className="inline-flex items-center rounded bg-purple-100 px-1.5 py-0.5 text-xs text-purple-800">
+                      <svg
+                        className="mr-1 h-3 w-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      {productInfo.currentLocation}
                     </span>
                   )}
                 </div>
               </div>
-              <div className="ml-4 flex-shrink-0">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-                  <svg
-                    className="h-5 w-5 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
             </div>
 
-            {/* Certificate count and current info */}
+            {/* Simple certificate counter */}
             {certificates.length > 0 && (
-              <div className="mt-3 border-t border-gray-200 pt-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    <span className="font-medium">{totalCount}</span>{" "}
-                    certificate{totalCount !== 1 ? "s" : ""} available
-                  </div>
+              <div className="mt-2 border-t border-gray-100 pt-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">
+                    {totalCount} certificate{totalCount !== 1 ? "s" : ""} available
+                  </span>
                   {certificates.length > 1 && (
-                    <div className="text-sm text-gray-500">
-                      Viewing {currentCertificateIndex + 1} of{" "}
-                      {certificates.length}
-                    </div>
+                    <span className="text-xs text-gray-500 font-medium">
+                      {currentCertificateIndex + 1} / {certificates.length}
+                    </span>
                   )}
-                </div>
-
-                {/* Current certificate info */}
-                <div className="mt-2 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
-                  <div>
-                    <span className="text-gray-500">Certificate:</span>
-                    <div className="truncate font-medium text-gray-900">
-                      {certificates[currentCertificateIndex]?.certificateNumber}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Inspection:</span>
-                    <div className="font-medium text-gray-900">
-                      {certificates[currentCertificateIndex]?.inspectionDate}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Pass Rate:</span>
-                    <div className="font-medium text-green-600">
-                      {
-                        certificates[currentCertificateIndex]?.checklistSummary
-                          .passRate
-                      }
-                      %
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Items:</span>
-                    <div className="font-medium text-gray-900">
-                      {
-                        certificates[currentCertificateIndex]?.checklistSummary
-                          .passedItems
-                      }
-                      /
-                      {
-                        certificates[currentCertificateIndex]?.checklistSummary
-                          .totalItems
-                      }
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
@@ -406,17 +390,23 @@ export default function PublicCertificatesClient({
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="rounded-lg bg-white shadow-sm">
-              <div className="flex items-center justify-center px-3 py-1.5">
-                <div className="flex items-center space-x-1">
+              <div
+                className={`flex items-center justify-center ${
+                  isMobile ? "px-3 py-2" : "px-3 py-1.5"
+                }`}
+              >
+                <div className="flex items-center space-x-3">
                   <button
                     onClick={handlePrevious}
                     disabled={currentCertificateIndex === 0}
-                    className="inline-flex h-6 w-6 items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`inline-flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
+                      isMobile ? "h-8 w-8" : "h-6 w-6"
+                    }`}
                   >
                     <svg
-                      className="h-3 w-3"
+                      className={isMobile ? "h-5 w-5" : "h-3 w-3"}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -429,7 +419,11 @@ export default function PublicCertificatesClient({
                       />
                     </svg>
                   </button>
-                  <span className="mx-2 text-xs text-gray-500">
+                  <span
+                    className={`text-gray-500 ${
+                      isMobile ? "px-2 text-xs" : "mx-2 text-xs"
+                    }`}
+                  >
                     {currentCertificateIndex + 1} / {certificates.length}
                   </span>
                   <button
@@ -437,10 +431,12 @@ export default function PublicCertificatesClient({
                     disabled={
                       currentCertificateIndex === certificates.length - 1
                     }
-                    className="inline-flex h-6 w-6 items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`inline-flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
+                      isMobile ? "h-8 w-8" : "h-6 w-6"
+                    }`}
                   >
                     <svg
-                      className="h-3 w-3"
+                      className={isMobile ? "h-5 w-5" : "h-3 w-3"}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -467,7 +463,11 @@ export default function PublicCertificatesClient({
 
                 if (isGenerating) {
                   return (
-                    <div className="flex h-[500px] items-center justify-center sm:h-[700px]">
+                    <div
+                      className={`flex items-center justify-center ${
+                        isMobile ? "h-[350px]" : "h-[450px] sm:h-[650px]"
+                      }`}
+                    >
                       <div className="text-center">
                         <svg
                           className="mx-auto h-8 w-8 animate-spin text-blue-600"
@@ -496,10 +496,21 @@ export default function PublicCertificatesClient({
                   );
                 }
 
+                // Mobile: Show complete certificate details with inspection data
+                if (isMobile) {
+                  return (
+                    <MobileInspectionView
+                      certificate={currentCert}
+                      downloadUrl={blobUrl || currentCert.downloadUrl}
+                    />
+                  );
+                }
+
+                // Desktop: Show iframe preview
                 return (
                   <iframe
                     src={blobUrl || currentCert.downloadUrl}
-                    className="h-[500px] w-full border-0 sm:h-[700px]"
+                    className="h-[70vh] min-h-[500px] w-full border-0"
                     title={`Certificate ${currentCert.certificateNumber} Preview`}
                   />
                 );
@@ -508,30 +519,11 @@ export default function PublicCertificatesClient({
           </div>
         )}
 
-        {/* Compact Footer Info */}
-        <div className="mt-4 rounded-lg bg-blue-50 p-3">
-          <div className="flex items-start">
-            <svg
-              className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div className="ml-2">
-              <p className="text-xs text-blue-700">
-                Official fire safety equipment inspection certificates. Each
-                certificate includes detailed inspection results and is
-                digitally signed for authenticity verification.
-              </p>
-            </div>
-          </div>
+        {/* Footer Info */}
+        <div className="mt-3 text-center">
+          <p className="text-xs text-gray-500">
+            Official fire safety inspection certificates
+          </p>
         </div>
       </div>
     </div>

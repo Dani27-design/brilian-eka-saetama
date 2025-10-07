@@ -171,25 +171,23 @@ const ClientHeader = ({ initialData, initialLanguage }: HeaderProps) => {
 
   return (
     <header
-      className={`fixed left-0 top-0 z-99999 mx-0 w-full px-0 py-5 ${
+      className={`fixed left-0 top-0 z-99999 mx-0 w-full px-0 py-3 sm:py-5 ${
         stickyMenu
-          ? "bg-white !py-1 shadow transition duration-100 dark:bg-black"
+          ? "bg-white !py-1 sm:!py-1 shadow transition duration-100 dark:bg-black"
           : ""
       }`}
     >
-      <div className="relative mx-auto max-w-c-1280 items-center justify-between px-3 md:px-3 xl:flex 2xl:px-0">
+      <div className="relative mx-auto max-w-c-1280 items-center justify-between px-2 sm:px-3 md:px-3 xl:flex 2xl:px-0">
         <div className="flex w-full items-center justify-between xl:max-w-[12%]">
           <Image
             src={logoDark}
             alt="logo"
             width={55}
             height={54}
-            className="hidden dark:block"
+            className="hidden dark:block w-10 h-10 sm:w-[55px] sm:h-[54px]"
             onClick={scrollToTop}
             style={{
               cursor: "pointer",
-              width: "auto",
-              height: "auto",
             }}
             priority={true}
             quality={80}
@@ -199,12 +197,10 @@ const ClientHeader = ({ initialData, initialLanguage }: HeaderProps) => {
             alt="logo"
             width={55}
             height={54}
-            className="dark:hidden"
+            className="dark:hidden w-10 h-10 sm:w-[55px] sm:h-[54px]"
             onClick={scrollToTop}
             style={{
               cursor: "pointer",
-              width: "auto",
-              height: "auto",
             }}
             priority={true}
             quality={80}
@@ -213,10 +209,10 @@ const ClientHeader = ({ initialData, initialLanguage }: HeaderProps) => {
           {/* Hamburger Toggle Button */}
           <button
             aria-label="hamburger Toggler"
-            className="block xl:hidden"
+            className="block xl:hidden p-2 -m-2"
             onClick={() => setNavigationOpen(!navigationOpen)}
           >
-            <span className="relative block h-5.5 w-5.5 cursor-pointer">
+            <span className="relative block h-6 w-6 cursor-pointer">
               <span className="absolute right-0 block h-full w-full">
                 <span
                   className={`relative left-0 top-0 my-1 block h-0.5 rounded-sm bg-black delay-[0] duration-200 ease-in-out dark:bg-white ${

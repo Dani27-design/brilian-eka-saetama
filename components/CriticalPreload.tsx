@@ -12,17 +12,19 @@ export default function CriticalPreload({ assets = [] }: CriticalPreloadProps) {
     // Browser-side code only
     if (typeof document === "undefined") return;
 
-    // Preload critical assets
+    // Preload critical assets with proper crossorigin
     assets.forEach((asset) => {
       const link = document.createElement("link");
       link.rel = "preload";
-      link.as =
-        asset.endsWith(".png") ||
-        asset.endsWith(".jpg") ||
-        asset.endsWith(".webp")
-          ? "image"
-          : "fetch";
+      const isImage = asset.endsWith(".png") || asset.endsWith(".jpg") || asset.endsWith(".webp");
+      link.as = isImage ? "image" : "fetch";
       link.href = asset;
+      
+      // Add crossorigin for same-origin resources to match usage
+      if (isImage && (asset.startsWith("/") || asset.includes(window.location.hostname))) {
+        link.crossOrigin = "anonymous";
+      }
+      
       document.head.appendChild(link);
     });
 
@@ -42,44 +44,15 @@ export default function CriticalPreload({ assets = [] }: CriticalPreloadProps) {
 
   return (
     <Head>
-      {/* Preload LCP image */}
+      {/* Only preload truly critical LCP images */}
       <link
         rel="preload"
         href="/images/shape/shape-01.png"
         as="image"
         fetchPriority="high"
+        crossOrigin="anonymous"
       />
-      <link
-        rel="preload"
-        href="/images/shape/shape-02.svg"
-        as="image"
-        fetchPriority="high"
-      />
-      <link
-        rel="preload"
-        href="/images/shape/shape-03.svg"
-        as="image"
-        fetchPriority="high"
-      />
-      <link
-        rel="preload"
-        href="/images/shape/shape-04.png"
-        as="image"
-        fetchPriority="high"
-      />
-      <link
-        rel="preload"
-        href="/images/shape/shape-05.png"
-        as="image"
-        fetchPriority="high"
-      />
-      <link
-        rel="preload"
-        href="/images/shape/shape-06.png"
-        as="image"
-        fetchPriority="high"
-      />
-
+      
       {/* Preconnect to critical origins */}
       <link rel="preconnect" href="https://firestore.googleapis.com" />
       <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
