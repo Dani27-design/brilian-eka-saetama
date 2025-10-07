@@ -10,6 +10,7 @@ import {
   generateDesignedQRBlob, 
   getQRDesignOptions 
 } from './qrCodeDesigner';
+import { generateBulkStyledQRCode } from './qrCodePrint';
 import { findProductLocation } from './findProductLocation';
 import { firestore } from '@/db/firebase/firebaseConfig';
 import { doc } from 'firebase/firestore';
@@ -23,6 +24,7 @@ export interface BulkQRConfig {
   errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
   format: 'png' | 'jpg';
   useDesignedQR: boolean;
+  useStyledQR: boolean; // New option for current company styling
   logoUrl?: string;
   baseUrl?: string; // Base URL for public certificate viewing
 }
@@ -66,6 +68,7 @@ export async function generateBulkQRCodes(
     errorCorrectionLevel: 'H',
     format: 'png',
     useDesignedQR: true,
+    useStyledQR: true, // Default to new styled QR codes
     logoUrl: '/images/logo/logo-light.png'
   },
   onProgress?: BulkQRProgressCallback
@@ -132,8 +135,11 @@ export async function generateBulkQRCodes(
 
         // Generate QR code image
         let qrBlob: Blob;
-        if (config.useDesignedQR) {
-          // Use designed QR code with logo and styling
+        if (config.useStyledQR) {
+          // Use current company styled QR code (recommended)
+          qrBlob = await generateBulkStyledQRCode(qrData, qrSize);
+        } else if (config.useDesignedQR) {
+          // Use legacy designed QR code with logo and styling
           const designOptions = getQRDesignOptions(config.size);
           qrBlob = await generateDesignedQRBlob(
             qrData,
@@ -264,7 +270,8 @@ function generateBulkQRSummary(
     `- Size: ${config.size}`,
     `- Error correction: ${config.errorCorrectionLevel}`,
     `- Format: ${config.format}`,
-    `- Designed QR: ${config.useDesignedQR ? 'Yes' : 'No'}`,
+    `- Styled QR: ${config.useStyledQR ? 'Yes' : 'No'}`,
+    `- Legacy Designed QR: ${config.useDesignedQR ? 'Yes' : 'No'}`,
     `- Labels included: ${config.includeLabels ? 'Yes' : 'No'}`,
     '',
     'Contents:',

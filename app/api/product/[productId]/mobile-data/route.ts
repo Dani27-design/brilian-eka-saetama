@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
+import {
+  collection,
+  query,
+  where,
+  getDocs,
   getDoc,
-  doc 
+  doc,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { ProductQRData } from "@/utils/qrCodeGenerator";
@@ -17,15 +17,15 @@ interface CustomerData {
 
 /**
  * GET /api/product/[productId]/mobile-data
- * 
+ *
  * Returns QR data structure for mobile engineer app compatibility using productId
  * This endpoint maintains the existing mobile app workflow while using secure identifiers
- * 
+ *
  * Returns the same ProductQRData structure that would be in the QR code
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productId: string } },
 ) {
   try {
     const { productId } = params;
@@ -34,19 +34,16 @@ export async function GET(
     if (!productId) {
       return NextResponse.json(
         { error: "Invalid product ID" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get product by document ID (globally unique)
     const productRef = doc(firestore, "products", productId);
     const productDoc = await getDoc(productRef);
-    
+
     if (!productDoc.exists()) {
-      return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     const productData = productDoc.data();
@@ -60,17 +57,17 @@ export async function GET(
       const contractsQuery = query(
         collection(firestore, "contracts"),
         where("products", "array-contains", productRef),
-        where("status", "==", "active")
+        where("status", "==", "active"),
       );
-      
+
       const contractSnapshot = await getDocs(contractsQuery);
-      
+
       if (!contractSnapshot.empty) {
         const contractDoc = contractSnapshot.docs[0];
         const contractData = contractDoc.data();
         contractId = contractDoc.id;
         location = contractData.location;
-        
+
         // Get customer name if available
         if (contractData.customer) {
           const customerDoc = await getDoc(contractData.customer);
@@ -99,22 +96,27 @@ export async function GET(
       location: location || productData.location || undefined,
       generatedAt: new Date().toISOString(),
       version: "1.0",
-      publicUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://localhost:3000'}/product/${productId}/certificates`,
+      publicUrl: `${
+        process.env.NEXT_PUBLIC_APP_URL ||
+        "https://brilian-eka-saetama.vercel.app"
+      }/product/${productId}/certificates`,
     };
 
     // Set CORS headers for mobile app access
     const response = NextResponse.json(qrData);
     response.headers.set("Access-Control-Allow-Origin", "*");
     response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type, X-App-Type");
-    
-    return response;
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, X-App-Type",
+    );
 
+    return response;
   } catch (error) {
     console.error("Error fetching mobile data:", error);
     return NextResponse.json(
       { error: "Failed to fetch product data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

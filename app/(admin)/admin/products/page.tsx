@@ -26,7 +26,7 @@ import ProductFiltersComponent, { ProductFilters } from "@/components/Admin/Prod
 import SortableHeader from "@/components/Admin/Products/SortableHeader";
 import { exportProducts } from "@/utils/exportGenerator";
 import { generateBulkQRCodes, downloadBulkQRZip, BulkQRProgressCallback } from "@/utils/bulkQRGenerator";
-import QRCodePreviewModal from "@/components/Admin/QRCodePreviewModal";
+import { printQRCode } from "@/utils/qrCodePrint";
 import { buildProductQuery, getSortingStrategy } from "@/utils/productQuery";
 
 export default function ProductsPage() {
@@ -64,9 +64,6 @@ export default function ProductsPage() {
   // Dropdown state for row actions
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
-  // QR Preview Modal state
-  const [showQRPreview, setShowQRPreview] = useState(false);
-  const [selectedQRData, setSelectedQRData] = useState<ProductQRData | null>(null);
 
   // Fetch products with smart querying
   const fetchProducts = async () => {
@@ -266,8 +263,8 @@ export default function ProductsPage() {
   };
 
   /**
-   * Handles QR code preview for a product
-   * Shows QR code preview modal with print and download options
+   * Handles QR code printing for a product
+   * Opens new window with sticker-style QR code and triggers native print dialog
    * 
    * @param product - The product to generate QR code for
    */
@@ -301,9 +298,8 @@ export default function ProductsPage() {
         customerName
       );
 
-      // Show preview modal instead of downloading
-      setSelectedQRData(qrData);
-      setShowQRPreview(true);
+      // Print QR code directly (opens new window and triggers native print)
+      await printQRCode(qrData, `QR Sticker - ${product.productNumber}`);
 
     } catch (err: any) {
       console.error("Error generating QR code:", err);
@@ -416,7 +412,8 @@ export default function ProductsPage() {
           includeLabels: true,
           errorCorrectionLevel: 'H',
           format: 'png',
-          useDesignedQR: true,
+          useDesignedQR: false,
+          useStyledQR: true, // Use current company styled QR codes
           logoUrl: '/images/logo/logo-light.png'
         },
         progressCallback
@@ -822,7 +819,7 @@ export default function ProductsPage() {
                             onClick={() => handleGenerateQR(product)}
                             disabled={generatingQR === product.id}
                             className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 transition-colors hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 disabled:opacity-50"
-                            title="Preview QR Kode"
+                            title="Print QR Sticker"
                           >
                             {generatingQR === product.id ? (
                               <div className="h-3 w-3 animate-spin rounded-full border border-green-600 border-t-transparent"></div>
@@ -848,7 +845,7 @@ export default function ProductsPage() {
                               </svg>
                             )}
                             <span className="hidden sm:inline">
-                              {generatingQR === product.id ? "..." : "QR"}
+                              {generatingQR === product.id ? "..." : "Print QR"}
                             </span>
                           </button>
 
@@ -1020,18 +1017,6 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* QR Code Preview Modal */}
-      {selectedQRData && (
-        <QRCodePreviewModal
-          isOpen={showQRPreview}
-          onClose={() => {
-            setShowQRPreview(false);
-            setSelectedQRData(null);
-          }}
-          qrData={selectedQRData}
-          logoUrl="/images/logo/logo-light.png"
-        />
-      )}
     </div>
   );
 }
