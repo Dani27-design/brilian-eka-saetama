@@ -351,10 +351,11 @@ export default function PublicCertificatesClient({
               <div className="mt-2 border-t border-gray-100 pt-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">
-                    {totalCount} certificate{totalCount !== 1 ? "s" : ""} available
+                    {totalCount} certificate{totalCount !== 1 ? "s" : ""}{" "}
+                    available
                   </span>
                   {certificates.length > 1 && (
-                    <span className="text-xs text-gray-500 font-medium">
+                    <span className="text-xs font-medium text-gray-500">
                       {currentCertificateIndex + 1} / {certificates.length}
                     </span>
                   )}
@@ -518,13 +519,6 @@ export default function PublicCertificatesClient({
             </div>
           </div>
         )}
-
-        {/* Footer Info */}
-        <div className="mt-3 text-center">
-          <p className="text-xs text-gray-500">
-            Official fire safety inspection certificates
-          </p>
-        </div>
       </div>
     </div>
   );
