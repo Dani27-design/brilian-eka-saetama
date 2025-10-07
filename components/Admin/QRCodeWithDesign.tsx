@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { ProductQRData } from "@/utils/qrCodeGenerator";
+import { ProductQRData, generateProductQRData } from "@/utils/qrCodeGenerator";
 import {
   generateDesignedQRCode,
   QRDesignOptions,
@@ -65,8 +65,21 @@ export default function QRCodeWithDesign({
       const sizeOptions = getQRDesignOptions(size);
       const finalOptions = { ...sizeOptions, ...customOptions };
 
-      // Generate the designed QR code
+      // Generate QR URL for the designed QR code content
+      const qrUrl = generateProductQRData(
+        {
+          productNumber: parseInt(qrData.productNumber),
+          name: qrData.productName,
+          productType: qrData.productType,
+          specs: { brand: qrData.brand, serialNumber: qrData.serialNumber },
+          maintenanceInterval: qrData.maintenanceInterval
+        } as any,
+        qrData.productId
+      );
+
+      // Generate the designed QR code with URL content and ProductQRData for labels
       const designedCanvas = await generateDesignedQRCode(
+        qrUrl,
         qrData,
         logoUrl,
         finalOptions,

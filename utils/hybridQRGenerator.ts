@@ -1,12 +1,15 @@
 import { Product, ProductType } from "@/types/product";
-import { ProductQRData } from "./qrCodeGenerator";
+import { ProductQRData, generateProductQRData } from "./qrCodeGenerator";
 
 /**
  * Hybrid QR code generation that works for both native cameras and mobile app
  *
- * Generates URLs with encoded product data that work for:
- * 1. Native phone cameras → Opens URL → Public certificate page
- * 2. Mobile engineer app → Parses URL → Extracts product data
+ * UPDATED: Now uses universal QR system for better compatibility
+ * Generates clean URLs that work for:
+ * 1. Native phone cameras → Opens website directly
+ * 2. Mobile engineer app → Fetches product data via API
+ * 
+ * This file maintains backward compatibility while using the new universal system
  */
 
 /**
@@ -20,15 +23,16 @@ export interface HybridQRData {
 /**
  * Generates a hybrid QR code URL that works for both native cameras and mobile app
  *
- * The URL format: https://domain.com/product/{productNumber}/certificates?data={encodedProductData}
+ * UPDATED: Now uses universal QR system
+ * The URL format: https://domain.com/qr?pid={productId}
  *
  * @param product - The product document data
  * @param productId - The Firestore document ID
- * @param contractId - Optional contract ID if product is assigned
- * @param location - Optional location from contract details
- * @param customerName - Optional customer name from contract
+ * @param contractId - Optional contract ID if product is assigned (legacy, maintained for compatibility)
+ * @param location - Optional location from contract details (legacy, maintained for compatibility)
+ * @param customerName - Optional customer name from contract (legacy, maintained for compatibility)
  * @param baseUrl - Optional base URL override
- * @returns URL string that contains both navigation and data
+ * @returns Universal QR URL string that works for both browsers and mobile apps
  */
 export function generateHybridQRURL(
   product: Product,
@@ -38,42 +42,8 @@ export function generateHybridQRURL(
   customerName?: string,
   baseUrl?: string,
 ): string {
-  const productNumber = product.productNumber?.toString() || "0";
-
-  // Generate base URL for certificate viewing using productId (globally unique)
-  const certificateBaseUrl = baseUrl
-    ? `${baseUrl}/product/${productId}/certificates`
-    : `${
-        process.env.NEXT_PUBLIC_APP_URL ||
-        "https://brilian-eka-saetama.vercel.app"
-      }/product/${productId}/certificates`;
-
-  // Create product data object
-  const productData: ProductQRData = {
-    productId,
-    productNumber,
-    productName: product.name || "Unknown Product",
-    productType: product.productType,
-    brand: product.specs?.brand || "N/A",
-    serialNumber: product.specs?.serialNumber || undefined,
-    contractId: contractId || undefined,
-    customerName: customerName || undefined,
-    maintenanceInterval: product.maintenanceInterval || 0,
-    location: location || undefined,
-    generatedAt: new Date().toISOString(),
-    version: "1.0",
-    publicUrl: certificateBaseUrl,
-  };
-
-  // Encode product data as base64 for URL safety
-  const encodedData = Buffer.from(JSON.stringify(productData)).toString(
-    "base64",
-  );
-
-  // Combine URL with encoded data as query parameter
-  const hybridUrl = `${certificateBaseUrl}?data=${encodedData}`;
-
-  return hybridUrl;
+  // Use the updated QR system
+  return generateProductQRData(product, productId, contractId, location, customerName, baseUrl);
 }
 
 /**

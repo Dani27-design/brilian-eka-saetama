@@ -39,21 +39,43 @@ const ULTRA_COMPACT_OPTIONS: QRDesignOptions = {
 
 /**
  * Generates an ultra-compact, stable QR code with minimal flickering
+ * 
+ * @param qrContent - URL string for QR code content
+ * @param productInfo - Product data for labels (optional)
+ * @param logoUrl - Logo URL for branding
+ * @param options - Design options
  */
 export async function generateDesignedQRCode(
-  qrData: ProductQRData,
+  qrContent: string,
+  productInfo?: ProductQRData,
   logoUrl: string = "/images/logo/logo-light.png",
   options: Partial<QRDesignOptions> = {}
 ): Promise<HTMLCanvasElement> {
   const finalOptions = { ...ULTRA_COMPACT_OPTIONS, ...options };
-  return generateStableCompactQR(qrData, logoUrl, finalOptions);
+  return generateStableCompactQR(qrContent, productInfo, logoUrl, finalOptions);
+}
+
+/**
+ * Legacy function for backward compatibility
+ * @deprecated Use generateDesignedQRCode with URL string instead
+ */
+export async function generateDesignedQRCodeLegacy(
+  qrData: ProductQRData,
+  logoUrl: string = "/images/logo/logo-light.png",
+  options: Partial<QRDesignOptions> = {}
+): Promise<HTMLCanvasElement> {
+  // For legacy calls, generate URL from ProductQRData
+  // This is a temporary measure - ideally all callers should be updated
+  const finalOptions = { ...ULTRA_COMPACT_OPTIONS, ...options };
+  return generateStableCompactQR(JSON.stringify(qrData), qrData, logoUrl, finalOptions);
 }
 
 /**
  * Generate ultra-compact QR code with stable rendering
  */
 async function generateStableCompactQR(
-  qrData: ProductQRData,
+  qrContent: string,
+  productInfo: ProductQRData | undefined,
   logoUrl: string,
   options: QRDesignOptions
 ): Promise<HTMLCanvasElement> {
@@ -74,7 +96,7 @@ async function generateStableCompactQR(
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Ultra-compact layout rendering
-    await renderUltraCompactLayout(ctx, qrData, logoUrl, options, qrSize);
+    await renderUltraCompactLayout(ctx, qrContent, productInfo, logoUrl, options, qrSize);
 
   } catch (error) {
     console.error("Error generating stable QR code:", error);
@@ -93,7 +115,8 @@ async function generateStableCompactQR(
  */
 async function renderUltraCompactLayout(
   ctx: CanvasRenderingContext2D,
-  qrData: ProductQRData,
+  qrContent: string,
+  productInfo: ProductQRData | undefined,
   logoUrl: string,
   options: QRDesignOptions,
   qrSize: number
@@ -109,31 +132,33 @@ async function renderUltraCompactLayout(
   ctx.fillText("PT BRILIAN EKA SAETAMA", centerX, y);
   y += 15;
 
-  // 2. Product name - compact, truncated if needed
-  ctx.fillStyle = options.textColor;
-  ctx.font = "bold 11px " + options.fontFamily;
-  const productName = qrData.productName.length > 35 
-    ? qrData.productName.substring(0, 32) + "..." 
-    : qrData.productName;
-  ctx.fillText(productName.toUpperCase(), centerX, y);
-  y += 15;
+  // 2. Product name - compact, truncated if needed (only if productInfo available)
+  if (productInfo?.productName) {
+    ctx.fillStyle = options.textColor;
+    ctx.font = "bold 11px " + options.fontFamily;
+    const productName = productInfo.productName.length > 35 
+      ? productInfo.productName.substring(0, 32) + "..." 
+      : productInfo.productName;
+    ctx.fillText(productName.toUpperCase(), centerX, y);
+    y += 15;
 
-  // 3. Product info - single compact line
-  ctx.fillStyle = "#6b7280";
-  ctx.font = "9px " + options.fontFamily;
-  let infoText = qrData.productNumber;
-  if (qrData.customerName && qrData.customerName.length < 20) {
-    infoText += " • " + qrData.customerName;
+    // 3. Product info - single compact line
+    ctx.fillStyle = "#6b7280";
+    ctx.font = "9px " + options.fontFamily;
+    let infoText = productInfo.productNumber;
+    if (productInfo.customerName && productInfo.customerName.length < 20) {
+      infoText += " • " + productInfo.customerName;
+    }
+    ctx.fillText(infoText, centerX, y);
   }
-  ctx.fillText(infoText, centerX, y);
   y += 20;
 
   // 4. QR Code - positioned for optimal compactness
   const qrX = options.margin;
   const qrY = y;
   
-  // Generate and draw QR code
-  const qrDataUrl = await QRCode.toDataURL(JSON.stringify(qrData), {
+  // Generate and draw QR code using the provided content
+  const qrDataUrl = await QRCode.toDataURL(qrContent, {
     width: qrSize,
     margin: 0,
     color: { dark: options.qrColor, light: "#ffffff" },
@@ -174,10 +199,10 @@ async function renderUltraCompactLayout(
   const footerY = qrY + qrSize + 15;
   
   // Location (if exists and not too long)
-  if (qrData.location && qrData.location !== "N/A" && qrData.location.length < 25) {
+  if (productInfo?.location && productInfo.location !== "N/A" && productInfo.location.length < 25) {
     ctx.fillStyle = "#9ca3af";
     ctx.font = "8px " + options.fontFamily;
-    ctx.fillText("📍 " + qrData.location, centerX, footerY);
+    ctx.fillText("📍 " + productInfo.location, centerX, footerY);
   }
   
   // Timestamp - very small
@@ -224,7 +249,8 @@ export async function generateDesignedQRBlob(
   quality: number = 0.9
 ): Promise<Blob> {
   try {
-    const canvas = await generateDesignedQRCode(qrData, logoUrl, options);
+    // Use legacy function for backward compatibility
+    const canvas = await generateDesignedQRCodeLegacy(qrData, logoUrl, options);
     
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
@@ -260,7 +286,8 @@ export async function generateDesignedQRDataURL(
   quality: number = 0.9
 ): Promise<string> {
   try {
-    const canvas = await generateDesignedQRCode(qrData, logoUrl, options);
+    // Use legacy function for backward compatibility
+    const canvas = await generateDesignedQRCodeLegacy(qrData, logoUrl, options);
     return canvas.toDataURL(
       format === "jpeg" ? "image/jpeg" : "image/png",
       quality

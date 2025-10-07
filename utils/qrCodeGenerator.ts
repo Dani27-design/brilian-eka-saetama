@@ -50,8 +50,41 @@ const DEFAULT_QR_OPTIONS: QRCodeOptions = {
 };
 
 /**
- * Generates QR code data object from product information
- * Extracts and formats all necessary data for mobile app consumption and public certificate viewing
+ * Generates universal QR URL for product
+ * Creates a clean URL that works for both native cameras and mobile apps
+ *
+ * @param product - The product document data
+ * @param productId - The Firestore document ID
+ * @param contractId - Optional contract ID if product is assigned (legacy compatibility)
+ * @param location - Optional location from contract details (legacy compatibility)
+ * @param customerName - Optional customer name from contract (legacy compatibility)
+ * @param baseUrl - Optional base URL override for the QR endpoint
+ * @returns Universal QR URL string
+ *
+ * @example
+ * const qrUrl = generateProductQRData(productData, "prod123");
+ * // Returns: "https://brilian-eka-saetama.vercel.app/qr?pid=prod123"
+ */
+export function generateProductQRData(
+  product: Product,
+  productId: string,
+  contractId?: string,
+  location?: string,
+  customerName?: string,
+  baseUrl?: string,
+): string {
+  // Generate base URL for universal QR endpoint
+  const domain = baseUrl || 
+    process.env.NEXT_PUBLIC_APP_URL || 
+    "https://brilian-eka-saetama.vercel.app";
+
+  // Return clean URL for QR code content
+  return `${domain}/qr?pid=${productId}`;
+}
+
+/**
+ * Generates structured product data for internal use (labels, API responses, etc.)
+ * This function maintains the original data structure for backward compatibility
  *
  * @param product - The product document data
  * @param productId - The Firestore document ID
@@ -59,26 +92,9 @@ const DEFAULT_QR_OPTIONS: QRCodeOptions = {
  * @param location - Optional location from contract details
  * @param customerName - Optional customer name from contract
  * @param baseUrl - Optional base URL override for public certificate viewing
- * @returns Structured QR data object
- *
- * @example
- * const qrData = generateProductQRData(productData, "prod123", "contract456", "Building A", "ABC Corp");
- * // Returns: {
- * //   productId: "prod123",
- * //   productNumber: "PRD-001",
- * //   productName: "Fire Extinguisher 3kg",
- * //   productType: "APAR",
- * //   brand: "ABC Fire",
- * //   maintenanceInterval: 30,
- * //   contractId: "contract456",
- * //   customerName: "ABC Corp",
- * //   location: "Building A",
- * //   generatedAt: "2025-08-16T08:30:00.000Z",
- * //   version: "1.0",
- * //   publicUrl: "https://domain.com/product/prod123/certificates"
- * // }
+ * @returns Structured QR data object for internal use
  */
-export function generateProductQRData(
+export function generateProductQRDataObject(
   product: Product,
   productId: string,
   contractId?: string,
@@ -115,40 +131,47 @@ export function generateProductQRData(
 
 /**
  * Generates QR code as base64 data URL
- * Creates scannable QR code containing product information
+ * Creates scannable QR code containing universal URL
  *
- * @param qrData - The data to encode in the QR code
+ * @param qrData - The URL string or ProductQRData object to encode in the QR code
  * @param options - Optional QR code generation options
  * @returns Promise resolving to base64 data URL
  *
  * @example
- * const qrDataUrl = await generateQRCodeDataURL(qrData);
+ * const qrUrl = generateProductQRData(product, productId);
+ * const qrDataUrl = await generateQRCodeDataURL(qrUrl);
  * // Returns: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
  *
  * @example
  * // Custom options
- * const qrDataUrl = await generateQRCodeDataURL(qrData, {
+ * const qrDataUrl = await generateQRCodeDataURL(qrUrl, {
  *   size: 512,
  *   color: { dark: "#000080", light: "#FFFFFF" }
  * });
  */
 export async function generateQRCodeDataURL(
-  qrData: ProductQRData,
+  qrData: string | ProductQRData,
   options: Partial<QRCodeOptions> = {},
 ): Promise<string> {
   try {
     const finalOptions = { ...DEFAULT_QR_OPTIONS, ...options };
 
-    // Convert data to JSON string for QR encoding
-    const jsonString = JSON.stringify(qrData);
-
-    // Validate data size (QR codes have size limits)
-    if (jsonString.length > 1000) {
-      console.warn("QR data is quite large, may affect scanning reliability");
+    // Handle both URL strings and legacy ProductQRData objects
+    let qrContent: string;
+    if (typeof qrData === 'string') {
+      // New format: URL string
+      qrContent = qrData;
+    } else {
+      // Legacy format: JSON object (for backward compatibility)
+      qrContent = JSON.stringify(qrData);
+      // Validate data size for JSON format
+      if (qrContent.length > 1000) {
+        console.warn("QR data is quite large, may affect scanning reliability");
+      }
     }
 
     // Generate QR code as data URL
-    const qrDataUrl = await QRCode.toDataURL(jsonString, {
+    const qrDataUrl = await QRCode.toDataURL(qrContent, {
       width: finalOptions.size,
       margin: finalOptions.margin,
       color: finalOptions.color,
@@ -166,20 +189,21 @@ export async function generateQRCodeDataURL(
  * Generates QR code as downloadable blob
  * Useful for direct file downloads
  *
- * @param qrData - The data to encode in the QR code
+ * @param qrData - The URL string or ProductQRData object to encode in the QR code
  * @param options - Optional QR code generation options
  * @returns Promise resolving to Blob object
  *
  * @example
- * const blob = await generateQRCodeBlob(qrData);
+ * const qrUrl = generateProductQRData(product, productId);
+ * const blob = await generateQRCodeBlob(qrUrl);
  * const url = URL.createObjectURL(blob);
  * const a = document.createElement('a');
  * a.href = url;
- * a.download = `QR_${qrData.productNumber}.png`;
+ * a.download = `QR_${productNumber}.png`;
  * a.click();
  */
 export async function generateQRCodeBlob(
-  qrData: ProductQRData,
+  qrData: string | ProductQRData,
   options: Partial<QRCodeOptions> = {},
 ): Promise<Blob> {
   try {
@@ -200,21 +224,27 @@ export async function generateQRCodeBlob(
  * Triggers download of QR code as PNG file
  * Automatically starts download with formatted filename
  *
- * @param qrData - The data to encode in the QR code
+ * @param qrData - The URL string or ProductQRData object to encode in the QR code
  * @param options - Optional QR code generation options
+ * @param filename - Optional custom filename (without extension)
  * @returns Promise that resolves when download is initiated
  *
  * @example
- * await downloadQRCode(qrData);
- * // Downloads file named "QR_PRD-001_Fire_Extinguisher.png"
+ * // URL format (new)
+ * const qrUrl = generateProductQRData(product, productId);
+ * await downloadQRCode(qrUrl, {}, "product_PRD001");
+ * // Downloads file named "product_PRD001.png"
  *
  * @example
- * // Custom options
- * await downloadQRCode(qrData, { size: 512 });
+ * // Legacy ProductQRData format
+ * const qrDataObj = generateProductQRDataObject(product, productId);
+ * await downloadQRCode(qrDataObj);
+ * // Downloads file named "QR_PRD-001_Fire_Extinguisher.png"
  */
 export async function downloadQRCode(
-  qrData: ProductQRData,
+  qrData: string | ProductQRData,
   options: Partial<QRCodeOptions> = {},
+  filename?: string,
 ): Promise<void> {
   try {
     const blob = await generateQRCodeBlob(qrData, options);
@@ -222,20 +252,30 @@ export async function downloadQRCode(
     // Create download URL
     const url = URL.createObjectURL(blob);
 
-    // Generate filename: QR_ProductNumber_ProductName.png
-    const sanitizedProductNumber = qrData.productNumber.replace(
-      /[^a-zA-Z0-9]/g,
-      "_",
-    );
-    const sanitizedProductName = qrData.productName
-      .replace(/[^a-zA-Z0-9]/g, "_")
-      .substring(0, 20); // Limit length
-    const filename = `QR_${sanitizedProductNumber}_${sanitizedProductName}.png`;
+    // Generate filename
+    let downloadFilename: string;
+    if (filename) {
+      // Use custom filename
+      downloadFilename = `${filename}.png`;
+    } else if (typeof qrData === 'string') {
+      // URL format: use timestamp
+      downloadFilename = `QR_${new Date().toISOString().split('T')[0]}_${Date.now()}.png`;
+    } else {
+      // Legacy ProductQRData format: use product info
+      const sanitizedProductNumber = qrData.productNumber.replace(
+        /[^a-zA-Z0-9]/g,
+        "_",
+      );
+      const sanitizedProductName = qrData.productName
+        .replace(/[^a-zA-Z0-9]/g, "_")
+        .substring(0, 20); // Limit length
+      downloadFilename = `QR_${sanitizedProductNumber}_${sanitizedProductName}.png`;
+    }
 
     // Create temporary link element and trigger download
     const downloadLink = document.createElement("a");
     downloadLink.href = url;
-    downloadLink.download = filename;
+    downloadLink.download = downloadFilename;
     downloadLink.style.display = "none";
 
     document.body.appendChild(downloadLink);

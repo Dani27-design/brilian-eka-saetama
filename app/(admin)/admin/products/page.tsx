@@ -17,6 +17,7 @@ import type { Product, ProductType } from "@/types/product";
 import { Contract } from "@/types/contracts";
 import { 
   generateProductQRData, 
+  generateProductQRDataObject,
   ProductQRData
 } from "@/utils/qrCodeGenerator";
 import { findProductLocation } from "@/utils/findProductLocation";
@@ -290,7 +291,7 @@ export default function ProductsPage() {
       }
 
       // Generate QR data with customer information
-      const qrData = generateProductQRData(
+      const qrData = generateProductQRDataObject(
         product,
         product.id,
         product.contractData?.id,

@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductQRData } from "./qrCodeGenerator";
+import { ProductQRData, generateProductQRData } from "./qrCodeGenerator";
 import QRCodeStyling from "qr-code-styling";
 import jsPDF from "jspdf";
 
@@ -157,11 +157,11 @@ async function generateStyledQRCode(
  * @param qrData - Product QR code data
  * @returns Promise that resolves to PDF blob
  */
-export async function generateQRCodePDF(qrData: ProductQRData): Promise<Blob> {
+export async function generateQRCodePDF(qrUrl: string, qrData: ProductQRData): Promise<Blob> {
   try {
     // Generate styled QR code with embedded company logo, header, footer, and border
     const qrCodeDataURL = await generateStyledQRCode(
-      JSON.stringify(qrData),
+      qrUrl,
       qrData,
     );
 
@@ -197,16 +197,16 @@ export async function generateQRCodePDF(qrData: ProductQRData): Promise<Blob> {
 /**
  * Generates a styled QR code blob for bulk processing
  * Uses same styling as individual QR codes for consistency
- * @param qrData - Product QR code data
+ * @param qrUrl - URL string for QR code content  
+ * @param qrData - ProductQRData object for labels and display
  * @param size - Optional size override for bulk generation (default: 400)
  * @returns Promise that resolves to PNG blob
  */
-export async function generateBulkStyledQRCode(qrData: ProductQRData, size: number = 400): Promise<Blob> {
+export async function generateBulkStyledQRCode(qrUrl: string, qrData: ProductQRData, size: number = 400): Promise<Blob> {
   try {
-    // Generate styled QR code with same data format as individual codes
-    // Both use JSON.stringify(qrData) to ensure identical QR data content
+    // Generate styled QR code using URL content with ProductQRData for labels
     const qrCodeDataURL = await generateStyledQRCode(
-      JSON.stringify(qrData),
+      qrUrl,
       qrData,
       size
     );
@@ -237,8 +237,21 @@ export async function printQRCode(
   windowTitle?: string,
 ): Promise<void> {
   try {
+    // Generate QR URL for the QR code content
+    // For printing, we need to create a temporary URL since we have ProductQRData
+    const qrUrl = generateProductQRData(
+      { 
+        productNumber: parseInt(qrData.productNumber),
+        name: qrData.productName,
+        productType: qrData.productType,
+        specs: { brand: qrData.brand, serialNumber: qrData.serialNumber },
+        maintenanceInterval: qrData.maintenanceInterval
+      } as any, 
+      qrData.productId
+    );
+    
     // Generate PDF blob (same pattern as certificates)
-    const pdfBlob = await generateQRCodePDF(qrData);
+    const pdfBlob = await generateQRCodePDF(qrUrl, qrData);
 
     // Create object URL for the PDF (same as certificates)
     const pdfUrl = URL.createObjectURL(pdfBlob);

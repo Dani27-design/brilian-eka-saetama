@@ -2,6 +2,7 @@ import JSZip from 'jszip';
 import { Product } from '@/types/product';
 import { 
   generateProductQRData, 
+  generateProductQRDataObject,
   generateQRCodeDataURL, 
   getQRCodeSize,
   generateQRLabel 
@@ -123,8 +124,18 @@ export async function generateBulkQRCodes(
           customerName = product.contractData.customerData.name;
         }
 
-        // Generate QR data
-        const qrData = generateProductQRData(
+        // Generate QR URL for QR code content
+        const qrUrl = generateProductQRData(
+          product,
+          product.id,
+          product.contractData?.id,
+          location,
+          customerName,
+          config.baseUrl
+        );
+
+        // Generate QR data object for labels and filename generation
+        const qrDataObject = generateProductQRDataObject(
           product,
           product.id,
           product.contractData?.id,
@@ -137,18 +148,18 @@ export async function generateBulkQRCodes(
         let qrBlob: Blob;
         if (config.useStyledQR) {
           // Use current company styled QR code (recommended)
-          qrBlob = await generateBulkStyledQRCode(qrData, qrSize);
+          qrBlob = await generateBulkStyledQRCode(qrUrl, qrDataObject, qrSize);
         } else if (config.useDesignedQR) {
           // Use legacy designed QR code with logo and styling
           const designOptions = getQRDesignOptions(config.size);
           qrBlob = await generateDesignedQRBlob(
-            qrData,
+            qrDataObject,
             config.logoUrl,
             designOptions
           );
         } else {
-          // Use traditional QR code
-          const qrDataUrl = await generateQRCodeDataURL(qrData, {
+          // Use traditional QR code with URL content
+          const qrDataUrl = await generateQRCodeDataURL(qrUrl, {
             size: qrSize,
             errorCorrectionLevel: config.errorCorrectionLevel
           });
@@ -167,7 +178,7 @@ export async function generateBulkQRCodes(
 
         // Generate and add label if requested
         if (config.includeLabels && labelsFolder) {
-          const label = generateQRLabel(qrData);
+          const label = generateQRLabel(qrDataObject);
           labelsFolder.file(`${filename}_label.txt`, label);
         }
 
