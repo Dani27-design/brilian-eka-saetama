@@ -25,25 +25,23 @@ const DEFAULT_QR_PRINT_CONFIG: QRCodePrintConfig = {
 };
 
 /**
- * Generates simple styled QR code with company logo and header/footer
- * Creates clean square QR code with company branding
+ * Generates clean QR code with company logo only (no text)
+ * Creates simple QR code for PDF layout system
  * @param data - Data to encode in QR code
- * @param qrData - Product data for header/footer text
  * @returns Promise that resolves to base64 data URL
  */
-async function generateStyledQRCode(
+async function generateCleanQRCode(
   data: string,
-  qrData?: ProductQRData,
   size: number = 400,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const qrCode = new QRCodeStyling({
       width: size,
       height: size,
-      type: "svg", // Use SVG for text overlay support
+      type: "svg",
       data: data,
       image: "/images/logo/logo-light.png", // Company logo in QR center
-      margin: Math.max(10, size * 0.0375), // Proportional margin (1.5% of size, min 10px)
+      margin: 20, // Fixed margin for clean appearance
       qrOptions: {
         typeNumber: 0,
         mode: "Byte",
@@ -72,49 +70,7 @@ async function generateStyledQRCode(
       },
     });
 
-    // Add simple header and footer text using SVG extension
-    qrCode.applyExtension((svg) => {
-      const svgWidth = size;
-      const svgHeight = size;
-
-      // Add company name header above QR code
-      const headerText = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "text",
-      );
-      headerText.setAttribute("x", String(svgWidth / 2));
-      headerText.setAttribute("y", String(size * 0.03 + 8)); // Proportional header position
-      headerText.setAttribute("text-anchor", "middle");
-      headerText.setAttribute("font-family", "Arial, sans-serif");
-      headerText.setAttribute("font-size", String(size * 0.04)); // 4% of size
-      headerText.setAttribute("font-weight", "bold");
-      headerText.setAttribute("fill", "#1e3a8a"); // Navy blue to match logo
-      headerText.textContent = "PT Brilian Eka Saetama";
-      svg.appendChild(headerText);
-
-      // Add product info footer below QR code - single line with product number and name
-      if (qrData) {
-        const footerText = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "text",
-        );
-        footerText.setAttribute("x", String(svgWidth / 2));
-        footerText.setAttribute("y", String(svgHeight - (size * 0.005))); // Proportional footer position
-        footerText.setAttribute("text-anchor", "middle");
-        footerText.setAttribute("font-family", "Arial, sans-serif");
-        footerText.setAttribute("font-size", String(size * 0.04)); // 4% of size, same as header
-        footerText.setAttribute("font-weight", "bold");
-        footerText.setAttribute("fill", "#1e3a8a"); // Navy blue to match logo
-
-        // Combine product number and name in single line
-        const productName =
-          qrData.productName.length > 25
-            ? qrData.productName.substring(0, 22) + "..."
-            : qrData.productName;
-        footerText.textContent = `${qrData.productNumber} - ${productName}`;
-        svg.appendChild(footerText);
-      }
-    });
+    // No text extensions - clean QR code only
 
     // Convert SVG to PNG data URL
     setTimeout(() => {
@@ -151,19 +107,16 @@ async function generateStyledQRCode(
 }
 
 /**
- * Generates a simple PDF containing QR code sticker for product
- * Creates minimal 10cm x 10cm sticker with branded QR code
+ * Generates a professional PDF containing QR code sticker for product
+ * Creates properly formatted 10cm x 10cm sticker with company branding
  *
  * @param qrData - Product QR code data
  * @returns Promise that resolves to PDF blob
  */
 export async function generateQRCodePDF(qrUrl: string, qrData: ProductQRData): Promise<Blob> {
   try {
-    // Generate styled QR code with embedded company logo, header, footer, and border
-    const qrCodeDataURL = await generateStyledQRCode(
-      qrUrl,
-      qrData,
-    );
+    // Generate clean QR code without any text
+    const qrCodeDataURL = await generateCleanQRCode(qrUrl, 500);
 
     // Create PDF document - EXACTLY 10cm x 10cm
     const pdf = new jsPDF({
@@ -173,18 +126,53 @@ export async function generateQRCodePDF(qrUrl: string, qrData: ProductQRData): P
     });
 
     const pageSize = 100; // 10cm
-    const qrSize = 95; // 9.5cm QR code (almost full page)
+    
+    // Optimized layout with minimal spacing for maximum content
+    const headerY = 6; // Company name 6mm from top (reduced from 8mm)
+    const qrSize = 80; // 80mm QR code
+    const qrX = (pageSize - qrSize) / 2; // Center horizontally
+    const qrY = 8; // QR starts 8mm from top (reduced from 10mm)
+    const footerStartY = qrY + qrSize + 1; // Footer starts 1mm after QR (reduced from 2mm)
+
 
     // Simple white background
     pdf.setFillColor(255, 255, 255);
     pdf.rect(0, 0, pageSize, pageSize, "F");
 
-    // Center the QR code
-    const qrX = (pageSize - qrSize) / 2;
-    const qrY = (pageSize - qrSize) / 2;
+    // Add company name header - smaller font for space saving
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(10); // Reduced from 12pt to 10pt
+    pdf.setTextColor(30, 58, 138); // Navy blue
+    pdf.text("PT Brilian Eka Saetama", pageSize / 2, headerY, { align: "center" });
 
-    // Add QR code with integrated header/footer via extension
+    // Position and add clean QR code
     pdf.addImage(qrCodeDataURL, "PNG", qrX, qrY, qrSize, qrSize);
+
+    // Add product information footer - smaller font for space saving
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(9); // Reduced from 11pt to 9pt
+    pdf.setTextColor(30, 58, 138); // Navy blue - same color as company name
+    
+    const productName = qrData.productName.length > 30 
+      ? qrData.productName.substring(0, 27) + "..." 
+      : qrData.productName;
+    pdf.text(`${qrData.productNumber} - ${productName}`, pageSize / 2, footerStartY, { align: "center" });
+
+    // Contract name (if available) - bigger font with bold styling
+    if (qrData.contractName && qrData.contractName !== "N/A" && qrData.contractName.trim() !== "") {
+      pdf.setFont("helvetica", "bold"); // Changed to bold
+      pdf.setFontSize(8); // Increased from 7pt to 8pt for better readability
+      pdf.setTextColor(30, 58, 138); // Same navy blue color as product name
+      
+      // Split contract name into lines for wrapping
+      const maxWidth = pageSize - 8; // Leave 4mm margin on each side (reduced from 5mm)
+      const contractLines = pdf.splitTextToSize(qrData.contractName, maxWidth);
+      
+      // Add each line of contract name with vertical gap above
+      contractLines.forEach((line: string, index: number) => {
+        pdf.text(line, pageSize / 2, footerStartY + 5 + (index * 3), { align: "center" }); // Added 2mm gap (changed from +3 to +5)
+      });
+    }
 
     // Return PDF as blob
     return pdf.output("blob");
@@ -195,29 +183,21 @@ export async function generateQRCodePDF(qrUrl: string, qrData: ProductQRData): P
 }
 
 /**
- * Generates a styled QR code blob for bulk processing
- * Uses same styling as individual QR codes for consistency
+ * Generates a complete PDF QR sticker for bulk processing
+ * Uses same PDF generation as individual QR codes for consistency
  * @param qrUrl - URL string for QR code content  
  * @param qrData - ProductQRData object for labels and display
- * @param size - Optional size override for bulk generation (default: 400)
- * @returns Promise that resolves to PNG blob
+ * @param size - Optional size override (not used in PDF generation)
+ * @returns Promise that resolves to PDF blob
  */
 export async function generateBulkStyledQRCode(qrUrl: string, qrData: ProductQRData, size: number = 400): Promise<Blob> {
   try {
-    // Generate styled QR code using URL content with ProductQRData for labels
-    const qrCodeDataURL = await generateStyledQRCode(
-      qrUrl,
-      qrData,
-      size
-    );
-
-    // Convert data URL to blob for bulk processing
-    const response = await fetch(qrCodeDataURL);
-    const blob = await response.blob();
-    return blob;
+    // Generate complete PDF sticker using the same system as individual QR generation
+    const pdfBlob = await generateQRCodePDF(qrUrl, qrData);
+    return pdfBlob;
   } catch (error) {
-    console.error("Error generating bulk styled QR code:", error);
-    throw new Error("Failed to generate bulk styled QR code. Please try again.");
+    console.error("Error generating bulk styled QR code PDF:", error);
+    throw new Error("Failed to generate bulk styled QR code PDF. Please try again.");
   }
 }
 

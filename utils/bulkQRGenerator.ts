@@ -23,7 +23,7 @@ export interface BulkQRConfig {
   size: 'mobile' | 'print' | 'web' | 'large_print';
   includeLabels: boolean;
   errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
-  format: 'png' | 'jpg';
+  format: 'png' | 'jpg' | 'pdf';
   useDesignedQR: boolean;
   useStyledQR: boolean; // New option for current company styling
   logoUrl?: string;
@@ -88,9 +88,7 @@ export async function generateBulkQRCodes(
     const zip = new JSZip();
     const qrSize = getQRCodeSize(config.size);
 
-    // Create folders in ZIP
-    const qrFolder = zip.folder('qr-codes');
-    const labelsFolder = config.includeLabels ? zip.folder('labels') : null;
+    // No folders needed - just place files in root of ZIP for simplicity
 
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
@@ -141,6 +139,7 @@ export async function generateBulkQRCodes(
           product.contractData?.id,
           location,
           customerName,
+          product.contractData?.contractName,
           config.baseUrl
         );
 
@@ -166,21 +165,13 @@ export async function generateBulkQRCodes(
           qrBlob = await dataURLToBlob(qrDataUrl);
         }
         
-        // Create safe filename
+        // Create safe filename using productId for uniqueness
+        const safeProductId = product.id.replace(/[^a-zA-Z0-9]/g, '_');
         const safeProductNumber = product.productNumber.toString().replace(/[^a-zA-Z0-9]/g, '_');
-        const safeProductName = product.name.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
-        const filename = `${safeProductNumber}_${safeProductName}`;
+        const filename = `${safeProductId}_${safeProductNumber}`;
 
-        // Add QR code to ZIP
-        if (qrFolder) {
-          qrFolder.file(`${filename}.${config.format}`, qrBlob);
-        }
-
-        // Generate and add label if requested
-        if (config.includeLabels && labelsFolder) {
-          const label = generateQRLabel(qrDataObject);
-          labelsFolder.file(`${filename}_label.txt`, label);
-        }
+        // Add QR file directly to ZIP root (no folders)
+        zip.file(`${filename}.${config.format}`, qrBlob);
 
         result.success++;
 
@@ -217,11 +208,7 @@ export async function generateBulkQRCodes(
       }
     }
 
-    // Add summary file to ZIP
-    const summary = generateBulkQRSummary(result, products.length, config);
-    zip.file('README.txt', summary);
-
-    // Generate ZIP blob
+    // Generate ZIP blob (no summary file needed)
     result.zipBlob = await zip.generateAsync({ type: 'blob' });
 
   } catch (error: any) {

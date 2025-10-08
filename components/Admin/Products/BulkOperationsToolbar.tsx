@@ -8,9 +8,9 @@ interface BulkOperationsToolbarProps {
   onExport: () => void;
   onBulkEdit: () => void;
   onBulkQR: () => void;
+  onBulkAddToContract: () => void;
   onClearSelection: () => void;
   bulkMode: boolean;
-  onToggleBulkMode: () => void;
 }
 
 /**
@@ -22,9 +22,9 @@ export default function BulkOperationsToolbar({
   onExport,
   onBulkEdit,
   onBulkQR,
+  onBulkAddToContract,
   onClearSelection,
   bulkMode,
-  onToggleBulkMode,
 }: BulkOperationsToolbarProps) {
   return (
     <div className="mb-6 space-y-3">
@@ -50,40 +50,6 @@ export default function BulkOperationsToolbar({
             </svg>
             Ekspor Semua
           </button>
-
-          <a
-            href="/api/products/template"
-            download="product_import_template.csv"
-            className="inline-flex items-center gap-2 rounded-lg bg-gray-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Template
-          </a>
-        </div>
-
-        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300">Mode Massal:</span>
-            <button
-              onClick={onToggleBulkMode}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                bulkMode ? 'bg-primary' : 'bg-gray-200'
-              }`}
-              role="switch"
-              aria-checked={bulkMode}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  bulkMode ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-            <span className={`text-sm font-medium ${bulkMode ? 'text-primary' : 'text-gray-500 dark:text-gray-400'}`}>
-              {bulkMode ? 'AKTIF' : 'NONAKTIF'}
-            </span>
-          </div>
         </div>
       </div>
 
@@ -109,7 +75,7 @@ export default function BulkOperationsToolbar({
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2 md:grid-cols-2 lg:grid-cols-5">
               <button
                 onClick={onBulkEdit}
                 className="inline-flex items-center gap-2 rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
@@ -121,14 +87,23 @@ export default function BulkOperationsToolbar({
               </button>
 
               <button
+                onClick={onBulkAddToContract}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Tambah ke Kontrak
+              </button>
+
+              <button
                 onClick={onBulkQR}
                 className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Preview QR Kode
+                Download QR Kode
               </button>
 
               <button
@@ -145,14 +120,6 @@ export default function BulkOperationsToolbar({
         </div>
       )}
 
-      {/* Help text when bulk mode is on but no items selected */}
-      {bulkMode && selectedCount === 0 && (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            💡 Pilih produk menggunakan checkbox untuk melakukan operasi massal
-          </p>
-        </div>
-      )}
     </div>
   );
 }

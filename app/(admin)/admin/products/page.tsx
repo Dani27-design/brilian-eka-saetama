@@ -23,6 +23,7 @@ import {
 import { findProductLocation } from "@/utils/findProductLocation";
 import BulkOperationsToolbar from "@/components/Admin/Products/BulkOperationsToolbar";
 import BulkEditDialog from "@/components/Admin/Products/BulkEditDialog";
+import BulkAddToContractDialog from "@/components/Admin/Products/BulkAddToContractDialog";
 import ProductFiltersComponent, { ProductFilters } from "@/components/Admin/Products/ProductFilters";
 import SortableHeader from "@/components/Admin/Products/SortableHeader";
 import { exportProducts } from "@/utils/exportGenerator";
@@ -53,8 +54,9 @@ export default function ProductsPage() {
   
   // Bulk operations state
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
-  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkMode, setBulkMode] = useState(true); // Always active by default
   const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
+  const [showBulkAddToContractDialog, setShowBulkAddToContractDialog] = useState(false);
   const [bulkQRProgress, setBulkQRProgress] = useState<{
     isGenerating: boolean;
     current: number;
@@ -296,7 +298,8 @@ export default function ProductsPage() {
         product.id,
         product.contractData?.id,
         location,
-        customerName
+        customerName,
+        product.contractData?.contractName
       );
 
       // Print QR code directly (opens new window and triggers native print)
@@ -410,9 +413,9 @@ export default function ProductsPage() {
         selectedProductList,
         {
           size: 'print',
-          includeLabels: true,
+          includeLabels: false, // No labels needed - PDF contains all info
           errorCorrectionLevel: 'H',
-          format: 'png',
+          format: 'pdf', // Changed from png to pdf
           useDesignedQR: false,
           useStyledQR: true, // Use current company styled QR codes
           logoUrl: '/images/logo/logo-light.png'
@@ -523,13 +526,6 @@ export default function ProductsPage() {
       <BulkOperationsToolbar
         selectedCount={selectedProducts.size}
         bulkMode={bulkMode}
-        onToggleBulkMode={() => {
-          setBulkMode(!bulkMode);
-          if (bulkMode) {
-            // Clear selection when turning off bulk mode
-            setSelectedProducts(new Set());
-          }
-        }}
         onExport={async () => {
           try {
             // Export selected products or all if none selected
@@ -547,6 +543,9 @@ export default function ProductsPage() {
         }}
         onBulkEdit={() => {
           setShowBulkEditDialog(true);
+        }}
+        onBulkAddToContract={() => {
+          setShowBulkAddToContractDialog(true);
         }}
         onBulkQR={handleBulkQRGeneration}
         onClearSelection={() => {
@@ -621,13 +620,15 @@ export default function ProductsPage() {
                 <thead>
                   <tr className="border-b border-stroke bg-gray-50 dark:border-strokedark dark:bg-gray-800">
                     {bulkMode && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
-                        <input
-                          type="checkbox"
-                          checked={isAllSelected}
-                          onChange={handleSelectAll}
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
+                      <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={isAllSelected}
+                            onChange={handleSelectAll}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                        </div>
                       </th>
                     )}
                     <SortableHeader
@@ -981,6 +982,14 @@ export default function ProductsPage() {
       <BulkEditDialog
         isOpen={showBulkEditDialog}
         onClose={() => setShowBulkEditDialog(false)}
+        selectedProducts={products.filter(p => p.id && selectedProducts.has(p.id))}
+        onSuccess={handleBulkOperationSuccess}
+      />
+
+      {/* Bulk Add to Contract Dialog */}
+      <BulkAddToContractDialog
+        isOpen={showBulkAddToContractDialog}
+        onClose={() => setShowBulkAddToContractDialog(false)}
         selectedProducts={products.filter(p => p.id && selectedProducts.has(p.id))}
         onSuccess={handleBulkOperationSuccess}
       />

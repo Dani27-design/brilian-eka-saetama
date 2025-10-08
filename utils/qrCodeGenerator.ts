@@ -14,6 +14,7 @@ export interface ProductQRData {
   brand: string;
   serialNumber?: string;
   contractId?: string;
+  contractName?: string;
   customerName?: string;
   maintenanceInterval: number;
   location?: string;
@@ -91,6 +92,7 @@ export function generateProductQRData(
  * @param contractId - Optional contract ID if product is assigned
  * @param location - Optional location from contract details
  * @param customerName - Optional customer name from contract
+ * @param contractName - Optional contract name from contract
  * @param baseUrl - Optional base URL override for public certificate viewing
  * @returns Structured QR data object for internal use
  */
@@ -100,6 +102,7 @@ export function generateProductQRDataObject(
   contractId?: string,
   location?: string,
   customerName?: string,
+  contractName?: string,
   baseUrl?: string,
 ): ProductQRData {
   const productNumber = product.productNumber?.toString() || "0";
@@ -120,6 +123,7 @@ export function generateProductQRDataObject(
     brand: product.specs?.brand || "N/A",
     serialNumber: product.specs?.serialNumber || undefined,
     contractId: contractId || undefined,
+    contractName: contractName || undefined,
     customerName: customerName || undefined,
     maintenanceInterval: product.maintenanceInterval || 0,
     location: location || undefined,
@@ -261,15 +265,16 @@ export async function downloadQRCode(
       // URL format: use timestamp
       downloadFilename = `QR_${new Date().toISOString().split('T')[0]}_${Date.now()}.png`;
     } else {
-      // Legacy ProductQRData format: use product info
+      // Legacy ProductQRData format: use product ID for uniqueness
+      const sanitizedProductId = qrData.productId.replace(
+        /[^a-zA-Z0-9]/g,
+        "_",
+      );
       const sanitizedProductNumber = qrData.productNumber.replace(
         /[^a-zA-Z0-9]/g,
         "_",
       );
-      const sanitizedProductName = qrData.productName
-        .replace(/[^a-zA-Z0-9]/g, "_")
-        .substring(0, 20); // Limit length
-      downloadFilename = `QR_${sanitizedProductNumber}_${sanitizedProductName}.png`;
+      downloadFilename = `QR_${sanitizedProductId}_${sanitizedProductNumber}.png`;
     }
 
     // Create temporary link element and trigger download
