@@ -80,8 +80,34 @@ export default function ProductFiltersComponent({
           </div>
         </div>
 
-        {/* Quick Filter Toggle and Results Count */}
-        <div className="flex items-center gap-4">
+        {/* Quick Filters and Results Count */}
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Quick Contract Status Filters */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleFilterChange("contractStatus", filters.contractStatus === "assigned" ? "" : "assigned")}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                filters.contractStatus === "assigned"
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+              }`}
+            >
+              Sudah Dikontrak
+            </button>
+            <button
+              onClick={() => handleFilterChange("contractStatus", filters.contractStatus === "unassigned" ? "" : "unassigned")}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                filters.contractStatus === "unassigned"
+                  ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+              }`}
+            >
+              Belum Dikontrak
+            </button>
+          </div>
+
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+
           <div className="text-sm text-gray-600 dark:text-gray-400">
             <span className="font-medium">{filteredCount}</span> dari{" "}
             <span className="font-medium">{productCount}</span> produk
@@ -119,7 +145,7 @@ export default function ProductFiltersComponent({
       {/* Advanced Filters */}
       {isExpanded && (
         <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-900/20">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Product Type Filter */}
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -174,22 +200,6 @@ export default function ProductFiltersComponent({
                     {source}
                   </option>
                 ))}
-              </select>
-            </div>
-
-            {/* Contract Status Filter */}
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Status Kontrak
-              </label>
-              <select
-                value={filters.contractStatus}
-                onChange={(e) => handleFilterChange("contractStatus", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
-              >
-                <option value="">Semua Status</option>
-                <option value="assigned">Sudah Dikontrak</option>
-                <option value="unassigned">Belum Dikontrak</option>
               </select>
             </div>
           </div>
