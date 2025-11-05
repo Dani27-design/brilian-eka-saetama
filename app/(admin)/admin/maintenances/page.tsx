@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { collection, getDocs, updateDoc, doc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { Maintenance, MaintenanceStatus } from "@/types/maintenances";
 import { ProductType } from "@/types/product";
 import { useAdmin } from "@/app/context/AdminContext";
+import toast from "react-hot-toast";
 
 // Import our new optimized components and utilities
 import MaintenanceFiltersComponent, { MaintenanceFilters } from "@/components/Admin/Maintenances/MaintenanceFilters";
 import SortableMaintenanceHeader from "@/components/Admin/Maintenances/SortableMaintenanceHeader";
 import MaintenanceBulkOperationsToolbar from "@/components/Admin/Maintenances/MaintenanceBulkOperationsToolbar";
+import BulkEngineerAssignmentModal, { AssignmentMode } from "@/components/Admin/Maintenances/BulkEngineerAssignmentModal";
 import { buildMaintenanceQuery, canUseMaintenanceFirestoreSort } from "@/utils/maintenanceQuery";
 import { loadMaintenancesWithRelatedData, loadAvailableEngineers, loadAvailableContracts, createPerformanceMonitor, MaintenanceTableRow } from "@/utils/maintenanceDataLoader";
 import { filterAndSortMaintenances, createDefaultMaintenanceFilters, resetMaintenanceFilters } from "@/utils/maintenanceFilters";
@@ -58,6 +60,10 @@ export default function MaintenancesPage() {
   // Modal states (for future use)
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  
+  // Bulk engineer assignment modal state
+  const [isBulkEngineerModalOpen, setIsBulkEngineerModalOpen] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
   
   // Filter options
   const [availableEngineers, setAvailableEngineers] = useState<Array<{ id: string; name: string }>>([]);
@@ -223,7 +229,170 @@ export default function MaintenancesPage() {
   };
 
   const handleBulkEngineerAssignment = () => {
-    console.log("Bulk engineer assignment for:", selectedMaintenances);
+    setIsBulkEngineerModalOpen(true);
+  };
+
+  // Helper function to calculate new engineer assignments based on mode
+  const calculateNewEngineers = (
+    currentEngineers: Array<{ id: string; name: string }>,
+    selectedEngineers: string[],
+    mode: AssignmentMode
+  ): string[] => {
+    const currentIds = currentEngineers.map(e => e.id);
+    
+    switch (mode) {
+      case "replace":
+        return selectedEngineers;
+      case "add":
+        // Add selected engineers to existing ones (avoid duplicates)
+        return Array.from(new Set([...currentIds, ...selectedEngineers]));
+      case "remove":
+        // Remove selected engineers from existing ones
+        return currentIds.filter(id => !selectedEngineers.includes(id));
+      default:
+        return currentIds;
+    }
+  };
+
+  // Main bulk engineer assignment function
+  const performBulkEngineerAssignment = async (
+    engineerIds: string[],
+    mode: AssignmentMode
+  ) => {
+    if (selectedMaintenances.size === 0) {
+      toast.error("Tidak ada maintenance yang dipilih");
+      return;
+    }
+
+    setBulkLoading(true);
+    
+    try {
+      // Get selected maintenance data for validation and processing
+      const selectedMaintenanceData = Array.from(selectedMaintenances)
+        .map(id => allMaintenances.find(m => m.id === id))
+        .filter(Boolean) as MaintenanceTableRow[];
+
+      // Filter out maintenances that cannot be modified (have inspections)
+      const validMaintenances = selectedMaintenanceData.filter(m => !m.hasInspection);
+      
+      if (validMaintenances.length === 0) {
+        toast.error("Tidak ada maintenance yang dapat dimodifikasi. Semua maintenance yang dipilih sudah memiliki data inspeksi.");
+        return;
+      }
+
+      // Firebase batch operations are limited to 500
+      const BATCH_SIZE = 500;
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
+      for (let i = 0; i < validMaintenances.length; i += BATCH_SIZE) {
+        const batchMaintenances = validMaintenances.slice(i, i + BATCH_SIZE);
+        const batch = writeBatch(firestore);
+
+        for (const maintenance of batchMaintenances) {
+          try {
+            const newEngineers = calculateNewEngineers(
+              maintenance.engineers,
+              engineerIds,
+              mode
+            );
+
+            // Determine new status based on engineer assignment
+            let newStatus: MaintenanceStatus = maintenance.status;
+            if (newEngineers.length > 0 && maintenance.status === "pending") {
+              newStatus = "scheduled";
+            } else if (newEngineers.length === 0 && maintenance.status === "scheduled") {
+              newStatus = "pending";
+            }
+
+            const maintenanceRef = doc(firestore, "maintenances", maintenance.id);
+            const updateData = {
+              engineer: newEngineers.map((uid: string) => doc(firestore, "users", uid)),
+              status: newStatus,
+              updatedAt: serverTimestamp(),
+              updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
+            };
+
+            batch.update(maintenanceRef, updateData);
+          } catch (error: any) {
+            console.error(`Error preparing update for maintenance ${maintenance.id}:`, error);
+            errors.push(`Maintenance ${maintenance.contractNumber}: ${error.message}`);
+            errorCount++;
+          }
+        }
+
+        // Commit the batch
+        try {
+          await batch.commit();
+          successCount += batchMaintenances.length;
+          
+          // Update local state optimistically
+          setAllMaintenances(prev => 
+            prev.map(m => {
+              const batchMaintenance = batchMaintenances.find(bm => bm.id === m.id);
+              if (batchMaintenance) {
+                const newEngineers = calculateNewEngineers(
+                  m.engineers,
+                  engineerIds,
+                  mode
+                );
+                
+                let newStatus = m.status;
+                if (newEngineers.length > 0 && m.status === "pending") {
+                  newStatus = "scheduled";
+                } else if (newEngineers.length === 0 && m.status === "scheduled") {
+                  newStatus = "pending";
+                }
+
+                return {
+                  ...m,
+                  engineers: newEngineers.map(id => {
+                    const engineer = availableEngineers.find(e => e.id === id);
+                    return { id, name: engineer?.name || id };
+                  }),
+                  status: newStatus
+                };
+              }
+              return m;
+            })
+          );
+        } catch (error: any) {
+          console.error("Batch commit error:", error);
+          batchMaintenances.forEach(m => {
+            errors.push(`Maintenance ${m.contractNumber}: Failed to commit - ${error.message}`);
+          });
+          errorCount += batchMaintenances.length;
+          successCount -= batchMaintenances.length;
+        }
+      }
+
+      // Clear selection after successful operation
+      setSelectedMaintenances(new Set());
+
+      // Show results
+      const totalRequested = validMaintenances.length;
+      const skippedCount = selectedMaintenanceData.length - validMaintenances.length;
+
+      if (successCount > 0) {
+        toast.success(
+          `Berhasil mengupdate ${successCount} maintenance. ${
+            skippedCount > 0 ? `${skippedCount} maintenance dilewati karena sudah memiliki inspeksi.` : ""
+          }`
+        );
+      }
+
+      if (errorCount > 0) {
+        console.error("Bulk assignment errors:", errors);
+        toast.error(`${errorCount} maintenance gagal diupdate. Silakan coba lagi.`);
+      }
+
+    } catch (error: any) {
+      console.error("Bulk engineer assignment error:", error);
+      toast.error(`Terjadi kesalahan: ${error.message}`);
+    } finally {
+      setBulkLoading(false);
+    }
   };
 
   const handleBulkDelete = () => {
@@ -529,6 +698,18 @@ export default function MaintenancesPage() {
           </div>
         )}
       </Modal>
+
+      {/* Bulk Engineer Assignment Modal */}
+      <BulkEngineerAssignmentModal
+        isOpen={isBulkEngineerModalOpen}
+        onClose={() => setIsBulkEngineerModalOpen(false)}
+        selectedMaintenances={Array.from(selectedMaintenances)
+          .map(id => allMaintenances.find(m => m.id === id))
+          .filter(Boolean) as MaintenanceTableRow[]}
+        onAssign={performBulkEngineerAssignment}
+        availableEngineers={availableEngineers}
+        loading={bulkLoading}
+      />
     </div>
   );
 }
