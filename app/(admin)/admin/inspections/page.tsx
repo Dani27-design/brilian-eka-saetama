@@ -6,11 +6,19 @@ import {
   getDocs,
   getDoc,
   DocumentReference,
+  DocumentSnapshot,
+  QuerySnapshot,
   doc,
   updateDoc,
   serverTimestamp,
   query,
   where,
+  orderBy,
+  limit,
+  startAfter,
+  writeBatch,
+  getCountFromServer,
+  Timestamp,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import Link from "next/link";
@@ -23,7 +31,11 @@ import { ProductType } from "@/types/product";
 import { useAdmin } from "@/app/context/AdminContext";
 import Image from "next/image";
 import Modal from "@/components/Admin/Modal";
-import { formatToWIB, formatDateOnlyWIB } from "@/utils/dateFormatter";
+import {
+  formatToWIB,
+  formatDateOnlyWIB,
+  formatToWIBExport,
+} from "@/utils/dateFormatter";
 import {
   findProductLocation,
   ProductDetail,
@@ -32,7 +44,6 @@ import {
   exportToExcel,
   exportToCSV,
   exportToBoth,
-  createFilteredExport,
   validateExportData,
   getExportStats,
 } from "@/utils/exportInspection";
@@ -43,7 +54,16 @@ import {
   downloadPDFCertificateDirectly,
   validateCertificateData,
   getCertificateStats,
+  generateMergedPDFCertificates,
+  CertificateData as PDFCertificateData,
 } from "@/utils/pdfCertificate";
+import {
+  convertToCertificateData,
+  generateMergedWordCertificates,
+  generateWordCertificateHTML,
+  downloadWordCertificate,
+  CertificateData as WordCertificateData,
+} from "@/utils/wordCertificate";
 import {
   getChecklistItemsByType,
   getChecklistItemStatus,
@@ -65,10 +85,13 @@ interface InspectionTableRow {
   productNumber: string;
   productName: string;
   productBrand: string;
+  brandType?: string; // New field for export
+  capacity?: string; // New field for export
   productType: ProductType;
   expirationDate: string;
   location: string;
   inspectionDate: string;
+  inspectorName?: string; // New field for export
   engineerNames: string[];
   checklistSummary: {
     totalItems: number;
@@ -141,6 +164,25 @@ export default function InspectionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Enhanced pagination states for server-side pagination
+  const [lastDocRef, setLastDocRef] = useState<DocumentSnapshot | null>(null);
+  const [firstDocRef, setFirstDocRef] = useState<DocumentSnapshot | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [pageCache, setPageCache] = useState<Map<number, InspectionTableRow[]>>(
+    new Map(),
+  );
+  const [pageStack, setPageStack] = useState<DocumentSnapshot[]>([]); // For previous page navigation
+
+  // Total count for pagination display with caching
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [isLoadingCount, setIsLoadingCount] = useState(false);
+  const [countCacheTimestamp, setCountCacheTimestamp] = useState<number | null>(
+    null,
+  );
+  const COUNT_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
   // Photo modal
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
@@ -152,12 +194,19 @@ export default function InspectionsPage() {
 
   // Export modal
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [exportType, setExportType] = useState<"excel" | "csv" | "certificate">(
-    "excel",
+  const [exportFormat, setExportFormat] = useState<"excel" | "csv">("excel");
+
+  // Certificate modal
+  const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
+  const [certificateFormat, setCertificateFormat] = useState<"pdf" | "doc">(
+    "pdf",
   );
+  const [certificateDateFrom, setCertificateDateFrom] = useState("");
+  const [certificateDateTo, setCertificateDateTo] = useState("");
 
   // Export states
   const [exportLoading, setExportLoading] = useState(false);
+  const [exportProgress, setExportProgress] = useState<string>("");
 
   // Export date filter states
   const [exportDateFrom, setExportDateFrom] = useState("");
@@ -169,155 +218,717 @@ export default function InspectionsPage() {
   );
 
   /**
-   * Fetches all maintenances with inspections and related data
-   * Processes contract, product, and engineer information for display
+   * Fetches total count of inspections for pagination display
+   * Uses efficient Firestore count query with 5-minute caching
    */
-  const fetchInspections = async () => {
+  const fetchTotalCount = async (forceRefresh: boolean = false) => {
+    const now = Date.now();
+
+    // Check cache validity - don't refetch if we have fresh data
+    if (
+      !forceRefresh &&
+      totalCount !== null &&
+      countCacheTimestamp !== null &&
+      now - countCacheTimestamp < COUNT_CACHE_DURATION &&
+      !isLoadingCount
+    ) {
+      console.log(`📊 Using cached total count: ${totalCount}`);
+      return;
+    }
+
     try {
-      setLoading(true);
-      setError("");
+      setIsLoadingCount(true);
 
-      // Query maintenances that have inspection data
-      const maintenancesSnap = await getDocs(
+      // Use the same query structure as the data fetch for consistency
+      const countQuery = query(
         collection(firestore, "maintenances"),
+        where("inspection.createdAt", "!=", null),
       );
-      const inspectionRows: InspectionTableRow[] = [];
 
-      for (const maintenanceDoc of maintenancesSnap.docs) {
-        const maintenanceData = maintenanceDoc.data() as Maintenance;
+      const countSnapshot = await getCountFromServer(countQuery);
+      const count = countSnapshot.data().count;
 
-        // Skip maintenances without inspection data
-        if (!maintenanceData.inspection) {
-          continue;
-        }
+      setTotalCount(count);
+      setCountCacheTimestamp(now);
+      console.log(`📊 Fetched fresh total inspections count: ${count}`);
+    } catch (error: any) {
+      console.warn(
+        "Failed to fetch total count, using fallback approach:",
+        error,
+      );
 
-        try {
-          // Fetch contract data
-          let contractNumber = "N/A";
-          let contractName = "N/A";
-          let location = "N/A";
-          let productDetails: ProductDetail[] = [];
+      // Fallback: estimate from current data if count query fails
+      if (hasNextPage) {
+        // If there are more pages, show a conservative estimate
+        setTotalCount(currentPage * itemsPerPage + itemsPerPage);
+      } else {
+        // If this is the last page, calculate exact count
+        setTotalCount(
+          (currentPage - 1) * itemsPerPage + filteredInspections.length,
+        );
+      }
+      setCountCacheTimestamp(now); // Cache even fallback values to prevent repeated failures
+    } finally {
+      setIsLoadingCount(false);
+    }
+  };
 
-          if (maintenanceData.contract) {
-            const contractSnap = await getDoc(maintenanceData.contract);
-            if (contractSnap.exists()) {
+  /**
+   * Fetches ALL inspections within date range for export
+   * Uses database query with date filters instead of client-side filtering
+   * @param startDate - Start date for filtering (optional)
+   * @param endDate - End date for filtering (optional)
+   * @returns Promise<InspectionTableRow[]> - All matching inspection data
+   */
+  const fetchInspectionsForExport = async (
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<InspectionTableRow[]> => {
+    try {
+      console.log(
+        `📊 Fetching export data from ${
+          startDate?.toISOString() || "beginning"
+        } to ${endDate?.toISOString() || "now"}...`,
+      );
+
+      // Build query with date filters
+      let exportQuery: any;
+
+      if (startDate && endDate) {
+        // Query with both start and end date
+        const startTimestamp = Timestamp.fromDate(startDate);
+        const endTimestamp = Timestamp.fromDate(endDate);
+
+        exportQuery = query(
+          collection(firestore, "maintenances"),
+          where("inspection.createdAt", "!=", null),
+          where("inspection.createdAt", ">=", startTimestamp),
+          where("inspection.createdAt", "<=", endTimestamp),
+          orderBy("inspection.createdAt", "asc"), // Use ascending order as requested
+        );
+      } else if (startDate) {
+        // Query with only start date
+        const startTimestamp = Timestamp.fromDate(startDate);
+
+        exportQuery = query(
+          collection(firestore, "maintenances"),
+          where("inspection.createdAt", "!=", null),
+          where("inspection.createdAt", ">=", startTimestamp),
+          orderBy("inspection.createdAt", "asc"),
+        );
+      } else if (endDate) {
+        // Query with only end date
+        const endTimestamp = Timestamp.fromDate(endDate);
+
+        exportQuery = query(
+          collection(firestore, "maintenances"),
+          where("inspection.createdAt", "!=", null),
+          where("inspection.createdAt", "<=", endTimestamp),
+          orderBy("inspection.createdAt", "asc"),
+        );
+      } else {
+        // Query all inspections
+        exportQuery = query(
+          collection(firestore, "maintenances"),
+          where("inspection.createdAt", "!=", null),
+          orderBy("inspection.createdAt", "asc"),
+        );
+      }
+
+      console.log(`🔍 Executing export query...`);
+      const exportSnapshot = await getDocs(exportQuery);
+      console.log(`📦 Found ${exportSnapshot.docs.length} records in database`);
+
+      if (exportSnapshot.empty) {
+        console.log(`⚠️ No inspection data found for date range`);
+        return [];
+      }
+
+      // Process all maintenance records in parallel (same logic as fetchInspections)
+      const inspectionRowPromises = exportSnapshot.docs.map(
+        async (maintenanceDoc) => {
+          const maintenanceData = maintenanceDoc.data() as Maintenance;
+
+          try {
+            // Fetch contract, product, and engineer data in parallel
+            const [contractSnap, productSnap] = await Promise.all([
+              maintenanceData.contract
+                ? getDoc(maintenanceData.contract)
+                : null,
+              maintenanceData.product ? getDoc(maintenanceData.product) : null,
+            ]);
+
+            // Process contract data
+            let contractNumber = "N/A";
+            let contractName = "N/A";
+            let location = "N/A";
+            let productDetails: ProductDetail[] = [];
+
+            if (contractSnap?.exists()) {
               const contractData = contractSnap.data();
               contractNumber = contractData.contractNumber || "N/A";
               contractName = contractData.contractName || "N/A";
               productDetails = contractData.productDetails || [];
             }
+
+            // Process product data with validation and new required fields
+            let productNumber = "N/A";
+            let productName = "N/A";
+            let productBrand = "N/A";
+            let brandType = "N/A"; // New field
+            let capacity = "N/A"; // New field
+            let expirationDate = "N/A";
+
+            if (productSnap?.exists()) {
+              const productData = productSnap.data();
+
+              // Validate and ensure productNumber is always a string
+              const rawProductNumber = productData.productNumber;
+              if (rawProductNumber !== null && rawProductNumber !== undefined) {
+                productNumber = String(rawProductNumber).trim() || "N/A";
+
+                // Log if we found non-string productNumber in database
+                if (typeof rawProductNumber !== "string") {
+                  console.warn(`📋 Database productNumber is not string:`, {
+                    type: typeof rawProductNumber,
+                    value: rawProductNumber,
+                    converted: productNumber,
+                    maintenanceId: maintenanceDoc.id,
+                  });
+                }
+              }
+
+              productName = productData.name || "N/A";
+              productBrand = productData.specs?.brand || "N/A";
+              brandType = productData.specs?.brandType || "N/A";
+              capacity = productData.specs?.capacity || "N/A";
+
+              // Format expiration date as DD MMMM YYYY, HH:mm:ss
+              if (productData.specs?.expirationDate) {
+                expirationDate = formatToWIBExport(
+                  productData.specs.expirationDate,
+                );
+              }
+
+              location = findProductLocation(
+                maintenanceData.product,
+                productDetails,
+              );
+            }
+
+            // Fetch engineer data and inspector data in parallel
+            const engineerNames: string[] = [];
+            let inspectorName = "N/A";
+
+            // Execute fetches in parallel
+            const fetchTasks: Promise<void>[] = [];
+
+            // Fetch engineer data
+            if (
+              Array.isArray(maintenanceData.engineer) &&
+              maintenanceData.engineer.length > 0
+            ) {
+              const engineerTask = Promise.all(
+                maintenanceData.engineer.map(async (engineerRef) => {
+                  try {
+                    const engineerSnap = await getDoc(engineerRef);
+                    return engineerSnap.exists()
+                      ? engineerSnap.data().name || engineerSnap.id
+                      : null;
+                  } catch {
+                    return null;
+                  }
+                }),
+              ).then((results) => {
+                engineerNames.push(...results.filter((name) => name !== null));
+              });
+              fetchTasks.push(engineerTask);
+            }
+
+            // Fetch inspector data
+            if (maintenanceData.inspection?.createdBy) {
+              const inspectorTask = getDoc(maintenanceData.inspection.createdBy)
+                .then((inspectorSnap) => {
+                  inspectorName = inspectorSnap.exists()
+                    ? inspectorSnap.data().name || inspectorSnap.id
+                    : "N/A";
+                })
+                .catch(() => {
+                  inspectorName = "N/A";
+                });
+              fetchTasks.push(inspectorTask);
+            }
+
+            // Wait for all fetch operations to complete
+            if (fetchTasks.length > 0) {
+              await Promise.all(fetchTasks);
+            }
+
+            // Calculate checklist summary
+            const checklist = maintenanceData.inspection?.checklist || [];
+            const checklistSummary = {
+              totalItems: checklist.length,
+              okCount: checklist.filter((item: any) => item.status === true)
+                .length,
+              nokCount: checklist.filter((item: any) => item.status === false)
+                .length,
+            };
+
+            const inspectionDate = formatToWIBExport(
+              maintenanceData.inspection?.createdAt,
+            );
+
+            return {
+              id: maintenanceDoc.id,
+              contractNumber,
+              contractName,
+              productNumber,
+              productName,
+              productBrand,
+              brandType, // Add new field
+              capacity, // Add new field
+              productType: maintenanceData.productType,
+              expirationDate,
+              location,
+              inspectionDate,
+              inspectorName,
+              engineerNames,
+              checklistSummary,
+              checklistDetails: checklist,
+              photos: maintenanceData.inspection?.photos || [],
+              status: maintenanceData.status,
+              hasInspection: true,
+              canApprove: maintenanceData.status === "waiting_approval",
+              maintenance: maintenanceData,
+            } as InspectionTableRow;
+          } catch (rowError) {
+            console.error(
+              `Error processing maintenance ${maintenanceDoc.id}:`,
+              rowError,
+            );
+            return null; // Return null for failed rows
+          }
+        },
+      );
+
+      // Wait for all rows to be processed and filter out failed ones
+      const inspectionRows = (await Promise.all(inspectionRowPromises)).filter(
+        (row) => row !== null,
+      ) as InspectionTableRow[];
+
+      // Sort by product number in ascending order (client-side sorting with robust type handling)
+      let sortedRows: InspectionTableRow[];
+      try {
+        sortedRows = inspectionRows.sort((a, b) => {
+          // Robust type conversion to handle any data type
+          const productA = String(a.productNumber ?? "").trim();
+          const productB = String(b.productNumber ?? "").trim();
+
+          // Debug logging for problematic data
+          if (
+            typeof a.productNumber !== "string" &&
+            a.productNumber !== null &&
+            a.productNumber !== undefined
+          ) {
+            console.warn(
+              `⚠️ Non-string productNumber found:`,
+              typeof a.productNumber,
+              a.productNumber,
+            );
           }
 
-          // Fetch product data
-          let productNumber = "N/A";
-          let productName = "N/A";
-          let productBrand = "N/A";
-          let expirationDate = "N/A";
+          return productA.localeCompare(productB, "en", {
+            numeric: true,
+            sensitivity: "base",
+          });
+        });
 
-          if (maintenanceData.product) {
-            const productSnap = await getDoc(maintenanceData.product);
-            if (productSnap.exists()) {
+        console.log(
+          `✅ Successfully sorted ${sortedRows.length} export records by product number`,
+        );
+      } catch (sortError) {
+        console.warn(
+          `⚠️ Sorting by productNumber failed, using original order:`,
+          sortError,
+        );
+
+        // Fallback: return data in original order if sorting fails
+        sortedRows = inspectionRows;
+
+        // Log sample data for debugging
+        if (inspectionRows.length > 0) {
+          console.log(`Debug sample data:`, {
+            productNumber: inspectionRows[0].productNumber,
+            productNumberType: typeof inspectionRows[0].productNumber,
+            sampleRow: {
+              id: inspectionRows[0].id,
+              contractNumber: inspectionRows[0].contractNumber,
+              productNumber: inspectionRows[0].productNumber,
+            },
+          });
+        }
+      }
+
+      console.log(
+        `✅ Processed ${sortedRows.length} export records successfully`,
+      );
+      return sortedRows;
+    } catch (error: any) {
+      console.error("Error fetching export data:", error);
+
+      // Provide specific error messages
+      let errorMessage =
+        "Gagal mengambil data untuk export. Silakan coba lagi.";
+
+      if (error?.code) {
+        switch (error.code) {
+          case "failed-precondition":
+            errorMessage =
+              "Database index diperlukan untuk range tanggal. Hubungi administrator.";
+            break;
+          case "invalid-argument":
+            errorMessage =
+              "Filter tanggal tidak valid. Periksa format tanggal.";
+            break;
+          default:
+            if (error.message) {
+              errorMessage = `Error: ${error.message}`;
+            }
+        }
+      }
+
+      throw new Error(errorMessage);
+    }
+  };
+
+  /**
+   * Executes maintenance query with progressive fallback strategies
+   * Handles Firestore constraint errors and missing indexes gracefully
+   */
+  const executeQueryWithFallbacks = async (
+    pageNum: number,
+  ): Promise<QuerySnapshot | null> => {
+    try {
+      // Strategy 1: Optimal query using inspection.createdAt (requires index)
+      console.log("Trying optimized query with inspection.createdAt...");
+
+      let maintenancesQuery = query(
+        collection(firestore, "maintenances"),
+        where("inspection.createdAt", "!=", null),
+        orderBy("inspection.createdAt", "desc"),
+        limit(itemsPerPage),
+      );
+
+      // For pages beyond 1, use startAfter with the last document from previous page
+      if (pageNum > 1 && lastDocRef) {
+        maintenancesQuery = query(
+          collection(firestore, "maintenances"),
+          where("inspection.createdAt", "!=", null),
+          orderBy("inspection.createdAt", "desc"),
+          startAfter(lastDocRef),
+          limit(itemsPerPage),
+        );
+      }
+
+      return await getDocs(maintenancesQuery);
+    } catch (error: any) {
+      console.warn("Optimized query failed:", error.code, error.message);
+
+      // Strategy 2: Fallback to status-based filtering (more likely to have index)
+      if (
+        error.code === "failed-precondition" ||
+        error.code === "invalid-argument"
+      ) {
+        try {
+          console.log("Trying fallback query with status filtering...");
+
+          let fallbackQuery = query(
+            collection(firestore, "maintenances"),
+            where("status", "in", ["waiting_approval", "approved", "rejected"]),
+            orderBy("status"),
+            orderBy("updatedAt", "desc"),
+            limit(itemsPerPage * 2), // Get more docs since we'll filter client-side
+          );
+
+          if (pageNum > 1 && lastDocRef) {
+            fallbackQuery = query(
+              collection(firestore, "maintenances"),
+              where("status", "in", [
+                "waiting_approval",
+                "approved",
+                "rejected",
+              ]),
+              orderBy("status"),
+              orderBy("updatedAt", "desc"),
+              startAfter(lastDocRef),
+              limit(itemsPerPage * 2),
+            );
+          }
+
+          return await getDocs(fallbackQuery);
+        } catch (fallbackError: any) {
+          console.warn(
+            "Status-based fallback failed:",
+            fallbackError.code,
+            fallbackError.message,
+          );
+
+          // Strategy 3: Simple query without complex filters (last resort)
+          try {
+            console.log("Trying simple fallback query...");
+
+            let simpleQuery = query(
+              collection(firestore, "maintenances"),
+              orderBy("updatedAt", "desc"),
+              limit(itemsPerPage * 3), // Get even more since we'll filter for inspections client-side
+            );
+
+            if (pageNum > 1 && lastDocRef) {
+              simpleQuery = query(
+                collection(firestore, "maintenances"),
+                orderBy("updatedAt", "desc"),
+                startAfter(lastDocRef),
+                limit(itemsPerPage * 3),
+              );
+            }
+
+            const simpleSnap = await getDocs(simpleQuery);
+
+            // Filter client-side for documents with inspections
+            const docsWithInspections = simpleSnap.docs.filter((doc) => {
+              const data = doc.data();
+              return data.inspection && data.inspection.createdAt;
+            });
+
+            // Create a new QuerySnapshot-like object with filtered docs
+            return {
+              docs: docsWithInspections.slice(0, itemsPerPage),
+              empty: docsWithInspections.length === 0,
+              size: docsWithInspections.length,
+            } as QuerySnapshot;
+          } catch (simpleError) {
+            console.error("All query strategies failed:", simpleError);
+            throw simpleError;
+          }
+        }
+      } else {
+        // Re-throw non-index related errors
+        throw error;
+      }
+    }
+  };
+
+  /**
+   * Fetches all maintenances with inspections and related data
+   * Processes contract, product, and engineer information for display
+   */
+  const fetchInspections = async (pageNum: number = 1) => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const maintenancesSnap = await executeQueryWithFallbacks(pageNum);
+
+      if (!maintenancesSnap || maintenancesSnap.empty) {
+        setInspections([]);
+        setFilteredInspections([]);
+        setHasNextPage(false);
+        setCurrentPage(pageNum);
+        return;
+      }
+      // Process all maintenance records in parallel for better performance
+      const inspectionRowPromises = maintenancesSnap.docs.map(
+        async (maintenanceDoc) => {
+          const maintenanceData = maintenanceDoc.data() as Maintenance;
+
+          try {
+            // Fetch contract, product, and engineer data in parallel
+            const [contractSnap, productSnap] = await Promise.all([
+              maintenanceData.contract
+                ? getDoc(maintenanceData.contract)
+                : null,
+              maintenanceData.product ? getDoc(maintenanceData.product) : null,
+            ]);
+
+            // Process contract data
+            let contractNumber = "N/A";
+            let contractName = "N/A";
+            let location = "N/A";
+            let productDetails: ProductDetail[] = [];
+
+            if (contractSnap?.exists()) {
+              const contractData = contractSnap.data();
+              contractNumber = contractData.contractNumber || "N/A";
+              contractName = contractData.contractName || "N/A";
+              productDetails = contractData.productDetails || [];
+            }
+
+            // Process product data
+            let productNumber = "N/A";
+            let productName = "N/A";
+            let productBrand = "N/A";
+            let brandType = "N/A"; // New field for export compatibility
+            let capacity = "N/A"; // New field for export compatibility
+            let expirationDate = "N/A";
+
+            if (productSnap?.exists()) {
               const productData = productSnap.data();
               productNumber = productData.productNumber || "N/A";
               productName = productData.name || "N/A";
               productBrand = productData.specs?.brand || "N/A";
+              brandType = productData.specs?.brandType || "N/A";
+              capacity = productData.specs?.capacity || "N/A";
 
-              // Get expiration date if available (mainly for APAR products)
               if (productData.specs?.expirationDate) {
                 expirationDate = formatDateOnlyWIB(
                   productData.specs.expirationDate,
                 );
               }
 
-              // Find location for this product
               location = findProductLocation(
                 maintenanceData.product,
                 productDetails,
               );
             }
-          }
 
-          // Fetch engineer data
-          const engineerNames: string[] = [];
-          if (
-            Array.isArray(maintenanceData.engineer) &&
-            maintenanceData.engineer.length > 0
-          ) {
-            for (const engineerRef of maintenanceData.engineer) {
-              try {
-                const engineerSnap = await getDoc(engineerRef);
-                if (engineerSnap.exists()) {
-                  const engineerData = engineerSnap.data();
-                  engineerNames.push(engineerData.name || engineerSnap.id);
-                }
-              } catch (engineerError) {
-                console.warn("Failed to fetch engineer:", engineerError);
-              }
+            // Fetch engineer data in parallel
+            const engineerNames: string[] = [];
+            let inspectorName = "N/A"; // For export compatibility
+
+            if (
+              Array.isArray(maintenanceData.engineer) &&
+              maintenanceData.engineer.length > 0
+            ) {
+              const engineerPromises = maintenanceData.engineer.map(
+                async (engineerRef) => {
+                  try {
+                    const engineerSnap = await getDoc(engineerRef);
+                    return engineerSnap.exists()
+                      ? engineerSnap.data().name || engineerSnap.id
+                      : null;
+                  } catch {
+                    return null;
+                  }
+                },
+              );
+
+              const engineerResults = await Promise.all(engineerPromises);
+              engineerNames.push(
+                ...engineerResults.filter((name) => name !== null),
+              );
             }
+
+            // Calculate checklist summary
+            const checklist = maintenanceData.inspection?.checklist || [];
+            const checklistSummary = {
+              totalItems: checklist.length,
+              okCount: checklist.filter((item: any) => item.status === true)
+                .length,
+              nokCount: checklist.filter((item: any) => item.status === false)
+                .length,
+            };
+
+            const inspectionDate = formatToWIB(
+              maintenanceData.inspection?.createdAt,
+            );
+
+            return {
+              id: maintenanceDoc.id,
+              contractNumber,
+              contractName,
+              productNumber,
+              productName,
+              productBrand,
+              brandType, // Add new field
+              capacity, // Add new field
+              productType: maintenanceData.productType,
+              expirationDate,
+              location,
+              inspectionDate,
+              inspectorName,
+              engineerNames,
+              checklistSummary,
+              checklistDetails: checklist,
+              photos: maintenanceData.inspection?.photos || [],
+              status: maintenanceData.status,
+              hasInspection: true,
+              canApprove: maintenanceData.status === "waiting_approval",
+              maintenance: maintenanceData,
+            } as InspectionTableRow;
+          } catch (rowError) {
+            console.error(
+              `Error processing maintenance ${maintenanceDoc.id}:`,
+              rowError,
+            );
+            return null; // Return null for failed rows
           }
+        },
+      );
 
-          // Calculate checklist summary and store details
-          const checklist = maintenanceData.inspection.checklist || [];
-          const checklistSummary = {
-            totalItems: checklist.length,
-            okCount: checklist.filter((item: any) => item.status === true)
-              .length,
-            nokCount: checklist.filter((item: any) => item.status === false)
-              .length,
-          };
-          const checklistDetails = checklist;
-
-          // Determine inspection date
-          const inspectionDate = formatToWIB(
-            maintenanceData.inspection.createdAt,
-          );
-
-          // Create table row
-          const inspectionRow: InspectionTableRow = {
-            id: maintenanceDoc.id,
-            contractNumber,
-            contractName,
-            productNumber,
-            productName,
-            productBrand,
-            productType: maintenanceData.productType,
-            expirationDate,
-            location,
-            inspectionDate,
-            engineerNames,
-            checklistSummary,
-            checklistDetails, // Add checklist details
-            photos: maintenanceData.inspection.photos || [],
-            status: maintenanceData.status,
-            hasInspection: true,
-            canApprove: maintenanceData.status === "waiting_approval",
-            maintenance: maintenanceData,
-          };
-
-          inspectionRows.push(inspectionRow);
-        } catch (rowError) {
-          console.error(
-            `Error processing maintenance ${maintenanceDoc.id}:`,
-            rowError,
-          );
-          // Continue with other rows
-        }
-      }
-
-      // Sort by inspection date (newest first)
-      inspectionRows.sort((a, b) => {
-        const dateA = new Date(a.inspectionDate).getTime();
-        const dateB = new Date(b.inspectionDate).getTime();
-        return dateB - dateA;
-      });
+      // Wait for all rows to be processed and filter out failed ones
+      const inspectionRows = (await Promise.all(inspectionRowPromises)).filter(
+        (row) => row !== null,
+      ) as InspectionTableRow[];
 
       setInspections(inspectionRows);
       setFilteredInspections(inspectionRows);
-    } catch (error) {
+
+      // Update pagination state
+      if (maintenancesSnap.docs.length > 0) {
+        setLastDocRef(maintenancesSnap.docs[maintenancesSnap.docs.length - 1]);
+        setHasNextPage(maintenancesSnap.docs.length === itemsPerPage);
+      } else {
+        setHasNextPage(false);
+      }
+
+      setCurrentPage(pageNum);
+    } catch (error: any) {
       console.error("Error fetching inspections:", error);
-      setError("Gagal memuat data inspeksi. Silakan coba lagi.");
+
+      // Provide specific error messages based on error type
+      let errorMessage = "Gagal memuat data inspeksi. Silakan coba lagi.";
+
+      if (error?.code) {
+        switch (error.code) {
+          case "failed-precondition":
+            errorMessage =
+              "Database index sedang dibuat. Silakan coba lagi dalam beberapa menit.";
+            console.warn(
+              "Firestore index not ready. Please create the required index:",
+              error.message,
+            );
+            break;
+          case "invalid-argument":
+            errorMessage = "Query tidak valid. Tim teknis telah diberitahu.";
+            console.error(
+              "Invalid Firestore query. Check query structure:",
+              error.message,
+            );
+            break;
+          case "permission-denied":
+            errorMessage =
+              "Tidak memiliki izin untuk mengakses data. Hubungi administrator.";
+            break;
+          case "unavailable":
+            errorMessage =
+              "Layanan tidak tersedia sementara. Coba lagi sebentar.";
+            break;
+          default:
+            if (error.message) {
+              errorMessage = `Error: ${error.message}`;
+            }
+        }
+      }
+
+      setError(errorMessage);
+
+      // Reset state on error
+      setInspections([]);
+      setFilteredInspections([]);
+      setHasNextPage(false);
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -429,7 +1040,8 @@ export default function InspectionsPage() {
 
   // Effects
   useEffect(() => {
-    fetchInspections();
+    fetchInspections(1);
+    fetchTotalCount(); // Initial load uses cache
   }, []);
 
   useEffect(() => {
@@ -464,17 +1076,10 @@ export default function InspectionsPage() {
     };
   }, [isPhotoGalleryOpen, photoGallery.length]);
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredInspections.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentInspections = filteredInspections.slice(startIndex, endIndex);
+  // Server-side pagination - no client-side slicing needed
+  // Data is already paginated by the server query
 
   // Photo modal handlers
-  const openPhotoModal = (photoUrl: string) => {
-    setSelectedPhoto(photoUrl);
-    setIsPhotoModalOpen(true);
-  };
 
   const closePhotoModal = () => {
     setSelectedPhoto(null);
@@ -508,34 +1113,47 @@ export default function InspectionsPage() {
 
   /**
    * Handles exporting inspection data to Excel format
-   * Validates data before export and shows appropriate error messages
+   * Uses database query with date range filters to get all matching data
    */
   const handleExportExcel = async () => {
     setExportLoading(true);
+    setExportProgress("Memulai export Excel...");
     setError("");
 
     try {
-      // Apply date filter to export data
-      let dataToExport = filteredInspections;
+      // Fetch data from database with date range filter
+      let dataToExport: InspectionTableRow[];
 
       if (exportDateFrom || exportDateTo) {
-        dataToExport = filteredInspections.filter((inspection) => {
-          const inspectionDate = new Date(inspection.inspectionDate);
+        // Use database query with date filters
+        const startDate = exportDateFrom ? new Date(exportDateFrom) : undefined;
+        const endDate = exportDateTo
+          ? new Date(exportDateTo + "T23:59:59")
+          : undefined;
 
-          if (exportDateFrom && inspectionDate < new Date(exportDateFrom)) {
-            return false;
-          }
-
-          if (
-            exportDateTo &&
-            inspectionDate > new Date(exportDateTo + "T23:59:59")
-          ) {
-            return false;
-          }
-
-          return true;
-        });
+        setExportProgress("Mengambil data dari database...");
+        console.log(
+          `📊 Fetching export data with date range: ${
+            exportDateFrom || "no start"
+          } to ${exportDateTo || "no end"}`,
+        );
+        dataToExport = await fetchInspectionsForExport(startDate, endDate);
+      } else {
+        // No date filter - use current filtered inspections from page
+        console.log(
+          `📊 Using current page data for export (${filteredInspections.length} records)`,
+        );
+        dataToExport = filteredInspections;
       }
+
+      if (dataToExport.length === 0) {
+        setError(
+          "Tidak ada data inspeksi untuk diekspor dalam rentang tanggal yang dipilih",
+        );
+        return;
+      }
+
+      setExportProgress(`Memvalidasi ${dataToExport.length} data inspeksi...`);
 
       // Validate export data
       const validation = validateExportData(dataToExport);
@@ -549,8 +1167,13 @@ export default function InspectionsPage() {
         console.warn("Export warnings:", validation.warnings);
       }
 
-      // Create filtered export data
-      const exportData = createFilteredExport(dataToExport);
+      setExportProgress(
+        `Membuat file Excel dengan ${dataToExport.length} data...`,
+      );
+      console.log(
+        `📋 Exporting ${dataToExport.length} inspection records to Excel`,
+      );
+      const exportData = dataToExport;
 
       // Generate filename with current date and filter info
       const today = new Date().toISOString().split("T")[0];
@@ -566,45 +1189,61 @@ export default function InspectionsPage() {
         filename += `_${exportDateFrom}_to_${exportDateTo}`;
       }
 
+      setExportProgress("Mengunduh file Excel...");
       await exportToExcel(exportData, filename);
+      setExportProgress("Excel berhasil diunduh!");
     } catch (error: any) {
       console.error("Export Excel error:", error);
       setError(error.message || "Gagal mengekspor data ke Excel");
     } finally {
       setExportLoading(false);
+      setExportProgress("");
     }
   };
 
   /**
    * Handles exporting inspection data to CSV format
-   * Validates data before export and shows appropriate error messages
+   * Uses database query with date range filters to get all matching data
    */
   const handleExportCSV = async () => {
     setExportLoading(true);
+    setExportProgress("Memulai export CSV...");
     setError("");
 
     try {
-      // Apply date filter to export data
-      let dataToExport = filteredInspections;
+      // Fetch data from database with date range filter
+      let dataToExport: InspectionTableRow[];
 
       if (exportDateFrom || exportDateTo) {
-        dataToExport = filteredInspections.filter((inspection) => {
-          const inspectionDate = new Date(inspection.inspectionDate);
+        // Use database query with date filters
+        const startDate = exportDateFrom ? new Date(exportDateFrom) : undefined;
+        const endDate = exportDateTo
+          ? new Date(exportDateTo + "T23:59:59")
+          : undefined;
 
-          if (exportDateFrom && inspectionDate < new Date(exportDateFrom)) {
-            return false;
-          }
-
-          if (
-            exportDateTo &&
-            inspectionDate > new Date(exportDateTo + "T23:59:59")
-          ) {
-            return false;
-          }
-
-          return true;
-        });
+        setExportProgress("Mengambil data dari database...");
+        console.log(
+          `📊 Fetching export data with date range: ${
+            exportDateFrom || "no start"
+          } to ${exportDateTo || "no end"}`,
+        );
+        dataToExport = await fetchInspectionsForExport(startDate, endDate);
+      } else {
+        // No date filter - use current filtered inspections from page
+        console.log(
+          `📊 Using current page data for export (${filteredInspections.length} records)`,
+        );
+        dataToExport = filteredInspections;
       }
+
+      if (dataToExport.length === 0) {
+        setError(
+          "Tidak ada data inspeksi untuk diekspor dalam rentang tanggal yang dipilih",
+        );
+        return;
+      }
+
+      setExportProgress(`Memvalidasi ${dataToExport.length} data inspeksi...`);
 
       // Validate export data
       const validation = validateExportData(dataToExport);
@@ -618,8 +1257,13 @@ export default function InspectionsPage() {
         console.warn("Export warnings:", validation.warnings);
       }
 
-      // Create filtered export data
-      const exportData = createFilteredExport(dataToExport);
+      setExportProgress(
+        `Membuat file CSV dengan ${dataToExport.length} data...`,
+      );
+      console.log(
+        `📋 Exporting ${dataToExport.length} inspection records to CSV`,
+      );
+      const exportData = dataToExport;
 
       // Generate filename with current date and filter info
       const today = new Date().toISOString().split("T")[0];
@@ -635,31 +1279,280 @@ export default function InspectionsPage() {
         filename += `_${exportDateFrom}_to_${exportDateTo}`;
       }
 
+      setExportProgress("Mengunduh file CSV...");
       await exportToCSV(exportData, filename);
+      setExportProgress("CSV berhasil diunduh!");
     } catch (error: any) {
       console.error("Export CSV error:", error);
       setError(error.message || "Gagal mengekspor data ke CSV");
     } finally {
       setExportLoading(false);
+      setExportProgress("");
     }
   };
 
   /**
-   * Handles export from modal based on selected export type
+   * Handles export from modal based on selected export format
    */
   const handleModalExport = async () => {
     setIsExportModalOpen(false);
 
-    switch (exportType) {
-      case "excel":
-        await handleExportExcel();
-        break;
-      case "csv":
-        await handleExportCSV();
-        break;
-      case "certificate":
-        await handleBulkCertificateDownload();
-        break;
+    if (exportFormat === "excel") {
+      await handleExportExcel();
+    } else if (exportFormat === "csv") {
+      await handleExportCSV();
+    }
+  };
+
+  /**
+   * Handles certificate export from modal based on selected format and date range
+   */
+  const handleModalCertificateExport = async () => {
+    setIsCertificateModalOpen(false);
+    setExportLoading(true);
+    setExportProgress("Memulai pembuatan sertifikat...");
+    setError("");
+
+    try {
+      // Fetch data from database with date range filter
+      let dataToExport: InspectionTableRow[];
+
+      if (certificateDateFrom || certificateDateTo) {
+        // Use database query with date filters
+        const startDate = certificateDateFrom
+          ? new Date(certificateDateFrom)
+          : undefined;
+        const endDate = certificateDateTo
+          ? new Date(certificateDateTo + "T23:59:59")
+          : undefined;
+
+        setExportProgress("Mengambil data dari database...");
+        console.log(
+          `📄 Fetching certificate data with date range: ${
+            certificateDateFrom || "no start"
+          } to ${certificateDateTo || "no end"}`,
+        );
+        dataToExport = await fetchInspectionsForExport(startDate, endDate);
+      } else {
+        // No date filter - use current filtered inspections from page
+        console.log(
+          `📄 Using current page data for certificate export (${filteredInspections.length} records)`,
+        );
+        dataToExport = filteredInspections;
+      }
+
+      // Filter only approved inspections
+      const approvedInspections = dataToExport.filter(
+        (inspection) => inspection.status === "approved",
+      );
+
+      if (approvedInspections.length === 0) {
+        setError(
+          "Tidak ada inspeksi yang disetujui untuk dibuat sertifikat dalam rentang tanggal yang dipilih",
+        );
+        return;
+      }
+
+      setExportProgress(
+        `Membuat sertifikat untuk ${approvedInspections.length} inspeksi...`,
+      );
+
+      if (certificateFormat === "doc") {
+        // Handle Word document export
+        const certificatesData: WordCertificateData[] = [];
+
+        for (let i = 0; i < approvedInspections.length; i++) {
+          const inspection = approvedInspections[i];
+
+          try {
+            setExportProgress(
+              `Memproses sertifikat ${i + 1} dari ${
+                approvedInspections.length
+              }...`,
+            );
+
+            // Fetch complete maintenance data
+            const maintenanceSnap = await getDoc(
+              doc(firestore, "maintenances", inspection.id),
+            );
+            if (!maintenanceSnap.exists()) continue;
+
+            const maintenanceData = maintenanceSnap.data() as Maintenance;
+
+            // Fetch contract data
+            let contractData: any = {};
+            if (maintenanceData.contract) {
+              const contractSnap = await getDoc(maintenanceData.contract);
+              if (contractSnap.exists()) {
+                contractData = contractSnap.data();
+
+                // Fetch customer data if available
+                if (contractData.customer) {
+                  const customerSnap = await getDoc(contractData.customer);
+                  if (customerSnap.exists()) {
+                    contractData.customerData = customerSnap.data();
+                  }
+                }
+              }
+            }
+
+            // Fetch product data
+            let productData: any = {};
+            if (maintenanceData.product) {
+              const productSnap = await getDoc(maintenanceData.product);
+              if (productSnap.exists()) {
+                productData = productSnap.data();
+              }
+            }
+
+            // Create certificate data for Word format
+            const certificateData = convertToCertificateData(
+              inspection,
+              contractData,
+              productData,
+              maintenanceData,
+            );
+
+            certificatesData.push(certificateData);
+          } catch (error) {
+            console.error(`Error processing certificate ${i + 1}:`, error);
+            // Continue with next certificate
+          }
+        }
+
+        if (certificatesData.length === 0) {
+          setError("Tidak dapat membuat sertifikat Word - data tidak lengkap");
+          return;
+        }
+
+        setExportProgress("Membuat dokumen Word...");
+
+        // Generate filename
+        const today = new Date().toISOString().split("T")[0];
+        let filename = `certificates_${today}`;
+
+        if (certificateDateFrom && certificateDateTo) {
+          filename += `_${certificateDateFrom}_to_${certificateDateTo}`;
+        }
+
+        // Generate merged Word document
+        if (certificatesData.length === 1) {
+          const htmlContent = generateWordCertificateHTML(certificatesData[0]);
+          downloadWordCertificate(htmlContent, filename);
+        } else {
+          generateMergedWordCertificates(certificatesData, filename);
+        }
+
+        setExportProgress("Sertifikat Word berhasil diunduh!");
+      } else {
+        // Handle PDF export with merged output
+        const certificatesData: PDFCertificateData[] = [];
+        const approverName = user?.name || user?.email || "Administrator";
+
+        for (let i = 0; i < approvedInspections.length; i++) {
+          const inspection = approvedInspections[i];
+
+          try {
+            setExportProgress(
+              `Memproses sertifikat PDF ${i + 1} dari ${
+                approvedInspections.length
+              }...`,
+            );
+
+            // Fetch complete maintenance data
+            const maintenanceSnap = await getDoc(
+              doc(firestore, "maintenances", inspection.id),
+            );
+            if (!maintenanceSnap.exists()) continue;
+
+            const maintenanceData = maintenanceSnap.data() as Maintenance;
+
+            // Fetch contract data
+            let contractData: any = {};
+            if (maintenanceData.contract) {
+              const contractSnap = await getDoc(maintenanceData.contract);
+              if (contractSnap.exists()) {
+                contractData = contractSnap.data();
+
+                // Fetch customer data if available
+                if (contractData.customer) {
+                  const customerSnap = await getDoc(contractData.customer);
+                  if (customerSnap.exists()) {
+                    contractData.customerData = customerSnap.data();
+                  }
+                }
+              }
+            }
+
+            // Fetch product data
+            let productData: any = {};
+            if (maintenanceData.product) {
+              const productSnap = await getDoc(maintenanceData.product);
+              if (productSnap.exists()) {
+                productData = productSnap.data();
+              }
+            }
+
+            // Create certificate data
+            const certificateData = createCertificateData(
+              maintenanceData,
+              contractData,
+              productData,
+              inspection.engineerNames,
+              approverName,
+              inspection.location,
+            );
+
+            certificatesData.push(certificateData);
+          } catch (error) {
+            console.error(`Error processing certificate ${i + 1}:`, error);
+            // Continue with next certificate
+          }
+        }
+
+        if (certificatesData.length === 0) {
+          setError("Tidak dapat membuat sertifikat PDF - data tidak lengkap");
+          return;
+        }
+
+        setExportProgress("Membuat sertifikat PDF...");
+
+        // Generate filename
+        const today = new Date().toISOString().split("T")[0];
+        let filename = `certificates_${today}`;
+
+        if (certificateDateFrom && certificateDateTo) {
+          filename += `_${certificateDateFrom}_to_${certificateDateTo}`;
+        }
+
+        // Get inspector and approver IDs for QR signatures (use first certificate's data)
+        const firstInspection = approvedInspections[0];
+        const firstMaintenanceSnap = await getDoc(
+          doc(firestore, "maintenances", firstInspection.id),
+        );
+        const firstMaintenanceData = firstMaintenanceSnap.exists()
+          ? (firstMaintenanceSnap.data() as Maintenance)
+          : null;
+        const inspectorId =
+          firstMaintenanceData?.inspection?.createdBy?.id || "unknown";
+        const approverId = user?.uid || "unknown";
+
+        // Generate merged PDF with QR signatures
+        await generateMergedPDFCertificates(
+          certificatesData,
+          inspectorId,
+          approverId,
+          filename,
+        );
+
+        setExportProgress("Sertifikat PDF berhasil diunduh!");
+      }
+    } catch (error: any) {
+      console.error("Certificate export error:", error);
+      setError(error.message || "Gagal membuat sertifikat");
+    } finally {
+      setExportLoading(false);
+      setExportProgress("");
     }
   };
 
@@ -748,11 +1641,17 @@ export default function InspectionsPage() {
       }`;
 
       // Get inspector and approver IDs for QR signatures
-      const inspectorId = maintenanceData.inspection?.createdBy?.id || "unknown";
+      const inspectorId =
+        maintenanceData.inspection?.createdBy?.id || "unknown";
       const approverId = user?.uid || "unknown";
 
       // Generate and download PDF with QR signatures
-      await printPDFCertificate(certificateData, inspectorId, approverId, filename);
+      await printPDFCertificate(
+        certificateData,
+        inspectorId,
+        approverId,
+        filename,
+      );
     } catch (error: any) {
       console.error("Certificate generation error:", error);
       setError(error.message || "Gagal membuat sertifikat PDF");
@@ -862,12 +1761,18 @@ export default function InspectionsPage() {
           }`;
 
           // Get inspector and approver IDs for QR signatures
-          const inspectorId = maintenanceData.inspection?.createdBy?.id || "unknown";
+          const inspectorId =
+            maintenanceData.inspection?.createdBy?.id || "unknown";
           const approverId = user?.uid || "unknown";
 
           // Generate and download certificate (with delay to prevent browser blocking)
           await new Promise((resolve) => setTimeout(resolve, 1000 * i)); // 1 second delay between downloads
-          await downloadPDFCertificateDirectly(certificateData, inspectorId, approverId, filename);
+          await downloadPDFCertificateDirectly(
+            certificateData,
+            inspectorId,
+            approverId,
+            filename,
+          );
         } catch (error) {
           console.error(
             `Error generating certificate for inspection ${inspection.id}:`,
@@ -899,13 +1804,10 @@ export default function InspectionsPage() {
           {filteredInspections.length > 0 && (
             <>
               <button
-                onClick={() => {
-                  setExportType("excel");
-                  setIsExportModalOpen(true);
-                }}
+                onClick={() => setIsExportModalOpen(true)}
                 disabled={exportLoading}
-                className="inline-flex items-center rounded-lg border border-green-300 bg-white px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-50 disabled:opacity-50"
-                title="Export ke Excel (.xlsx)"
+                className="inline-flex items-center rounded-lg border border-blue-300 bg-white px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+                title="Export data inspeksi"
               >
                 <svg
                   className="mr-2 h-4 w-4"
@@ -920,42 +1822,14 @@ export default function InspectionsPage() {
                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                {exportLoading ? "Exporting..." : "Excel"}
+                {exportLoading ? "Exporting..." : "Ekspor Data"}
               </button>
 
               <button
-                onClick={() => {
-                  setExportType("csv");
-                  setIsExportModalOpen(true);
-                }}
-                disabled={exportLoading}
-                className="inline-flex items-center rounded-lg border border-blue-300 bg-white px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50"
-                title="Export ke CSV (.csv)"
-              >
-                <svg
-                  className="mr-2 h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                {exportLoading ? "Exporting..." : "CSV"}
-              </button>
-
-              <button
-                onClick={() => {
-                  setExportType("certificate");
-                  setIsExportModalOpen(true);
-                }}
+                onClick={() => setIsCertificateModalOpen(true)}
                 disabled={exportLoading}
                 className="inline-flex items-center rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
-                title="Download bulk certificates"
+                title="Export certificates"
               >
                 <svg
                   className="mr-2 h-4 w-4"
@@ -970,13 +1844,18 @@ export default function InspectionsPage() {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                {exportLoading ? "Generating..." : "Sertifikat Inspeksi"}
+                {exportLoading ? "Generating..." : "Unduh Sertifikat"}
               </button>
             </>
           )}
 
           <button
-            onClick={fetchInspections}
+            onClick={() => {
+              setTotalCount(null);
+              setCountCacheTimestamp(null); // Invalidate cache on manual refresh
+              fetchInspections(1);
+              fetchTotalCount(true); // Force refresh
+            }}
             disabled={loading}
             className="inline-flex items-center rounded-lg border border-stroke bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
@@ -1102,8 +1981,8 @@ export default function InspectionsPage() {
       {!loading && (
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-gray-600">
-            Menampilkan {currentInspections.length} dari{" "}
-            {filteredInspections.length} inspeksi
+            Menampilkan {filteredInspections.length} inspeksi pada halaman{" "}
+            {currentPage}
             {filteredInspections.length !== inspections.length &&
               ` (difilter dari ${inspections.length} total)`}
           </div>
@@ -1167,7 +2046,7 @@ export default function InspectionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentInspections.map((inspection) => (
+                  {filteredInspections.map((inspection) => (
                     <tr key={inspection.id} className="text-sm">
                       <td className="px-2 py-3">
                         <div className="flex flex-col">
@@ -1420,12 +2299,20 @@ export default function InspectionsPage() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {(currentPage > 1 ||
+              hasNextPage ||
+              filteredInspections.length > 0) && (
               <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t pt-4 sm:flex-row sm:space-y-0">
                 <div className="text-xs text-gray-600">
-                  Menampilkan {startIndex + 1}-
-                  {Math.min(endIndex, filteredInspections.length)} dari{" "}
-                  {filteredInspections.length} inspeksi
+                  {isLoadingCount
+                    ? "Menghitung total data..."
+                    : totalCount !== null
+                    ? `Halaman ${currentPage} dari ${Math.ceil(
+                        totalCount / itemsPerPage,
+                      )} (Total: ${totalCount} inspeksi)`
+                    : `Halaman ${currentPage} ${
+                        hasNextPage ? "(ada lanjutan)" : "(halaman terakhir)"
+                      }`}
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -1435,10 +2322,21 @@ export default function InspectionsPage() {
                   <select
                     value={itemsPerPage}
                     onChange={(e) => {
-                      setItemsPerPage(Number(e.target.value));
+                      const newPageSize = Number(e.target.value);
+                      setItemsPerPage(newPageSize);
                       setCurrentPage(1);
+                      // Reset pagination state and fetch new data
+                      setLastDocRef(null);
+                      setHasNextPage(false);
+                      setPageCache(new Map());
+                      setPageStack([]);
+                      setTotalCount(null); // Reset total count to refetch with new page size
+                      setCountCacheTimestamp(null); // Invalidate count cache
+                      fetchInspections(1);
+                      fetchTotalCount(true); // Force refresh with new page size
                     }}
-                    className="rounded-md border px-2 py-1 text-sm"
+                    disabled={loading || isLoadingMore}
+                    className="rounded-md border px-2 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
@@ -1449,36 +2347,115 @@ export default function InspectionsPage() {
 
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={currentPage === 1}
+                    onClick={() => {
+                      if (currentPage > 1) {
+                        fetchInspections(currentPage - 1);
+                      }
+                    }}
+                    disabled={currentPage === 1 || isLoadingMore}
                     className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
-                      currentPage === 1
+                      currentPage === 1 || isLoadingMore
                         ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
                         : "border-stroke bg-white hover:bg-gray-100"
                     }`}
                   >
-                    &lt;
+                    {isLoadingMore && currentPage > 1 ? (
+                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="m 4 12 a 8 8 0 0 1 8 -8"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                    )}
                   </button>
 
                   <span className="text-sm text-gray-600">
-                    Halaman <span className="font-medium">{currentPage}</span>{" "}
-                    dari {totalPages}
+                    {isLoadingCount ? (
+                      "Menghitung..."
+                    ) : totalCount !== null ? (
+                      <>
+                        Halaman{" "}
+                        <span className="font-medium">{currentPage}</span> dari{" "}
+                        {Math.ceil(totalCount / itemsPerPage)}
+                      </>
+                    ) : (
+                      <>
+                        Halaman{" "}
+                        <span className="font-medium">{currentPage}</span>
+                        {hasNextPage && <span> (ada lanjutan)</span>}
+                      </>
+                    )}
                   </span>
 
                   <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                    }
-                    disabled={currentPage === totalPages}
+                    onClick={() => {
+                      if (hasNextPage) {
+                        fetchInspections(currentPage + 1);
+                      }
+                    }}
+                    disabled={!hasNextPage || isLoadingMore}
                     className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
-                      currentPage === totalPages
+                      !hasNextPage || isLoadingMore
                         ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
                         : "border-stroke bg-white hover:bg-gray-100"
                     }`}
                   >
-                    &gt;
+                    {isLoadingMore && hasNextPage ? (
+                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="m 4 12 a 8 8 0 0 1 8 -8"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -1609,21 +2586,51 @@ export default function InspectionsPage() {
       <Modal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
-        title={`Export ${
-          exportType === "excel"
-            ? "Excel"
-            : exportType === "csv"
-            ? "CSV"
-            : "Sertifikat"
-        }`}
+        title="Export Data Inspeksi"
       >
         <div className="space-y-4">
           <div>
             <p className="text-sm text-gray-600">
-              {exportType === "certificate"
-                ? "Pilih rentang tanggal untuk mengunduh sertifikat inspeksi yang sudah disetujui"
-                : "Pilih rentang tanggal untuk memfilter data yang akan diekspor"}
+              Pilih format file dan rentang tanggal untuk mengekspor data
+              inspeksi.
             </p>
+          </div>
+
+          {/* Format Selection */}
+          <div className="rounded-lg border border-gray-200 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Format Export
+            </label>
+            <div className="space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="excel"
+                  checked={exportFormat === "excel"}
+                  onChange={(e) =>
+                    setExportFormat(e.target.value as "excel" | "csv")
+                  }
+                  className="mr-2 h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm">
+                  Excel (.xlsx) - Recommended untuk analisis data
+                </span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="csv"
+                  checked={exportFormat === "csv"}
+                  onChange={(e) =>
+                    setExportFormat(e.target.value as "excel" | "csv")
+                  }
+                  className="mr-2 h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm">
+                  CSV (.csv) - Universal format untuk sistem lain
+                </span>
+              </label>
+            </div>
           </div>
 
           {/* Date Filter */}
@@ -1661,23 +2668,41 @@ export default function InspectionsPage() {
             </div>
           </div>
 
-          {/* Summary Info */}
-          {(exportDateFrom || exportDateTo || exportType === "certificate") && (
-            <div className="rounded-lg bg-gray-50 p-3 text-sm">
-              <p className="font-medium text-gray-700">Informasi Export:</p>
-              {(exportDateFrom || exportDateTo) && (
-                <p className="text-blue-600">
-                  Data akan difilter berdasarkan rentang tanggal yang dipilih
-                </p>
-              )}
-              {exportType === "certificate" && (
-                <p className="text-blue-600">
-                  Hanya inspeksi yang sudah disetujui yang akan dibuatkan
-                  sertifikat
-                </p>
-              )}
+          {/* Export Progress */}
+          {exportLoading && exportProgress && (
+            <div className="rounded-lg bg-blue-50 p-3 text-sm">
+              <div className="flex items-center">
+                <div className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-blue-300 border-t-blue-600"></div>
+                <p className="font-medium text-blue-800">{exportProgress}</p>
+              </div>
             </div>
           )}
+
+          {/* Summary Info */}
+          {!exportLoading &&
+            (exportDateFrom ||
+              exportDateTo ||
+              filteredInspections.length > 0) && (
+              <div className="rounded-lg bg-gray-50 p-3 text-sm">
+                <p className="font-medium text-gray-700">Informasi Export:</p>
+                <p className="text-blue-600">
+                  Format:{" "}
+                  {exportFormat === "excel" ? "Excel (.xlsx)" : "CSV (.csv)"}
+                </p>
+                {(exportDateFrom || exportDateTo) && (
+                  <p className="text-blue-600">
+                    Data akan diambil dari database berdasarkan rentang tanggal
+                    yang dipilih
+                  </p>
+                )}
+                {!(exportDateFrom || exportDateTo) && (
+                  <p className="text-blue-600">
+                    Tanpa filter tanggal, akan menggunakan data halaman saat
+                    ini: {filteredInspections.length} inspeksi
+                  </p>
+                )}
+              </div>
+            )}
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4">
@@ -1691,20 +2716,157 @@ export default function InspectionsPage() {
               onClick={handleModalExport}
               disabled={exportLoading}
               className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
-                exportType === "excel"
+                exportFormat === "excel"
                   ? "bg-green-600 hover:bg-green-700"
-                  : exportType === "csv"
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : "bg-amber-600 hover:bg-amber-700"
+                  : "bg-blue-600 hover:bg-blue-700"
               } disabled:opacity-50`}
             >
               {exportLoading
                 ? "Processing..."
-                : exportType === "excel"
+                : exportFormat === "excel"
                 ? "Export Excel"
-                : exportType === "csv"
-                ? "Export CSV"
-                : "Download Sertifikat"}
+                : "Export CSV"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Certificate Export Modal */}
+      <Modal
+        isOpen={isCertificateModalOpen}
+        onClose={() => setIsCertificateModalOpen(false)}
+        title="Export Sertifikat Inspeksi"
+      >
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm text-gray-600">
+              Pilih format file dan rentang tanggal untuk mengekspor sertifikat
+              inspeksi yang disetujui.
+            </p>
+          </div>
+
+          {/* Format Selection */}
+          <div className="rounded-lg border border-gray-200 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Format Sertifikat
+            </label>
+            <div className="space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="pdf"
+                  checked={certificateFormat === "pdf"}
+                  onChange={(e) =>
+                    setCertificateFormat(e.target.value as "pdf" | "doc")
+                  }
+                  className="mr-2 h-4 w-4 border-gray-300 text-amber-600 focus:ring-amber-500"
+                />
+                <span className="text-sm">
+                  PDF (.pdf) - Format standar untuk sertifikat
+                </span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="doc"
+                  checked={certificateFormat === "doc"}
+                  onChange={(e) =>
+                    setCertificateFormat(e.target.value as "pdf" | "doc")
+                  }
+                  className="mr-2 h-4 w-4 border-gray-300 text-amber-600 focus:ring-amber-500"
+                />
+                <span className="text-sm">
+                  Word (.doc) - Dapat diedit dan dimodifikasi
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Date Filter */}
+          <div className="rounded-lg border border-gray-200 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex-1">
+                <label className="mb-1 block text-xs text-gray-500">
+                  Dari Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={certificateDateFrom}
+                  onChange={(e) => setCertificateDateFrom(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-amber-500"
+                  max={new Date().toISOString().split("T")[0]}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="mb-1 block text-xs text-gray-500">
+                  Sampai Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={certificateDateTo}
+                  onChange={(e) => setCertificateDateTo(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-amber-500"
+                  max={new Date().toISOString().split("T")[0]}
+                />
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              Kosongkan untuk mengekspor semua sertifikat inspeksi yang
+              disetujui
+            </p>
+          </div>
+
+          {/* Preview Information */}
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-amber-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 className="font-medium text-amber-900">Informasi Export</h4>
+                <p className="mt-1 text-sm text-amber-700">
+                  Hanya inspeksi dengan status <strong>"Disetujui"</strong> yang
+                  akan dibuatkan sertifikat. Jika lebih dari 1 sertifikat
+                  ditemukan, akan digabung menjadi satu file.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              onClick={() => setIsCertificateModalOpen(false)}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleModalCertificateExport}
+              disabled={exportLoading}
+              className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
+                certificateFormat === "pdf"
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-blue-600 hover:bg-blue-700"
+              } disabled:opacity-50`}
+            >
+              {exportLoading
+                ? "Generating..."
+                : certificateFormat === "pdf"
+                ? "Export PDF"
+                : "Export Word"}
             </button>
           </div>
         </div>

@@ -205,6 +205,82 @@ export function isToday(date: Date | Timestamp | string | null | undefined): boo
 }
 
 /**
+ * Formats a date for export with full month name in Indonesian format
+ * Follows the format: DD MMMM YYYY, HH:mm:ss
+ * 
+ * @param date - The date to format
+ * @returns Formatted date string in DD MMMM YYYY, HH:mm:ss format in WIB timezone
+ * 
+ * @example
+ * formatToWIBExport(new Date('2025-08-01T10:30:45Z'))
+ * // Returns: "01 Agustus 2025, 17:30:45"
+ * 
+ * @example
+ * formatToWIBExport(timestamp)
+ * // Returns: "15 Desember 2025, 14:45:30"
+ */
+export function formatToWIBExport(date: Date | Timestamp | string | null | undefined): string {
+  if (!date) {
+    return "N/A";
+  }
+
+  try {
+    let dateObj: Date;
+
+    // Handle Firestore Timestamp
+    if (date && typeof date === 'object' && 'toDate' in date) {
+      dateObj = (date as Timestamp).toDate();
+    }
+    // Handle Date object
+    else if (date instanceof Date) {
+      dateObj = date;
+    }
+    // Handle string
+    else if (typeof date === 'string') {
+      dateObj = new Date(date);
+    }
+    // Handle other objects that might have toDate method
+    else if (date && typeof date === 'object' && typeof (date as any).toDate === 'function') {
+      dateObj = (date as any).toDate();
+    }
+    else {
+      console.warn("Unknown date format:", typeof date, date);
+      return "N/A";
+    }
+
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      console.warn("Invalid date:", date);
+      return "N/A";
+    }
+
+    // Convert to WIB timezone (UTC+7)
+    const wibOffset = 7 * 60; // 7 hours in minutes
+    const utcTime = dateObj.getTime() + (dateObj.getTimezoneOffset() * 60000);
+    const wibTime = new Date(utcTime + (wibOffset * 60000));
+
+    // Format with Indonesian month names and include seconds
+    const indonesianMonths = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    
+    const day = wibTime.getDate().toString().padStart(2, '0');
+    const month = indonesianMonths[wibTime.getMonth()];
+    const year = wibTime.getFullYear();
+    const hours = wibTime.getHours().toString().padStart(2, '0');
+    const minutes = wibTime.getMinutes().toString().padStart(2, '0');
+    const seconds = wibTime.getSeconds().toString().padStart(2, '0');
+
+    return `${day} ${month} ${year}, ${hours}:${minutes}:${seconds}`;
+
+  } catch (error) {
+    console.error("Error formatting date for export:", error, date);
+    return "N/A";
+  }
+}
+
+/**
  * Calculates the difference in days between two dates
  * 
  * @param date1 - First date

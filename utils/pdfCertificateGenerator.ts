@@ -395,7 +395,7 @@ function drawSignatures(
 
 /** --- Main exported generator (v4 Corporate Compact) --- */
 export async function generatePDFCertificate(
-  data: CertificateData,
+  data: CertificateData | CertificateData[],
   inspectorId: string,
   approverId: string,
   configOverrides: Partial<PDFCertificateConfig> = {},
@@ -405,13 +405,16 @@ export async function generatePDFCertificate(
     ...configOverrides,
   } as PDFCertificateConfig;
 
+  // Handle both single certificate and array of certificates
+  const certificates = Array.isArray(data) ? data : [data];
+
   const pdf = new jsPDF({
     orientation: cfg.orientation,
     unit: "mm",
     format: cfg.pageSize,
   });
 
-  // 1) Company info & logo
+  // 1) Company info & logo (load once, reuse for all pages)
   const companyInfo = await getCachedCompanyInfo();
   let logoBase64 = "";
   try {
@@ -420,101 +423,111 @@ export async function generatePDFCertificate(
     // ok to continue w/o logo
   }
 
-  // 2) QRs (safe to try; if fails we'll continue)
-  let inspectorQR = "";
-  let approverQR = "";
-  try {
-    const q = await generateBothSignatureQRCodes(
-      inspectorId,
-      data.engineerNames[0] || "Inspector",
-      approverId,
-      data.approvedBy || "Approver",
-      data.certificateNumber,
-      `inspection_${data.certificateNumber}`,
-      data.inspectionDate,
-      data.productNumber,
-      data.contractNumber,
+  // 2) Generate each certificate page
+  for (let i = 0; i < certificates.length; i++) {
+    const certData = certificates[i];
+
+    // Add new page for subsequent certificates
+    if (i > 0) {
+      pdf.addPage();
+    }
+
+    // QRs for this specific certificate
+    let inspectorQR = "";
+    let approverQR = "";
+    try {
+      const q = await generateBothSignatureQRCodes(
+        inspectorId,
+        certData.engineerNames[0] || "Inspector",
+        approverId,
+        certData.approvedBy || "Approver",
+        certData.certificateNumber,
+        `inspection_${certData.certificateNumber}`,
+        certData.inspectionDate,
+        certData.productNumber,
+        certData.contractNumber,
+      );
+      inspectorQR = q.inspectorQR;
+      approverQR = q.approverQR;
+    } catch {
+      // ignore QR generation errors
+    }
+
+    // 3) Draw sections for this certificate
+    let y = drawHeader(pdf, cfg, logoBase64, {
+      companyName: companyInfo.companyName,
+      address: companyInfo.address,
+      phone: companyInfo.phone,
+      email: companyInfo.email,
+    });
+
+    y = drawTitleBlock(pdf, cfg, certData, y);
+
+    y = drawTwoColumnInfo(
+      pdf,
+      cfg,
+      "CONTRACT INFORMATION",
+      [
+        [
+          { label: "Contract No:", value: certData.contractNumber || "—" },
+          { label: "Customer:", value: certData.customerName || "—" },
+        ],
+        [
+          { label: "Issue Date:", value: certData.issueDate || "—" },
+          { label: "Valid Until:", value: certData.validUntil || "—" },
+        ],
+      ],
+      y,
     );
-    inspectorQR = q.inspectorQR;
-    approverQR = q.approverQR;
-  } catch {
-    // ignore QR generation errors
+
+    y = drawTwoColumnInfo(
+      pdf,
+      cfg,
+      "PRODUCT INFORMATION",
+      [
+        [
+          { label: "Product No:", value: certData.productNumber || "—" },
+          { label: "Product Name:", value: certData.productName || "—" },
+        ],
+        [
+          { label: "Brand:", value: certData.productBrand || "—" },
+          { label: "Location:", value: certData.location || "—" },
+        ],
+      ],
+      y,
+    );
+
+    y = drawTwoColumnInfo(
+      pdf,
+      cfg,
+      "INSPECTION DETAILS",
+      [
+        [
+          { label: "Inspection Date:", value: certData.inspectionDate || "—" },
+          { label: "Inspector:", value: certData.engineerNames.join(", ") || "—" },
+        ],
+        [
+          {
+            label: "Total Items:",
+            value: String(certData.checklistResults.totalItems || 0),
+          },
+          {
+            label: "Pass Rate:",
+            value: `${Math.round(
+              ((certData.checklistResults.passedItems || 0) /
+                Math.max(1, certData.checklistResults.totalItems || 1)) *
+                100,
+            )}%`,
+          },
+        ],
+      ],
+      y,
+    );
+
+    y = drawChecklistTable(pdf, cfg, certData, y);
+
+    y = drawSignatures(pdf, cfg, certData, inspectorQR, approverQR, y);
   }
-
-  // 3) Draw sections, compact & centered header with logo left
-  let y = drawHeader(pdf, cfg, logoBase64, {
-    companyName: companyInfo.companyName,
-    address: companyInfo.address,
-    phone: companyInfo.phone,
-    email: companyInfo.email,
-  });
-
-  y = drawTitleBlock(pdf, cfg, data, y);
-
-  y = drawTwoColumnInfo(
-    pdf,
-    cfg,
-    "CONTRACT INFORMATION",
-    [
-      [
-        { label: "Contract No:", value: data.contractNumber || "—" },
-        { label: "Customer:", value: data.customerName || "—" },
-      ],
-      [
-        { label: "Issue Date:", value: data.issueDate || "—" },
-        { label: "Valid Until:", value: data.validUntil || "—" },
-      ],
-    ],
-    y,
-  );
-
-  y = drawTwoColumnInfo(
-    pdf,
-    cfg,
-    "PRODUCT INFORMATION",
-    [
-      [
-        { label: "Product No:", value: data.productNumber || "—" },
-        { label: "Product Name:", value: data.productName || "—" },
-      ],
-      [
-        { label: "Brand:", value: data.productBrand || "—" },
-        { label: "Location:", value: data.location || "—" },
-      ],
-    ],
-    y,
-  );
-
-  y = drawTwoColumnInfo(
-    pdf,
-    cfg,
-    "INSPECTION DETAILS",
-    [
-      [
-        { label: "Inspection Date:", value: data.inspectionDate || "—" },
-        { label: "Inspector:", value: data.engineerNames.join(", ") || "—" },
-      ],
-      [
-        {
-          label: "Total Items:",
-          value: String(data.checklistResults.totalItems || 0),
-        },
-        {
-          label: "Pass Rate:",
-          value: `${Math.round(
-            ((data.checklistResults.passedItems || 0) /
-              Math.max(1, data.checklistResults.totalItems || 1)) *
-              100,
-          )}%`,
-        },
-      ],
-    ],
-    y,
-  );
-
-  y = drawChecklistTable(pdf, cfg, data, y);
-
-  y = drawSignatures(pdf, cfg, data, inspectorQR, approverQR, y);
 
   // 4) Return Blob
   return pdf.output("blob");

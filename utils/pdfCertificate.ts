@@ -953,3 +953,63 @@ export async function generateCertificatePDFBlob(
 ): Promise<Blob> {
   return await generatePDFCertificate(certificateData, inspectorId, approverId);
 }
+
+/**
+ * Generates merged PDF certificate for multiple certificates
+ * Creates a single PDF file containing all certificates with page breaks
+ * 
+ * @param certificatesData - Array of certificate data
+ * @param inspectorId - ID of the inspector for QR signature
+ * @param approverId - ID of the approver for QR signature
+ * @param filename - Optional filename (without extension)
+ * 
+ * @example
+ * await generateMergedPDFCertificates(certDataArray, "inspector123", "approver456", "bulk_certificates");
+ */
+export async function generateMergedPDFCertificates(
+  certificatesData: CertificateData[],
+  inspectorId: string,
+  approverId: string,
+  filename?: string
+): Promise<void> {
+  try {
+    if (certificatesData.length === 0) {
+      throw new Error("No certificate data provided");
+    }
+
+    // For single certificate, use existing direct download
+    if (certificatesData.length === 1) {
+      await downloadPDFCertificateDirectly(certificatesData[0], inspectorId, approverId, filename);
+      return;
+    }
+
+    // Generate multi-page PDF with one page per certificate
+    // The updated generatePDFCertificate function now supports arrays
+    const mergedBlob = await generatePDFCertificate(certificatesData, inspectorId, approverId);
+    
+    // Create download filename
+    const downloadFilename = filename 
+      ? `${filename}.pdf`
+      : `certificates_merged_${new Date().toISOString().split("T")[0]}.pdf`;
+    
+    // Download the merged PDF
+    const url = URL.createObjectURL(mergedBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = downloadFilename;
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the URL object
+    URL.revokeObjectURL(url);
+    
+    console.log(`✅ Merged PDF certificate downloaded: ${downloadFilename}`);
+    
+  } catch (error) {
+    console.error("Error generating merged PDF certificates:", error);
+    throw new Error("Gagal membuat sertifikat PDF gabungan");
+  }
+}
