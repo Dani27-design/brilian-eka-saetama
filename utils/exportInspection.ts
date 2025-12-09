@@ -198,7 +198,7 @@ export async function exportToExcel(
 
         // Build formula referencing the URL cell (no quotes so IMAGE(A2) expects the URL cell content)
         // If the URL cell is empty we still write IMAGE("") (it will show empty)
-        const formulaText = `IMAGE(${urlCellAddressA1})`;
+        const formulaText = `IMAGE("${urlValue}")`;
 
         // Overwrite whatever is at formula cell with proper formula object
         // We set .f to formulaText (without leading '=' because SheetJS expects f without '=')
