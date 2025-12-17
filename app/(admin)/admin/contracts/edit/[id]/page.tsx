@@ -14,6 +14,10 @@ import {
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter, useParams } from "next/navigation";
 import { useAdmin } from "@/app/context/AdminContext";
+import { 
+  regenerateMaintenancesForExtendedContract,
+  generateMaintenancesForNewProducts 
+} from "@/utils/smartMaintenanceRegeneration";
 
 type UserMeta = {
   name?: string;
@@ -58,6 +62,12 @@ export default function EditContractPage() {
   } | null>(null);
   const [contractNumberError, setContractNumberError] = useState("");
   const [legacyProducts, setLegacyProducts] = useState<any[]>([]);
+  const [originalContractData, setOriginalContractData] = useState<{
+    startDate: Date | null;
+    endDate: Date | null;
+    contractType: string;
+    products: string[];
+  } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,6 +77,17 @@ export default function EditContractPage() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data() as any;
+          
+          // Store original contract data for comparison
+          setOriginalContractData({
+            startDate: data.startDate?.toDate ? data.startDate.toDate() : null,
+            endDate: data.endDate?.toDate ? data.endDate.toDate() : null,
+            contractType: data.contractType || "",
+            products: Array.isArray(data.products)
+              ? data.products.map((p: any) => p.id)
+              : [],
+          });
+          
           setForm({
             contractNumber: data.contractNumber || "",
             contractName: data.contractName || "",
@@ -366,17 +387,53 @@ export default function EditContractPage() {
       const removedProducts = legacyProducts.filter(
         (p) => !form.products.includes(p.id),
       );
-      if (removedProducts.length === 0) {
-        // No products removed, just redirect
-        router.push("/admin/contracts");
-        return;
-      }
+      
+      // Handle removed products
       for (const product of removedProducts) {
         // update field contract in product to null
         await updateDoc(doc(firestore, "products", product.id), {
           contract: null,
         });
       }
+
+      // Handle maintenance regeneration for extended contracts
+      if (form.contractType === "maintenance" && form.endDate && originalContractData) {
+        try {
+          // Check for newly added products
+          const newProductIds = form.products.filter(
+            pid => !originalContractData.products.includes(pid)
+          );
+          
+          // Generate maintenances for newly added products
+          if (newProductIds.length > 0) {
+            console.log(`Generating maintenances for ${newProductIds.length} newly added products`);
+            await generateMaintenancesForNewProducts(
+              id,
+              newProductIds,
+              new Date(form.startDate),
+              new Date(form.endDate)
+            );
+          }
+          
+          // Regenerate maintenances if contract dates were extended
+          await regenerateMaintenancesForExtendedContract(
+            id,
+            originalContractData.startDate,
+            originalContractData.endDate,
+            new Date(form.startDate),
+            new Date(form.endDate),
+            form.products,
+            form.contractType
+          );
+          
+          console.log("Maintenance regeneration completed successfully");
+        } catch (maintenanceError) {
+          console.error("Failed to regenerate maintenances:", maintenanceError);
+          // Continue to contracts page even if maintenance regeneration fails
+          // The contract has been updated successfully
+        }
+      }
+
       router.push("/admin/contracts");
     } catch (error) {
       console.error("Error updating contract:", error);
