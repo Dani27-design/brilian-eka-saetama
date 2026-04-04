@@ -7,7 +7,7 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { firestore } from "@/db/firebase/firebaseConfig";
+import { firestore, auth } from "@/db/firebase/firebaseConfig";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAdmin } from "@/app/context/AdminContext";
@@ -247,10 +247,16 @@ export default function EditUserPage() {
       };
 
       // API call to update user (including password if provided)
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        throw new Error("Authentication required. Please sign in again.");
+      }
+
       const response = await fetch(`/api/users/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...updateData,

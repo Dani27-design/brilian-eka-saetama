@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   createCertificateData,
   generateCertificatePDFBlob,
@@ -125,6 +125,11 @@ export default function PublicCertificatesClient({
   };
 
   const generatePdfBlobUrls = async (certificates: PublicCertificateData[]) => {
+    // Revoke old blob URLs before creating new ones to prevent memory leak
+    Object.values(pdfBlobUrls).forEach((url) => {
+      URL.revokeObjectURL(url);
+    });
+
     const newBlobUrls: { [certificateNumber: string]: string } = {};
     const newGeneratingState: { [certificateNumber: string]: boolean } = {};
 
@@ -176,7 +181,7 @@ export default function PublicCertificatesClient({
       } catch (error) {
         console.error(
           `Failed to generate PDF for certificate ${cert.certificateNumber}:`,
-          error,
+          error instanceof Error ? error.message : "Unknown error",
         );
         // Continue with other certificates
       } finally {
@@ -197,17 +202,17 @@ export default function PublicCertificatesClient({
     };
   }, [pdfBlobUrls]);
 
-  const handlePrevious = () => {
-    if (currentCertificateIndex > 0) {
-      setCurrentCertificateIndex(currentCertificateIndex - 1);
-    }
-  };
+  const handlePrevious = useCallback(() => {
+    setCurrentCertificateIndex((prev) => Math.max(0, prev - 1));
+  }, []);
 
-  const handleNext = () => {
-    if (data && currentCertificateIndex < data.certificates.length - 1) {
-      setCurrentCertificateIndex(currentCertificateIndex + 1);
+  const handleNext = useCallback(() => {
+    if (data) {
+      setCurrentCertificateIndex((prev) =>
+        Math.min(data.certificates.length - 1, prev + 1)
+      );
     }
-  };
+  }, [data]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -221,7 +226,7 @@ export default function PublicCertificatesClient({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentCertificateIndex, data]);
+  }, [handlePrevious, handleNext]);
 
   // Reset to first certificate when data changes
   useEffect(() => {

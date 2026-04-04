@@ -149,6 +149,16 @@ export default function AdminDashboard() {
       setError(null);
 
       try {
+        // Get auth token for analytics API calls
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          throw new Error("Authentication required. Please sign in again.");
+        }
+
+        const authHeaders = {
+          "Authorization": `Bearer ${token}`,
+        };
+
         // Get date 30 days ago for analytics period (changed from 6 months)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -158,6 +168,7 @@ export default function AdminDashboard() {
         // Fetch overview data with date range and language
         const overviewResponse = await fetch(
           `/api/analytics?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
+          { headers: authHeaders },
         );
         if (!overviewResponse.ok) {
           throw new Error(`Overview API failed: ${overviewResponse.status}`);
@@ -168,6 +179,7 @@ export default function AdminDashboard() {
         // Fetch traffic trend data for 30 days
         const trafficResponse = await fetch(
           `/api/analytics/traffic?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
+          { headers: authHeaders },
         );
         if (!trafficResponse.ok) {
           throw new Error(`Traffic API failed: ${trafficResponse.status}`);
@@ -178,6 +190,7 @@ export default function AdminDashboard() {
         // Fetch top pages data for 30 days
         const pagesResponse = await fetch(
           `/api/analytics/pages?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
+          { headers: authHeaders },
         );
         if (!pagesResponse.ok) {
           throw new Error(`Pages API failed: ${pagesResponse.status}`);
@@ -188,6 +201,7 @@ export default function AdminDashboard() {
         // Fetch device breakdown data for 30 days
         const deviceResponse = await fetch(
           `/api/analytics/devices?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
+          { headers: authHeaders },
         );
         if (!deviceResponse.ok) {
           throw new Error(`Devices API failed: ${deviceResponse.status}`);
@@ -198,6 +212,7 @@ export default function AdminDashboard() {
         // Fetch traffic sources data for 30 days
         const sourcesResponse = await fetch(
           `/api/analytics/sources?startDate=${startDate}&endDate=${endDate}&lang=${language}`,
+          { headers: authHeaders },
         );
         if (!sourcesResponse.ok) {
           throw new Error(`Sources API failed: ${sourcesResponse.status}`);
@@ -673,10 +688,12 @@ export default function AdminDashboard() {
             <p className="text-3xl font-bold text-primary">
               {isLoadingAnalytics
                 ? t.loading
-                : (
-                    Number(overviewData.pageViews.replace(/,/g, "")) /
-                    Number(overviewData.visitors.replace(/,/g, ""))
-                  ).toFixed(1) || "N/A"}
+                : (() => {
+                    const visitors = Number(overviewData.visitors.replace(/,/g, ""));
+                    return visitors > 0
+                      ? (Number(overviewData.pageViews.replace(/,/g, "")) / visitors).toFixed(1)
+                      : "0";
+                  })()}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               {!isLoadingAnalytics && (

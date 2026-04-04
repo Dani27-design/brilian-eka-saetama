@@ -88,7 +88,7 @@ const ImageUploader = ({
 
       setGalleryImages(mediaFiles);
     } catch (err) {
-      console.error("Error loading gallery images:", err);
+      console.error("Error loading gallery images:", err instanceof Error ? err.message : "Unknown error");
       setError("Failed to load gallery images");
     } finally {
       setIsLoadingGallery(false);
@@ -139,7 +139,7 @@ const ImageUploader = ({
       // Refresh gallery
       await loadGalleryImages();
     } catch (err) {
-      console.error("Error uploading image:", err);
+      console.error("Error uploading image:", err instanceof Error ? err.message : "Unknown error");
       setError("Failed to upload image. Please try again.");
     } finally {
       setIsUploading(false);
@@ -208,11 +208,6 @@ const ImageUploader = ({
                 lastModified: Date.now(),
               });
 
-              console.log(
-                `Original size: ${file.size / 1024}KB, Compressed size: ${
-                  newFile.size / 1024
-                }KB`,
-              );
               resolve(newFile);
             },
             mimeType,
@@ -231,6 +226,7 @@ const ImageUploader = ({
 
   // Handle file input change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type

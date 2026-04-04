@@ -294,10 +294,16 @@ export default function UserManagementPage() {
 
     try {
       // Call your API endpoint instead of using Firebase Auth directly
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        throw new Error("Authentication required. Please sign in again.");
+      }
+
       const response = await fetch("/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           email: newUser.email,

@@ -36,6 +36,7 @@ export async function bulkImportProducts(
     // Firebase batch operations are limited to 500
     const BATCH_SIZE = 500;
     const batches: WriteBatch[] = [];
+    const batchSizes: number[] = [];
     
     for (let i = 0; i < products.length; i += BATCH_SIZE) {
       const batchProducts = products.slice(i, i + BATCH_SIZE);
@@ -96,31 +97,29 @@ export async function bulkImportProducts(
       // Only commit batch if there are operations
       if (batchOperations > 0) {
         batches.push(batch);
+        batchSizes.push(batchOperations);
       }
     }
     
     // Commit all batches
-    for (const batch of batches) {
+    for (let i = 0; i < batches.length; i++) {
       try {
-        await batch.commit();
-        // Count successful operations (this is approximate)
-        result.success += BATCH_SIZE;
+        await batches[i].commit();
+        result.success += batchSizes[i];
       } catch (error: any) {
-        console.error('Batch commit error:', error);
+        console.error('Batch commit error:', error instanceof Error ? error.message : 'Unknown error');
+        result.failed += batchSizes[i];
         result.errors.push({
           row: 0,
           field: 'batch',
           value: '',
-          error: 'Failed to commit batch: ' + error.message
+          error: 'Failed to commit batch: ' + (error instanceof Error ? error.message : 'Unknown error')
         });
       }
     }
     
-    // Adjust success count
-    result.success = Math.min(result.success, products.length - result.failed - result.skipped);
-    
   } catch (error: any) {
-    console.error('Bulk import error:', error);
+    console.error('Bulk import error:', error instanceof Error ? error.message : 'Unknown error');
     result.errors.push({
       row: 0,
       field: 'general',
@@ -194,7 +193,7 @@ export async function bulkUpdateProducts(
         await batch.commit();
         result.success += batchIds.length - result.failed;
       } catch (error: any) {
-        console.error('Batch update error:', error);
+        console.error('Batch update error:', error instanceof Error ? error.message : 'Unknown error');
         batchIds.forEach(id => {
           result.errors.push({
             productId: id,
@@ -206,7 +205,7 @@ export async function bulkUpdateProducts(
     }
     
   } catch (error: any) {
-    console.error('Bulk update error:', error);
+    console.error('Bulk update error:', error instanceof Error ? error.message : 'Unknown error');
     operation.productIds.forEach(id => {
       result.errors.push({
         productId: id,

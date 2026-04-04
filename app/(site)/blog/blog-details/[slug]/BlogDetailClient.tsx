@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import RelatedPost from "@/components/Site/Blog/RelatedPost";
 import SharePost from "@/components/Site/Blog/SharePost";
 import Image from "next/image";
@@ -47,15 +48,15 @@ const BlogDetailClient = ({
       try {
         // Check if content is already HTML
         if (content.includes("<") && content.includes(">")) {
-          setRenderedContent(content); // Already HTML, return as is
+          setRenderedContent(DOMPurify.sanitize(content));
         } else {
           // Convert Markdown to HTML
           const htmlContent = await marked.parse(content);
-          setRenderedContent(htmlContent);
+          setRenderedContent(DOMPurify.sanitize(htmlContent));
         }
       } catch (error) {
         console.error("Error parsing blog content:", error);
-        setRenderedContent(content); // Return original content if parsing fails
+        setRenderedContent(DOMPurify.sanitize(content));
       }
     };
 

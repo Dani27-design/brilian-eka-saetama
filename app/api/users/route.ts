@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import { adminFirestore } from "../../../db/firebase/firebaseAdmin";
+import { verifyAdminAuth } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
   try {
+    const authError = await verifyAdminAuth(request);
+    if (authError) {
+      return authError;
+    }
+
     const { email, password, name, role } = await request.json();
 
     // Create user with Firebase Admin SDK
@@ -32,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, userId: userRecord.uid });
   } catch (error: any) {
-    console.error("Error creating user:", error);
+    console.error("Error creating user:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: error.message || "Failed to create user" },
       { status: 500 },

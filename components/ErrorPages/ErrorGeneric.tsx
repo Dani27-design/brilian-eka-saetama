@@ -193,7 +193,7 @@ export default function ErrorGeneric({
           className="mt-8"
         >
           <Link
-            href={isAdmin ? '/admin/login' : '/auth/signin'}
+            href={isAdmin ? '/admin/login' : '/'}
             className="inline-flex items-center gap-2 rounded-full border border-primary bg-transparent px-6 py-3 font-medium text-primary transition-all hover:bg-primary hover:text-white"
           >
             <svg

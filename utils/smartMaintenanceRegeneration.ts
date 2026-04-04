@@ -16,6 +16,16 @@ import { Product } from "@/types/product";
 import { calculateMaintenanceSchedules } from "./maintenanceScheduler";
 
 /**
+ * Safely converts a Firestore Timestamp, Date, string, or number to a Date object
+ */
+function toSafeDate(value: any): Date {
+  if (value instanceof Timestamp) return value.toDate();
+  if (value instanceof Date) return value;
+  if (typeof value === 'string' || typeof value === 'number') return new Date(value);
+  return new Date();
+}
+
+/**
  * Represents an existing maintenance date range
  */
 interface MaintenanceDateRange {
@@ -48,7 +58,7 @@ async function getExistingMaintenancesForProduct(
       ...doc.data()
     } as Maintenance));
   } catch (error) {
-    console.error(`Error fetching existing maintenances for product ${productId}:`, error);
+    console.error(`Error fetching existing maintenances for product ${productId}:`, error instanceof Error ? error.message : "Unknown error");
     return [];
   }
 }
@@ -60,8 +70,8 @@ function extractDateRanges(maintenances: Maintenance[]): MaintenanceDateRange[] 
   return maintenances
     .filter(m => m.startDate && m.endDate)
     .map(m => ({
-      startDate: m.startDate.toDate(),
-      endDate: m.endDate.toDate(),
+      startDate: toSafeDate(m.startDate),
+      endDate: toSafeDate(m.endDate),
       maintenanceId: m.id || ''
     }))
     .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
@@ -121,9 +131,7 @@ async function generateMaintenancesForUncoveredPeriod(
       endDate,
       maintenanceInterval
     );
-    
-    console.log(`Creating ${schedules.length} new maintenances for uncovered period`);
-    
+
     // Create maintenance documents for each schedule
     for (const schedule of schedules) {
       await addDoc(collection(firestore, "maintenances"), {
@@ -139,10 +147,8 @@ async function generateMaintenancesForUncoveredPeriod(
         createdBy: null, // System-generated
       });
     }
-    
-    console.log(`Successfully created ${schedules.length} maintenances for uncovered period`);
   } catch (error) {
-    console.error(`Error generating maintenances for uncovered period:`, error);
+    console.error(`Error generating maintenances for uncovered period:`, error instanceof Error ? error.message : "Unknown error");
     throw error;
   }
 }
@@ -174,19 +180,15 @@ export async function regenerateMaintenancesForExtendedContract(
     // 2. New end date exists
     // 3. Contract was extended (new end date > old end date) OR contract didn't have end date before
     if (contractType !== "maintenance" || !newEndDate) {
-      console.log("Skipping maintenance regeneration: Not a maintenance contract or no end date");
       return;
     }
     
     const shouldRegenerate = !oldEndDate || newEndDate > oldEndDate;
-    
+
     if (!shouldRegenerate) {
-      console.log("Skipping maintenance regeneration: Contract not extended");
       return;
     }
-    
-    console.log(`Regenerating maintenances for extended contract ${contractId}`);
-    
+
     // Process each product
     for (const productId of productIds) {
       try {
@@ -209,11 +211,9 @@ export async function regenerateMaintenancesForExtendedContract(
         
         // Get existing maintenances for this product
         const existingMaintenances = await getExistingMaintenancesForProduct(contractId, productId);
-        
+
         if (existingMaintenances.length === 0) {
           // No existing maintenances, generate for entire contract period
-          console.log(`No existing maintenances found for product ${productId}, generating full schedule`);
-          
           const schedules = calculateMaintenanceSchedules(
             newStartDate,
             newEndDate,
@@ -234,8 +234,6 @@ export async function regenerateMaintenancesForExtendedContract(
               createdBy: null,
             });
           }
-          
-          console.log(`Created ${schedules.length} maintenances for product ${productId}`);
         } else {
           // Has existing maintenances, only generate for uncovered period
           const dateRanges = extractDateRanges(existingMaintenances);
@@ -244,9 +242,7 @@ export async function regenerateMaintenancesForExtendedContract(
           if (lastCoveredDate && lastCoveredDate < newEndDate) {
             // There's an uncovered period
             const uncoveredStartDate = calculateNewMaintenanceStartDate(lastCoveredDate, newStartDate);
-            
-            console.log(`Generating maintenances for uncovered period: ${uncoveredStartDate.toISOString()} to ${newEndDate.toISOString()}`);
-            
+
             await generateMaintenancesForUncoveredPeriod(
               contractId,
               productId,
@@ -255,19 +251,15 @@ export async function regenerateMaintenancesForExtendedContract(
               productData.productType,
               maintenanceInterval
             );
-          } else {
-            console.log(`Product ${productId} already fully covered by existing maintenances`);
           }
         }
       } catch (productError) {
-        console.error(`Error processing product ${productId} for regeneration:`, productError);
+        console.error(`Error processing product ${productId} for regeneration:`, productError instanceof Error ? productError.message : "Unknown error");
         // Continue with other products even if one fails
       }
     }
-    
-    console.log(`Maintenance regeneration completed for contract ${contractId}`);
   } catch (error) {
-    console.error("Error in maintenance regeneration:", error);
+    console.error("Error in maintenance regeneration:", error instanceof Error ? error.message : "Unknown error");
     throw error;
   }
 }
@@ -287,17 +279,14 @@ export async function generateMaintenancesForNewProducts(
   contractEndDate: Date
 ): Promise<void> {
   try {
-    console.log(`Generating maintenances for ${newProductIds.length} new products in contract ${contractId}`);
-    
     const contractRef = doc(firestore, "contracts", contractId);
     
     for (const productId of newProductIds) {
       try {
         // Check if maintenances already exist for this product
         const existingMaintenances = await getExistingMaintenancesForProduct(contractId, productId);
-        
+
         if (existingMaintenances.length > 0) {
-          console.log(`Product ${productId} already has maintenances, skipping`);
           continue;
         }
         
@@ -324,9 +313,7 @@ export async function generateMaintenancesForNewProducts(
           contractEndDate,
           maintenanceInterval
         );
-        
-        console.log(`Creating ${schedules.length} maintenances for new product ${productData.name}`);
-        
+
         // Create maintenance documents
         for (const schedule of schedules) {
           await addDoc(collection(firestore, "maintenances"), {
@@ -342,17 +329,13 @@ export async function generateMaintenancesForNewProducts(
             createdBy: null,
           });
         }
-        
-        console.log(`Successfully created ${schedules.length} maintenances for product ${productData.name}`);
       } catch (productError) {
-        console.error(`Error processing new product ${productId}:`, productError);
+        console.error(`Error processing new product ${productId}:`, productError instanceof Error ? productError.message : "Unknown error");
         // Continue with other products
       }
     }
-    
-    console.log(`Completed maintenance generation for new products in contract ${contractId}`);
   } catch (error) {
-    console.error("Error generating maintenances for new products:", error);
+    console.error("Error generating maintenances for new products:", error instanceof Error ? error.message : "Unknown error");
     throw error;
   }
 }

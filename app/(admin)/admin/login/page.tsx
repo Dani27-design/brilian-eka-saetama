@@ -75,11 +75,11 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      // Just authenticate with Firebase - the AuthGuard will handle role checking
+      // Just authenticate with Firebase - AdminLayoutClient will handle role checking
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/admin/dashboard");
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Login error:", error instanceof Error ? error.message : "Unknown error");
       setError(t.invalidCredentials);
       setIsLoading(false);
     }

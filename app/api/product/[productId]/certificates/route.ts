@@ -179,16 +179,7 @@ export async function GET(
             }
             
             // Find location for this product using the same utility as admin page
-            console.log("Debug location mapping:", {
-              productId: maintenance.product?.id,
-              productDetailsLength: productDetails?.length,
-              productDetails: productDetails?.map(pd => ({
-                productId: pd?.product?.id,
-                location: pd?.location
-              }))
-            });
             location = findProductLocation(maintenance.product, productDetails);
-            console.log("Found location:", location);
           }
         }
 
@@ -221,7 +212,7 @@ export async function GET(
                 engineerNames.push(engineerData.name || engineerSnap.id);
               }
             } catch (engineerError) {
-              console.warn("Failed to fetch engineer:", engineerError);
+              console.warn("Failed to fetch engineer:", engineerError instanceof Error ? engineerError.message : "Unknown error");
             }
           }
         }
@@ -242,7 +233,7 @@ export async function GET(
               approverName = approverData.name || approverData.email || "Certificate Authority";
             }
           } catch (approverError) {
-            console.warn("Failed to fetch approver:", approverError);
+            console.warn("Failed to fetch approver:", approverError instanceof Error ? approverError.message : "Unknown error");
           }
         }
 
@@ -279,7 +270,7 @@ export async function GET(
         certificates.push(certificate);
 
       } catch (certError) {
-        console.warn(`Failed to process certificate for maintenance ${maintenanceId}:`, certError);
+        console.warn(`Failed to process certificate for maintenance ${maintenanceId}:`, certError instanceof Error ? certError.message : "Unknown error");
         // Continue processing other certificates
         continue;
       }
@@ -307,7 +298,7 @@ export async function GET(
     return response;
 
   } catch (error) {
-    console.error("Error fetching product certificates:", error);
+    console.error("Error fetching product certificates:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch certificates" },
       { status: 500 }

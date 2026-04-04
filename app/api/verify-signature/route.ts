@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error: any) {
-    console.error("Signature verification error:", error);
+    console.error("Signature verification error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to verify signature" },
       { status: 500 }

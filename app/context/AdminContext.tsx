@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { auth, firestore } from "@/db/firebase/firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 type AdminUser = {
@@ -61,7 +61,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user data:", error instanceof Error ? error.message : "Unknown error");
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -78,10 +78,10 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       setUser(null); // Immediately clear user state
       setIsLoading(true);
 
-      // Reset authentication state immediately
-      return Promise.resolve();
+      // Actually sign out from Firebase
+      await signOut(auth);
     } catch (error) {
-      console.error("Error in context signOut:", error);
+      console.error("Error in context signOut:", error instanceof Error ? error.message : "Unknown error");
       setIsSigningOut(false);
       return Promise.reject(error);
     }

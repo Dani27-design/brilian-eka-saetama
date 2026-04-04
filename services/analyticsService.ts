@@ -24,7 +24,7 @@ async function getAnalyticsClient() {
 
     return analyticsDataClient;
   } catch (error) {
-    console.error("Failed to initialize Analytics Data client:", error);
+    console.error("Failed to initialize Analytics Data client:", error instanceof Error ? error.message : "Unknown error");
     return null;
   }
 }
@@ -65,7 +65,10 @@ export async function getOverviewData(startDate: string, endDate: string) {
     filteredRows.forEach((row) => {
       pageViews += Number(row.metricValues?.[0].value || 0);
       // totalUsers tidak bisa di-union manual, jadi gunakan sum sebagai pendekatan
-      visitors.add(row.metricValues?.[1].value || ""); // asumsikan userId, jika tidak, gunakan sum
+      const visitorValue = row.metricValues?.[1]?.value;
+      if (visitorValue) {
+        visitors.add(visitorValue);
+      }
       totalEngagement += Number(row.metricValues?.[2].value || 0);
       sessions += Number(row.metricValues?.[3].value || 0);
       // bounceRate adalah rata-rata, jadi kita rata-ratakan manual
@@ -92,7 +95,7 @@ export async function getOverviewData(startDate: string, endDate: string) {
       bounceRate: `${bounceRate.toFixed(1)}%`,
     };
   } catch (error) {
-    console.error("Error fetching overview data:", error);
+    console.error("Error fetching overview data:", error instanceof Error ? error.message : "Unknown error");
     return null;
   }
 }
@@ -136,7 +139,7 @@ export async function getTrafficData(startDate: string, endDate: string) {
       pageViews: data.pageViews,
     }));
   } catch (error) {
-    console.error("Error fetching traffic data:", error);
+    console.error("Error fetching traffic data:", error instanceof Error ? error.message : "Unknown error");
     return [];
   }
 }
@@ -163,7 +166,7 @@ export async function getTopPagesData(startDate: string, endDate: string) {
       }))
       .filter((row) => !row.name.includes("/admin"));
   } catch (error) {
-    console.error("Error fetching top pages data:", error);
+    console.error("Error fetching top pages data:", error instanceof Error ? error.message : "Unknown error");
     return [];
   }
 }
@@ -202,7 +205,7 @@ export async function getDevicesData(startDate: string, endDate: string) {
       value: total > 0 ? Math.round((value / total) * 100) : 0,
     }));
   } catch (error) {
-    console.error("Error fetching devices data:", error);
+    console.error("Error fetching devices data:", error instanceof Error ? error.message : "Unknown error");
     return [];
   }
 }
@@ -241,7 +244,7 @@ export async function getSourcesData(startDate: string, endDate: string) {
       value: total > 0 ? Math.round((value / total) * 100) : 0,
     }));
   } catch (error) {
-    console.error("Error fetching sources data:", error);
+    console.error("Error fetching sources data:", error instanceof Error ? error.message : "Unknown error");
     return [];
   }
 }

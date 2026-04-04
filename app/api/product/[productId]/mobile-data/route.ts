@@ -78,7 +78,7 @@ export async function GET(
         }
       }
     } catch (contractError) {
-      console.warn("Could not fetch contract data:", contractError);
+      console.warn("Could not fetch contract data:", contractError instanceof Error ? contractError.message : "Unknown error");
       // Continue without contract data
     }
 
@@ -113,7 +113,7 @@ export async function GET(
 
     return response;
   } catch (error) {
-    console.error("Error fetching mobile data:", error);
+    console.error("Error fetching mobile data:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch product data" },
       { status: 500 },

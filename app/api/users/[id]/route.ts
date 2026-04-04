@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import { adminFirestore } from "../../../../db/firebase/firebaseAdmin";
+import { verifyAdminAuth } from "@/utils/auth";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const authError = await verifyAdminAuth(request);
+    if (authError) {
+      return authError;
+    }
+
     const userId = params.id;
     const { name, email, role, isActive, password } = await request.json();
 
@@ -48,8 +54,8 @@ export async function PUT(
     });
 
   } catch (error: any) {
-    console.error("Error updating user:", error);
-    
+    console.error("Error updating user:", error instanceof Error ? error.message : "Unknown error");
+
     // Handle specific Firebase Auth errors
     let errorMessage = "Failed to update user";
     
@@ -75,6 +81,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const authError = await verifyAdminAuth(request);
+    if (authError) {
+      return authError;
+    }
+
     const userId = params.id;
 
     if (!adminFirestore) {
@@ -103,7 +114,7 @@ export async function GET(
     });
 
   } catch (error: any) {
-    console.error("Error fetching user:", error);
+    console.error("Error fetching user:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: error.message || "Failed to fetch user" },
       { status: 500 },

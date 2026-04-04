@@ -124,8 +124,6 @@ export default function CreateContractPage() {
   // Add product to list
   const handleAddProduct = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    console.log("Selected product:", value);
-    console.log("Current products:", form.products);
     if (value && !form.products.includes(value)) {
       setForm((prev) => ({
         ...prev,
@@ -218,21 +216,12 @@ export default function CreateContractPage() {
         }
       }
     }
+    // Final uniqueness check right before creation (minimizes TOCTOU window)
     const q = query(
       collection(firestore, "contracts"),
       where("contractNumber", "==", form.contractNumber),
     );
     const snapshot = await getDocs(q);
-    if (
-      !form.contractNumber ||
-      !form.customer ||
-      !form.startDate ||
-      !form.endDate
-    ) {
-      setError("Semua field wajib diisi.");
-      setLoading(false);
-      return;
-    }
     if (!snapshot.empty) {
       setContractNumberError(
         "No. Kontrak sudah digunakan, gunakan nomor lain.",
@@ -262,7 +251,6 @@ export default function CreateContractPage() {
         createdAt: serverTimestamp(),
         createdBy: user?.uid ? doc(firestore, "users", user.uid) : null,
       });
-      console.log("Contract created with ID:", setContract.id);
       
       // update affiliated products
       for (const pid of form.products) {
@@ -283,9 +271,8 @@ export default function CreateContractPage() {
             new Date(form.startDate),
             new Date(form.endDate)
           );
-          console.log("Maintenances generated successfully");
         } catch (maintenanceError) {
-          console.error("Failed to generate maintenances:", maintenanceError);
+          console.error("Failed to generate maintenances:", maintenanceError instanceof Error ? maintenanceError.message : "Unknown error");
           // Continue to contracts page even if maintenance generation fails
           // The contract has been created successfully
         }
@@ -293,7 +280,7 @@ export default function CreateContractPage() {
 
       router.push("/admin/contracts");
     } catch (error) {
-      console.error("Contract creation error:", error);
+      console.error("Contract creation error:", error instanceof Error ? error.message : "Unknown error");
       setError("Gagal menambah kontrak");
     } finally {
       setLoading(false);

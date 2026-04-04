@@ -5,9 +5,6 @@ import { errorLogger, type ErrorLog } from '@/utils/errorLogger';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/db/firebase/firebaseConfig';
-import { RenderError, EffectError, EventError, AsyncError } from '@/components/ErrorTesting/ErrorSimulator';
-import NetworkErrorSimulator from '@/components/ErrorTesting/NetworkErrorSimulator';
-import AuthErrorSimulator from '@/components/ErrorTesting/AuthErrorSimulator';
 
 export default function DebugPage() {
   const [logs, setLogs] = useState<ErrorLog[]>([]);
@@ -236,12 +233,6 @@ export default function DebugPage() {
                 >
                   Clear All Logs
                 </button>
-                <a
-                  href="/admin/error-test"
-                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-                >
-                  Full Testing Suite
-                </a>
               </div>
 
               {/* Error Count */}
@@ -258,36 +249,11 @@ export default function DebugPage() {
             <div className="space-y-6">
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                  Quick Error Testing
+                  Error Testing
                 </h3>
-                <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">
-                  Test error components directly from the debug console. All errors will be logged and appear in the Error Logs tab.
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  Error testing endpoints have been removed for production security. Use browser DevTools to simulate errors locally.
                 </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <RenderError delay={0} />
-                  <EffectError delay={1000} />
-                  <EventError delay={500} />
-                  <AsyncError delay={300} />
-                </div>
-              </div>
-              
-              <NetworkErrorSimulator />
-              <AuthErrorSimulator />
-              
-              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                <h3 className="font-medium text-green-900 dark:text-green-100 mb-2">
-                  Additional Testing
-                </h3>
-                <p className="text-sm text-green-800 dark:text-green-200 mb-4">
-                  For comprehensive testing including error page navigation and API testing, visit the full testing suite.
-                </p>
-                <a
-                  href="/admin/error-test"
-                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                >
-                  Open Full Testing Suite →
-                </a>
               </div>
             </div>
           )}
