@@ -157,12 +157,12 @@ export async function GET(
     // === BATCH LOAD all related data to avoid N+1 queries ===
 
     // 1. Extract unique contract IDs
-    const contractIds = [...new Set(
+    const contractIds = Array.from(new Set(
       paginatedMaintenances
         .map(d => (d.data() as Maintenance).contract)
         .filter(Boolean)
         .map(ref => ref.id)
-    )];
+    ));
 
     // 2. Batch fetch all contracts
     const contractsMap = new Map<string, any>();
@@ -178,11 +178,11 @@ export async function GET(
     }
 
     // 3. Extract unique customer IDs from contracts
-    const customerIds = [...new Set(
-      [...contractsMap.values()]
+    const customerIds = Array.from(new Set(
+      Array.from(contractsMap.values())
         .filter(c => c.customer && c.customer.id)
         .map(c => c.customer.id)
-    )];
+    ));
 
     // 4. Batch fetch all customers
     const customersMap = new Map<string, any>();
@@ -209,7 +209,7 @@ export async function GET(
 
     // 6. Batch fetch all users (engineers + approvers)
     const usersMap = new Map<string, any>();
-    const userIdArray = [...userIds];
+    const userIdArray = Array.from(userIds);
     if (userIdArray.length > 0) {
       const userSnaps = await Promise.all(
         userIdArray.map(id => getDoc(doc(firestore, "users", id)))

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, ReactNode, CSSProperties } from "react";
 
 interface ScrollRevealProps {
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
   direction?: "up" | "down" | "left" | "right";
   duration?: number;

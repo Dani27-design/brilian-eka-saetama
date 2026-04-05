@@ -66,21 +66,21 @@ export async function enrichProductsWithContracts(
   products: Product[]
 ): Promise<(Product & { contractData?: any })[]> {
   // 1. Extract unique contract IDs from products that have contracts
-  const contractIds = [...new Set(
+  const contractIds = Array.from(new Set(
     products
       .filter(p => p.contract)
       .map(p => (p.contract as DocumentReference).id)
-  )];
+  ));
 
   // 2. Batch fetch all contracts in parallel
   const contractsMap = await batchGetContracts(contractIds);
 
   // 3. Extract unique customer IDs from fetched contracts
-  const customerIds = [...new Set(
-    [...contractsMap.values()]
+  const customerIds = Array.from(new Set(
+    Array.from(contractsMap.values())
       .filter(c => c.customer && c.customer.id)
       .map(c => c.customer.id)
-  )];
+  ));
 
   // 4. Batch fetch all customers in parallel
   const customersMap = await batchGetCustomers(customerIds);

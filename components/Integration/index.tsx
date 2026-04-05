@@ -67,7 +67,7 @@ const Integration = () => {
               duration={1}
               delay={0.1}
               className="animate_top w-1/6"
-            ></motion.div>
+            ></ScrollReveal>
 
             <ScrollReveal
               duration={1}
@@ -117,7 +117,7 @@ const Integration = () => {
               duration={1}
               delay={0.1}
               className="animate_top w-1/6"
-            ></motion.div>
+            ></ScrollReveal>
 
             <ScrollReveal
               duration={1}
