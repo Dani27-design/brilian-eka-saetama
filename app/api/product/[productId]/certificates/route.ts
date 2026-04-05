@@ -154,33 +154,94 @@ export async function GET(
     // Process certificates
     const certificates: PublicCertificateData[] = [];
 
+    // === BATCH LOAD all related data to avoid N+1 queries ===
+
+    // 1. Extract unique contract IDs
+    const contractIds = [...new Set(
+      paginatedMaintenances
+        .map(d => (d.data() as Maintenance).contract)
+        .filter(Boolean)
+        .map(ref => ref.id)
+    )];
+
+    // 2. Batch fetch all contracts
+    const contractsMap = new Map<string, any>();
+    if (contractIds.length > 0) {
+      const contractSnaps = await Promise.all(
+        contractIds.map(id => getDoc(doc(firestore, "contracts", id)))
+      );
+      contractSnaps.forEach((snap, i) => {
+        if (snap.exists()) {
+          contractsMap.set(contractIds[i], { id: snap.id, ...snap.data() });
+        }
+      });
+    }
+
+    // 3. Extract unique customer IDs from contracts
+    const customerIds = [...new Set(
+      [...contractsMap.values()]
+        .filter(c => c.customer && c.customer.id)
+        .map(c => c.customer.id)
+    )];
+
+    // 4. Batch fetch all customers
+    const customersMap = new Map<string, any>();
+    if (customerIds.length > 0) {
+      const customerSnaps = await Promise.all(
+        customerIds.map(id => getDoc(doc(firestore, "customers", id)))
+      );
+      customerSnaps.forEach((snap, i) => {
+        if (snap.exists()) {
+          customersMap.set(customerIds[i], { id: snap.id, ...snap.data() });
+        }
+      });
+    }
+
+    // 5. Extract unique user IDs (engineers + approvers)
+    const userIds = new Set<string>();
+    paginatedMaintenances.forEach(d => {
+      const m = d.data() as Maintenance;
+      if (Array.isArray(m.engineer)) {
+        m.engineer.forEach(ref => { if (ref && ref.id) userIds.add(ref.id); });
+      }
+      if (m.updatedBy && m.updatedBy.id) userIds.add(m.updatedBy.id);
+    });
+
+    // 6. Batch fetch all users (engineers + approvers)
+    const usersMap = new Map<string, any>();
+    const userIdArray = [...userIds];
+    if (userIdArray.length > 0) {
+      const userSnaps = await Promise.all(
+        userIdArray.map(id => getDoc(doc(firestore, "users", id)))
+      );
+      userSnaps.forEach((snap, i) => {
+        if (snap.exists()) {
+          usersMap.set(userIdArray[i], { id: snap.id, ...snap.data() });
+        }
+      });
+    }
+
     for (const maintenanceDoc of paginatedMaintenances) {
       const maintenance = maintenanceDoc.data() as Maintenance;
       const maintenanceId = maintenanceDoc.id;
 
       try {
-        // Fetch contract data for location information (same as admin page)
+        // Look up contract from batch-loaded map
         let location = "N/A";
         let contractData: any = {};
         let productDetails: ProductDetail[] = [];
-        
+
         if (maintenance.contract) {
-          const contractDoc = await getDoc(maintenance.contract);
-          if (contractDoc.exists()) {
-            contractData = contractDoc.data();
-            productDetails = contractData.productDetails || [];
-            
-            // Fetch customer data if available
-            if (contractData.customer) {
-              const customerDoc = await getDoc(contractData.customer);
-              if (customerDoc.exists()) {
-                contractData.customerData = customerDoc.data();
-              }
-            }
-            
-            // Find location for this product using the same utility as admin page
-            location = findProductLocation(maintenance.product, productDetails);
+          contractData = contractsMap.get(maintenance.contract.id) || {};
+          productDetails = contractData.productDetails || [];
+
+          // Look up customer from batch-loaded map
+          if (contractData.customer) {
+            contractData.customerData = customersMap.get(contractData.customer.id) || null;
           }
+
+          // Find location for this product
+          location = findProductLocation(maintenance.product, productDetails);
         }
 
         // Calculate checklist summary
@@ -190,7 +251,7 @@ export async function GET(
         const failedItems = totalItems - passedItems;
         const passRate = totalItems > 0 ? Math.round((passedItems / totalItems) * 100) : 0;
 
-        // Generate certificate number (consistent with existing system)
+        // Generate certificate number
         const inspectionDate = maintenance.inspection!.createdAt?.toDate() || new Date();
         const year = inspectionDate.getFullYear();
         const month = String(inspectionDate.getMonth() + 1).padStart(2, '0');
@@ -201,39 +262,26 @@ export async function GET(
         const validUntilDate = new Date(inspectionDate);
         validUntilDate.setFullYear(validUntilDate.getFullYear() + 1);
 
-        // Get engineer names (resolve references like admin page)
+        // Look up engineer names from batch-loaded map
         const engineerNames: string[] = [];
         if (Array.isArray(maintenance.engineer) && maintenance.engineer.length > 0) {
           for (const engineerRef of maintenance.engineer) {
-            try {
-              const engineerSnap = await getDoc(engineerRef);
-              if (engineerSnap.exists()) {
-                const engineerData = engineerSnap.data();
-                engineerNames.push(engineerData.name || engineerSnap.id);
-              }
-            } catch (engineerError) {
-              console.warn("Failed to fetch engineer:", engineerError instanceof Error ? engineerError.message : "Unknown error");
+            const engineerData = usersMap.get(engineerRef.id);
+            if (engineerData) {
+              engineerNames.push(engineerData.name || engineerRef.id);
             }
           }
         }
-        
-        // Fallback to simplified name if no engineers found
         if (engineerNames.length === 0) {
           engineerNames.push("Inspector");
         }
-        
-        // Get approver name (resolve updatedBy reference - this is who approved the inspection)
+
+        // Look up approver name from batch-loaded map
         let approverName = "Certificate Authority";
         if (maintenance.updatedBy) {
-          try {
-            const approverSnap = await getDoc(maintenance.updatedBy);
-            if (approverSnap.exists()) {
-              const approverData = approverSnap.data();
-              // Use same fallback logic as admin page
-              approverName = approverData.name || approverData.email || "Certificate Authority";
-            }
-          } catch (approverError) {
-            console.warn("Failed to fetch approver:", approverError instanceof Error ? approverError.message : "Unknown error");
+          const approverData = usersMap.get(maintenance.updatedBy.id);
+          if (approverData) {
+            approverName = approverData.name || approverData.email || "Certificate Authority";
           }
         }
 
@@ -258,7 +306,6 @@ export async function GET(
             location,
           },
           downloadUrl: `/api/product/${productId}/certificates/${maintenanceId}/download`,
-          // Include raw data for client-side PDF generation with resolved references (like admin page)
           rawMaintenanceData: maintenance,
           rawContractData: contractData,
           rawProductData: productData,
@@ -271,7 +318,6 @@ export async function GET(
 
       } catch (certError) {
         console.warn(`Failed to process certificate for maintenance ${maintenanceId}:`, certError instanceof Error ? certError.message : "Unknown error");
-        // Continue processing other certificates
         continue;
       }
     }

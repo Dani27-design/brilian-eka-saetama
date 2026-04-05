@@ -21,8 +21,8 @@ import { downloadMaintenanceExport, DEFAULT_MAINTENANCE_EXPORT_CONFIG } from "@/
 // Import existing components we'll reuse
 import Modal from "@/components/Admin/Modal";
 import Image from "next/image";
-import moment from "moment";
-import "moment/locale/id";
+import { format } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 
 const statusColor: Record<MaintenanceStatus, string> = {
   scheduled: "bg-blue-100 text-blue-700",
@@ -543,13 +543,13 @@ export default function MaintenancesPage() {
                         <div className="flex flex-col">
                           <span>
                             {maintenance.startDate
-                              ? moment(maintenance.startDate).format("DD MMMM YYYY")
+                              ? format(maintenance.startDate, "dd MMMM yyyy", { locale: idLocale })
                               : "-"}
                           </span>
                           <span className="text-xs text-gray-500">
                             s/d{" "}
                             {maintenance.endDate
-                              ? moment(maintenance.endDate).format("DD MMMM YYYY")
+                              ? format(maintenance.endDate, "dd MMMM yyyy", { locale: idLocale })
                               : "-"}
                           </span>
                         </div>

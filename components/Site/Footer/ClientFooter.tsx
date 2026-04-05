@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import ScrollReveal from "@/components/ScrollReveal";
 import Image from "next/image";
 import { useEffect, useState, FormEvent, useMemo } from "react";
 import { useLanguage } from "@/app/context/LanguageContext";
@@ -259,21 +259,9 @@ const ClientFooter = ({ initialData, initialLanguage }: FooterProps) => {
           {/* <!-- Footer Top --> */}
           <div className="py-10 lg:py-16">
             <div className="flex flex-wrap gap-8 lg:justify-between lg:gap-0">
-              <motion.div
-                variants={{
-                  hidden: {
-                    opacity: 0,
-                    y: -20,
-                  },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                  },
-                }}
-                initial="hidden"
-                whileInView="visible"
-                transition={{ duration: 1, delay: 0.5 }}
-                viewport={{ once: true }}
+              <ScrollReveal
+                duration={1}
+                delay={0.5}
                 className="animate_top w-full sm:w-1/2 lg:w-1/4"
               >
                 <a href="/" className="relative inline-block">
@@ -323,24 +311,12 @@ const ClientFooter = ({ initialData, initialLanguage }: FooterProps) => {
                 >
                   {footer.logo.contact_email}
                 </a>
-              </motion.div>
+              </ScrollReveal>
 
               <div className="flex w-full flex-col gap-8 md:flex-row md:justify-between md:gap-0 lg:w-2/3 xl:w-7/12">
-                <motion.div
-                  variants={{
-                    hidden: {
-                      opacity: 0,
-                      y: -20,
-                    },
-                    visible: {
-                      opacity: 1,
-                      y: 0,
-                    },
-                  }}
-                  initial="hidden"
-                  whileInView="visible"
-                  transition={{ duration: 1, delay: 0.1 }}
-                  viewport={{ once: true }}
+                <ScrollReveal
+                  duration={1}
+                  delay={0.1}
                   className="animate_top"
                 >
                   <h4 className="mb-6 text-itemtitle2 font-medium text-black dark:text-white">
@@ -359,23 +335,11 @@ const ClientFooter = ({ initialData, initialLanguage }: FooterProps) => {
                       </li>
                     ))}
                   </ul>
-                </motion.div>
+                </ScrollReveal>
 
-                <motion.div
-                  variants={{
-                    hidden: {
-                      opacity: 0,
-                      y: -20,
-                    },
-                    visible: {
-                      opacity: 1,
-                      y: 0,
-                    },
-                  }}
-                  initial="hidden"
-                  whileInView="visible"
-                  transition={{ duration: 1, delay: 0.1 }}
-                  viewport={{ once: true }}
+                <ScrollReveal
+                  duration={1}
+                  delay={0.1}
                   className="animate_top"
                 >
                   <h4 className="mb-6 text-itemtitle2 font-medium text-black dark:text-white">
@@ -394,23 +358,11 @@ const ClientFooter = ({ initialData, initialLanguage }: FooterProps) => {
                       </li>
                     ))}
                   </ul>
-                </motion.div>
+                </ScrollReveal>
 
-                <motion.div
-                  variants={{
-                    hidden: {
-                      opacity: 0,
-                      y: -20,
-                    },
-                    visible: {
-                      opacity: 1,
-                      y: 0,
-                    },
-                  }}
-                  initial="hidden"
-                  whileInView="visible"
-                  transition={{ duration: 1, delay: 0.1 }}
-                  viewport={{ once: true }}
+                <ScrollReveal
+                  duration={1}
+                  delay={0.1}
                   className="animate_top"
                 >
                   <h4 className="mb-6 text-itemtitle2 font-medium text-black dark:text-white">
@@ -479,7 +431,7 @@ const ClientFooter = ({ initialData, initialLanguage }: FooterProps) => {
                       </div>
                     )}
                   </form>
-                </motion.div>
+                </ScrollReveal>
               </div>
             </div>
           </div>
@@ -487,21 +439,9 @@ const ClientFooter = ({ initialData, initialLanguage }: FooterProps) => {
 
           {/* <!-- Footer Bottom --> */}
           <div className="flex flex-col flex-wrap items-center justify-center gap-5 border-t border-stroke py-7 dark:border-strokedark lg:flex-row lg:justify-between lg:gap-0">
-            <motion.div
-              variants={{
-                hidden: {
-                  opacity: 0,
-                  y: -20,
-                },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                },
-              }}
-              initial="hidden"
-              whileInView="visible"
-              transition={{ duration: 1, delay: 0.1 }}
-              viewport={{ once: true }}
+            <ScrollReveal
+              duration={1}
+              delay={0.1}
               className="animate_top w-full overflow-x-auto lg:w-auto"
             >
               <ul className="flex items-center justify-center gap-4 md:gap-8 lg:justify-start">
@@ -521,43 +461,19 @@ const ClientFooter = ({ initialData, initialLanguage }: FooterProps) => {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </ScrollReveal>
 
-            <motion.div
-              variants={{
-                hidden: {
-                  opacity: 0,
-                  y: -20,
-                },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                },
-              }}
-              initial="hidden"
-              whileInView="visible"
-              transition={{ duration: 1, delay: 0.1 }}
-              viewport={{ once: true }}
+            <ScrollReveal
+              duration={1}
+              delay={0.1}
               className="animate_top text-center"
             >
               <p className="text-sm md:text-base">{footer.bottom.copyright}</p>
-            </motion.div>
+            </ScrollReveal>
 
-            <motion.div
-              variants={{
-                hidden: {
-                  opacity: 0,
-                  y: -20,
-                },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                },
-              }}
-              initial="hidden"
-              whileInView="visible"
-              transition={{ duration: 1, delay: 0.1 }}
-              viewport={{ once: true }}
+            <ScrollReveal
+              duration={1}
+              delay={0.1}
               className="animate_top"
             >
               <ul className="flex flex-wrap items-center justify-center gap-5">
@@ -654,7 +570,7 @@ const ClientFooter = ({ initialData, initialLanguage }: FooterProps) => {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </ScrollReveal>
           </div>
           {/* <!-- Footer Bottom --> */}
         </div>

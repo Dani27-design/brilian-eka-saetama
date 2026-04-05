@@ -7,7 +7,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { motion } from "framer-motion";
+import ScrollReveal from "@/components/ScrollReveal";
 import SingleTestimonial from "./SingleTestimonial";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { Testimonial } from "@/types/testimonial";
@@ -102,21 +102,9 @@ const ClientTestimonial = ({
         </div>
       </div>
 
-      <motion.div
-        variants={{
-          hidden: {
-            opacity: 0,
-            y: -20,
-          },
-          visible: {
-            opacity: 1,
-            y: 0,
-          },
-        }}
-        initial="hidden"
-        whileInView="visible"
-        transition={{ duration: 1, delay: 0.1 }}
-        viewport={{ once: true }}
+      <ScrollReveal
+        duration={1}
+        delay={0.1}
         className="animate_top mx-auto mt-15 max-w-c-1280 px-4 md:px-8 xl:mt-20 xl:px-0"
       >
         {/* Slider main container */}
@@ -157,7 +145,7 @@ const ClientTestimonial = ({
             </div>
           )}
         </div>
-      </motion.div>
+      </ScrollReveal>
     </section>
   );
 };

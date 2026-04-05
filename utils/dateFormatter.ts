@@ -1,5 +1,4 @@
 import { Timestamp } from "firebase/firestore";
-import moment from "moment";
 
 /**
  * Converts various date formats to WIB (Western Indonesia Time, UTC+7) timezone
@@ -48,26 +47,30 @@ export function formatToWIB(date: Date | Timestamp | string | null | undefined):
       dateObj = (date as any).toDate();
     }
     else {
-      console.warn("Unknown date format:", typeof date, date);
+      console.warn("Unknown date format:", typeof date);
       return "N/A";
     }
 
     // Check if date is valid
     if (isNaN(dateObj.getTime())) {
-      console.warn("Invalid date:", date);
+      console.warn("Invalid date");
       return "N/A";
     }
 
     // Convert to WIB timezone (UTC+7) and format
-    // Since we're using moment without timezone plugin, we'll manually adjust
     const wibOffset = 7 * 60; // 7 hours in minutes
     const utcTime = dateObj.getTime() + (dateObj.getTimezoneOffset() * 60000);
     const wibTime = new Date(utcTime + (wibOffset * 60000));
 
-    return moment(wibTime).format('DD-MM-YYYY, HH:mm');
+    const day = wibTime.getDate().toString().padStart(2, '0');
+    const month = (wibTime.getMonth() + 1).toString().padStart(2, '0');
+    const year = wibTime.getFullYear();
+    const hours = wibTime.getHours().toString().padStart(2, '0');
+    const minutes = wibTime.getMinutes().toString().padStart(2, '0');
+    return `${day}-${month}-${year}, ${hours}:${minutes}`;
 
   } catch (error) {
-    console.error("Error formatting date:", error, date);
+    console.error("Error formatting date:", error instanceof Error ? error.message : "Unknown error");
     return "N/A";
   }
 }
@@ -111,10 +114,13 @@ export function formatDateOnlyWIB(date: Date | Timestamp | string | null | undef
     const utcTime = dateObj.getTime() + (dateObj.getTimezoneOffset() * 60000);
     const wibTime = new Date(utcTime + (wibOffset * 60000));
 
-    return moment(wibTime).format('DD-MM-YYYY');
+    const day = wibTime.getDate().toString().padStart(2, '0');
+    const month = (wibTime.getMonth() + 1).toString().padStart(2, '0');
+    const year = wibTime.getFullYear();
+    return `${day}-${month}-${year}`;
 
   } catch (error) {
-    console.error("Error formatting date:", error);
+    console.error("Error formatting date:", error instanceof Error ? error.message : "Unknown error");
     return "N/A";
   }
 }
@@ -158,10 +164,12 @@ export function formatTimeOnlyWIB(date: Date | Timestamp | string | null | undef
     const utcTime = dateObj.getTime() + (dateObj.getTimezoneOffset() * 60000);
     const wibTime = new Date(utcTime + (wibOffset * 60000));
 
-    return moment(wibTime).format('HH:mm');
+    const hours = wibTime.getHours().toString().padStart(2, '0');
+    const minutes = wibTime.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
 
   } catch (error) {
-    console.error("Error formatting time:", error);
+    console.error("Error formatting time:", error instanceof Error ? error.message : "Unknown error");
     return "N/A";
   }
 }
@@ -199,7 +207,7 @@ export function isToday(date: Date | Timestamp | string | null | undefined): boo
     const checkDate = formatDateOnlyWIB(date);
     return today === checkDate;
   } catch (error) {
-    console.error("Error checking if date is today:", error);
+    console.error("Error checking if date is today:", error instanceof Error ? error.message : "Unknown error");
     return false;
   }
 }
@@ -244,13 +252,13 @@ export function formatToWIBExport(date: Date | Timestamp | string | null | undef
       dateObj = (date as any).toDate();
     }
     else {
-      console.warn("Unknown date format:", typeof date, date);
+      console.warn("Unknown date format:", typeof date);
       return "N/A";
     }
 
     // Check if date is valid
     if (isNaN(dateObj.getTime())) {
-      console.warn("Invalid date:", date);
+      console.warn("Invalid date");
       return "N/A";
     }
 
@@ -275,7 +283,7 @@ export function formatToWIBExport(date: Date | Timestamp | string | null | undef
     return `${day} ${month} ${year}, ${hours}:${minutes}:${seconds}`;
 
   } catch (error) {
-    console.error("Error formatting date for export:", error, date);
+    console.error("Error formatting date for export:", error instanceof Error ? error.message : "Unknown error");
     return "N/A";
   }
 }
@@ -333,7 +341,7 @@ export function daysDifference(
     return diffDays;
 
   } catch (error) {
-    console.error("Error calculating days difference:", error);
+    console.error("Error calculating days difference:", error instanceof Error ? error.message : "Unknown error");
     return 0;
   }
 }

@@ -9,7 +9,6 @@ import {
   doc,
   Timestamp,
   DocumentReference,
-  getDoc,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import Image from "next/image";
@@ -30,6 +29,7 @@ import { exportProducts } from "@/utils/exportGenerator";
 import { generateBulkQRCodes, downloadBulkQRZip, BulkQRProgressCallback } from "@/utils/bulkQRGenerator";
 import { printQRCode } from "@/utils/qrCodePrint";
 import { buildProductQuery, getSortingStrategy } from "@/utils/productQuery";
+import { enrichProductsWithContracts } from "@/utils/productDataLoader";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<
@@ -90,45 +90,11 @@ export default function ProductsPage() {
         data.push({ ...docSnap.data(), id: docSnap.id } as Product);
       });
       
-      // fetch contract details for each product
-      const productsWithContracts = await Promise.all(
-        data.map(async (product) => {
-          const contractRef = product.contract as DocumentReference;
-          if (contractRef) {
-            const contractSnap = await getDoc(contractRef);
-            if (contractSnap.exists()) {
-              const contractData: any = {
-                ...contractSnap.data(),
-                id: contractSnap.id,
-              };
-              // Fetch customer inside contract
-              let customerData: any = null;
-              if (contractData.customer && contractData.customer.id) {
-                try {
-                  const customerSnap = await getDoc(contractData.customer);
-                  if (customerSnap.exists()) {
-                    customerData = {
-                      ...(customerSnap.data() || {}),
-                      id: customerSnap.id,
-                    };
-                  }
-                } catch {}
-              }
-              return {
-                ...product,
-                contractData: {
-                  ...contractData,
-                  customerData: customerData,
-                },
-              };
-            }
-          }
-          return product;
-        }),
-      );
+      // Batch load contract and customer data (replaces N+1 queries)
+      const productsWithContracts = await enrichProductsWithContracts(data);
       setProducts(productsWithContracts);
     } catch (err) {
-      console.error("Error fetching products:", err);
+      console.error("Error fetching products:", err instanceof Error ? err.message : "Unknown error");
       setError("Gagal memuat produk");
     } finally {
       setIsLoading(false);
@@ -306,7 +272,7 @@ export default function ProductsPage() {
       await printQRCode(qrData, `QR Sticker - ${product.productNumber}`);
 
     } catch (err: any) {
-      console.error("Error generating QR code:", err);
+      console.error("Error generating QR code:", err instanceof Error ? err.message : "Unknown error");
       setError(err.message || "Gagal membuat QR code");
     } finally {
       setGeneratingQR(null);
@@ -434,7 +400,7 @@ export default function ProductsPage() {
       }
 
     } catch (err: any) {
-      console.error('Bulk QR generation error:', err);
+      console.error('Bulk QR generation error:', err instanceof Error ? err.message : "Unknown error");
       setError(err.message || "Failed to generate QR codes");
     } finally {
       setBulkQRProgress(null);

@@ -5,13 +5,12 @@ import Link from "next/link";
 import {
   collection,
   getDocs,
-  deleteDoc,
   doc,
   getDoc,
   DocumentReference,
   query,
   where,
-  updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import type { Contract } from "@/types/contracts";
@@ -165,48 +164,51 @@ export default function ContractsPage() {
   const handleDelete = async (id: string) => {
     if (window.confirm("Hapus kontrak ini? PERHATIAN: Semua data maintenance yang terkait dengan kontrak ini juga akan dihapus.")) {
       try {
-        // Delete all related maintenances first
+        // Query related maintenances
         const relatedMaintenancesQuery = await getDocs(
           query(
             collection(firestore, "maintenances"),
             where("contract", "==", doc(firestore, "contracts", id)),
           ),
         );
-        
-        // Delete each related maintenance document
-        const maintenanceDeletions = relatedMaintenancesQuery.docs.map(
-          (maintenanceDoc) => deleteDoc(doc(firestore, "maintenances", maintenanceDoc.id))
-        );
-        await Promise.all(maintenanceDeletions);
-        
-        console.log(`Deleted ${relatedMaintenancesQuery.docs.length} related maintenances for contract ${id}`);
-        
-        // update afiliated products in contracts to remove this contract
-        // use query where products array contains this contract
-        const afiliatedProductsQuery = await getDocs(
+
+        // Query affiliated products
+        const affiliatedProductsQuery = await getDocs(
           query(
             collection(firestore, "products"),
             where("contract", "==", doc(firestore, "contracts", id)),
           ),
         );
-        const afiliatedProductIds = afiliatedProductsQuery.docs.map(
-          (doc) => doc.id,
-        );
-        for (const productId of afiliatedProductIds) {
-          // update field contract in product to null
-          await updateDoc(doc(firestore, "products", productId), {
+
+        // Atomic batch: all deletes and updates succeed or fail together
+        const batch = writeBatch(firestore);
+
+        // Add maintenance deletes to batch
+        for (const maintenanceDoc of relatedMaintenancesQuery.docs) {
+          batch.delete(doc(firestore, "maintenances", maintenanceDoc.id));
+        }
+
+        // Add product updates to batch (set contract to null)
+        for (const productDoc of affiliatedProductsQuery.docs) {
+          batch.update(doc(firestore, "products", productDoc.id), {
             contract: null,
           });
         }
-        await deleteDoc(doc(firestore, "contracts", id));
+
+        // Add contract delete to batch
+        batch.delete(doc(firestore, "contracts", id));
+
+        // All-or-nothing commit
+        await batch.commit();
+
         setContracts(contracts.filter((c) => c.id !== id));
-        
+
         // Show success message if maintenances were deleted
         if (relatedMaintenancesQuery.docs.length > 0) {
           alert(`Kontrak berhasil dihapus bersama dengan ${relatedMaintenancesQuery.docs.length} data maintenance terkait.`);
         }
       } catch (error) {
-        console.error("Error deleting contract:", error);
+        console.error("Error deleting contract:", error instanceof Error ? error.message : "Unknown error");
         setError("Gagal menghapus kontrak dan data terkait");
       }
     }

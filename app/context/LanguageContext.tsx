@@ -7,6 +7,7 @@ import {
   useContext,
   ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { getCookie, setCookie } from "cookies-next";
 
 type LanguageContextType = {
@@ -25,6 +26,7 @@ export function LanguageProvider({
   children: ReactNode;
   initialLanguage?: string;
 }) {
+  const router = useRouter();
   // Menggunakan initialLanguage untuk menghindari hydration mismatch
   const [language, setLanguageState] = useState<string>(initialLanguage);
   const [isClient, setIsClient] = useState(false);
@@ -49,8 +51,8 @@ export function LanguageProvider({
     setLanguageState(lang);
     setCookie("NEXT_LOCALE", lang, { maxAge: 60 * 60 * 24 * 30 }); // 30 hari
 
-    // Force refresh untuk memuat ulang data dari server
-    window.location.reload();
+    // Refresh server components to use the new language cookie
+    router.refresh();
   };
 
   return (

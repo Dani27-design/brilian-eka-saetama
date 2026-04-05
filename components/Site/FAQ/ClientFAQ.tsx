@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import ScrollReveal from "@/components/ScrollReveal";
 import Image from "next/image";
 import FAQItem from "./FAQItem";
 import { useLanguage } from "@/app/context/LanguageContext";
@@ -121,21 +121,10 @@ const ClientFAQ = ({ initialData, initialLanguage }: FAQProps) => {
           )}
         </div>
         <div className="flex flex-wrap gap-8 md:flex-nowrap md:items-center xl:gap-32.5">
-          <motion.div
-            variants={{
-              hidden: {
-                opacity: 0,
-                x: -20,
-              },
-              visible: {
-                opacity: 1,
-                x: 0,
-              },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 1, delay: 0.1 }}
-            viewport={{ once: true }}
+          <ScrollReveal
+            direction="left"
+            duration={1}
+            delay={0.1}
             className="animate_left md:w-2/5 lg:w-1/2"
           >
             <span className="font-medium uppercase text-black dark:text-white">
@@ -146,23 +135,12 @@ const ClientFAQ = ({ initialData, initialLanguage }: FAQProps) => {
                 {faqSubtitle}
               </span>
             </h2>
-          </motion.div>
+          </ScrollReveal>
 
-          <motion.div
-            variants={{
-              hidden: {
-                opacity: 0,
-                x: 20,
-              },
-              visible: {
-                opacity: 1,
-                x: 0,
-              },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 1, delay: 0.1 }}
-            viewport={{ once: true }}
+          <ScrollReveal
+            direction="right"
+            duration={1}
+            delay={0.1}
             className="animate_right md:w-3/5 lg:w-1/2"
           >
             <div className="rounded-lg bg-white shadow-solid-8 dark:border dark:border-strokedark dark:bg-blacksection">
@@ -185,7 +163,7 @@ const ClientFAQ = ({ initialData, initialLanguage }: FAQProps) => {
                 </div>
               )}
             </div>
-          </motion.div>
+          </ScrollReveal>
         </div>
       </div>
     </section>

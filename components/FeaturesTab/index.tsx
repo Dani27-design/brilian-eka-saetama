@@ -4,7 +4,7 @@ import { useState } from "react";
 import FeaturesTabItem from "./FeaturesTabItem";
 import featuresTabData from "./featuresTabData";
 
-import { motion } from "framer-motion";
+import ScrollReveal from "@/components/ScrollReveal";
 
 const FeaturesTab = () => {
   const [currentTab, setCurrentTab] = useState("tabOne");
@@ -36,22 +36,9 @@ const FeaturesTab = () => {
           </div>
 
           {/* <!-- Tab Menues Start --> */}
-          <motion.div
-            variants={{
-              hidden: {
-                opacity: 0,
-                y: -20,
-              },
-
-              visible: {
-                opacity: 1,
-                y: 0,
-              },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 0.5, delay: 0.1 }}
-            viewport={{ once: true }}
+          <ScrollReveal
+            duration={0.5}
+            delay={0.1}
             className="animate_top mb-15 flex flex-wrap justify-center rounded-[10px] border border-stroke bg-white shadow-solid-5 dark:border-strokedark dark:bg-blacksection dark:shadow-solid-6 md:flex-nowrap md:items-center lg:gap-7.5 xl:mb-21.5 xl:gap-12.5"
           >
             <div
@@ -111,26 +98,13 @@ const FeaturesTab = () => {
                 </button>
               </div>
             </div>
-          </motion.div>
+          </ScrollReveal>
           {/* <!-- Tab Menues End --> */}
 
           {/* <!-- Tab Content Start --> */}
-          <motion.div
-            variants={{
-              hidden: {
-                opacity: 0,
-                y: -20,
-              },
-
-              visible: {
-                opacity: 1,
-                y: 0,
-              },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 0.5, delay: 0.5 }}
-            viewport={{ once: true }}
+          <ScrollReveal
+            duration={0.5}
+            delay={0.5}
             className="animate_top mx-auto max-w-c-1280"
           >
             {featuresTabData.map((feature, key) => (
@@ -141,7 +115,7 @@ const FeaturesTab = () => {
                 <FeaturesTabItem featureTab={feature} />
               </div>
             ))}
-          </motion.div>
+          </ScrollReveal>
           {/* <!-- Tab Content End --> */}
         </div>
       </section>

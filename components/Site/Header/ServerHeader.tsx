@@ -33,18 +33,17 @@ async function getHeaderData(language: string) {
       },
     };
 
-    const menuItemsSnapshot = await adminFirestore
-      .collection("header")
-      .doc("menu_items")
-      .get();
+    // Batch fetch all header docs in parallel
+    const [menuItemsSnapshot, logoSnapshot, langDropdownSnapshot] = await Promise.all([
+      adminFirestore.collection("header").doc("menu_items").get(),
+      adminFirestore.collection("header").doc("logo_data").get(),
+      adminFirestore.collection("header").doc("language_dropdown").get(),
+    ]);
+
     if (menuItemsSnapshot.exists) {
       headerData.menu_items = menuItemsSnapshot.data()?.[language] || [];
     }
 
-    const logoSnapshot = await adminFirestore
-      .collection("header")
-      .doc("logo_data")
-      .get();
     if (logoSnapshot.exists) {
       const logoData = logoSnapshot.data();
       if (
@@ -59,10 +58,6 @@ async function getHeaderData(language: string) {
       }
     }
 
-    const langDropdownSnapshot = await adminFirestore
-      .collection("header")
-      .doc("language_dropdown")
-      .get();
     if (langDropdownSnapshot.exists) {
       const langData = langDropdownSnapshot.data();
       if (langData) {
@@ -75,7 +70,7 @@ async function getHeaderData(language: string) {
 
     return headerData;
   } catch (error) {
-    console.error("Error fetching header data:", error);
+    console.error("Error fetching header data:", error instanceof Error ? error.message : "Unknown error");
     return fallbackHeaderData;
   }
 }
@@ -88,7 +83,7 @@ export default async function ServerHeader() {
     const headerData = await getHeaderData(locale);
     return <ClientHeader initialData={headerData} initialLanguage={locale} />;
   } catch (error) {
-    console.error("Error in ServerHeader:", error);
+    console.error("Error in ServerHeader:", error instanceof Error ? error.message : "Unknown error");
     return (
       <ClientHeader initialData={fallbackHeaderData} initialLanguage={locale} />
     );

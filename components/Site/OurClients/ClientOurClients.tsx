@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import ScrollReveal from "@/components/ScrollReveal";
 import { useLanguage } from "@/app/context/LanguageContext";
 
 // Types for clients data
@@ -142,54 +142,30 @@ const ClientOurClients = ({
           </>
         )}
 
-        <motion.div
-          variants={{
-            hidden: {
-              opacity: 0,
-              y: -20,
-            },
-            visible: {
-              opacity: 1,
-              y: 0,
-            },
-          }}
-          initial="hidden"
-          whileInView="visible"
-          transition={{ duration: 1, delay: 0.1 }}
-          viewport={{ once: true }}
+        <ScrollReveal
+          duration={1}
+          delay={0.1}
           className="animate_top mx-auto mb-12.5 px-4 text-center md:w-4/5 md:px-0 lg:mb-17.5 lg:w-2/3 xl:w-1/2"
         >
           <h2 className="mb-4 text-3xl font-bold text-black dark:text-white xl:text-sectiontitle3">
             {clientsTitle}
           </h2>
           <p className="mx-auto lg:w-11/12">{clientsDescription}</p>
-        </motion.div>
+        </ScrollReveal>
 
         <div className="flex flex-wrap justify-center gap-8 lg:gap-42.5">
           {clientsStats.map((stat, index) => (
-            <motion.div
+            <ScrollReveal
               key={stat.id}
-              variants={{
-                hidden: {
-                  opacity: 0,
-                  y: -20,
-                },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                },
-              }}
-              initial="hidden"
-              whileInView="visible"
-              transition={{ duration: 1, delay: 0.5 + index * 0.2 }}
-              viewport={{ once: true }}
+              duration={1}
+              delay={0.5 + index * 0.2}
               className="animate_top text-center"
             >
               <h3 className="mb-2.5 text-3xl font-bold text-black dark:text-white xl:text-sectiontitle3">
                 {stat.value}
               </h3>
               <p className="text-lg lg:text-para2">{stat.label}</p>
-            </motion.div>
+            </ScrollReveal>
           ))}
         </div>
       </div>

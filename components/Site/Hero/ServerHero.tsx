@@ -58,14 +58,14 @@ async function getHeroData(language: string): Promise<HeroServerData> {
           }
         }
       } catch (error) {
-        console.error(`Error fetching ${field}:`, error);
+        console.error(`Error fetching ${field}:`, error instanceof Error ? error.message : "Unknown error");
       }
     });
 
     await Promise.all(fetchPromises);
     return heroData;
   } catch (error) {
-    console.error("Error fetching hero data:", error);
+    console.error("Error fetching hero data:", error instanceof Error ? error.message : "Unknown error");
     return fallbackHeroData;
   }
 }
@@ -82,7 +82,7 @@ export default async function ServerHero() {
     // Kirim data ke client component
     return <ClientHero initialData={heroData} initialLanguage={locale} />;
   } catch (error) {
-    console.error("Error in ServerHero:", error);
+    console.error("Error in ServerHero:", error instanceof Error ? error.message : "Unknown error");
     return (
       <ClientHero initialData={fallbackHeroData} initialLanguage={locale} />
     );

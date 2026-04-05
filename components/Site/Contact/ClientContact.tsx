@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, FormEvent, useMemo } from "react";
-import { motion } from "framer-motion";
+import ScrollReveal from "@/components/ScrollReveal";
 import Image from "next/image";
 import { useLanguage } from "@/app/context/LanguageContext";
 import emailjs from "@emailjs/browser";
@@ -292,21 +292,9 @@ const ClientContact = ({ initialData, initialLanguage }: ContactProps) => {
         </div>
 
         <div className="flex flex-col-reverse flex-wrap gap-8 md:flex-row md:flex-nowrap md:justify-between xl:gap-20">
-          <motion.div
-            variants={{
-              hidden: {
-                opacity: 0,
-                y: -20,
-              },
-              visible: {
-                opacity: 1,
-                y: 0,
-              },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 1, delay: 0.1 }}
-            viewport={{ once: true }}
+          <ScrollReveal
+            duration={1}
+            delay={0.1}
             className="animate_top w-full rounded-lg bg-white p-7.5 shadow-solid-8 dark:border dark:border-strokedark dark:bg-black md:w-3/5 lg:w-3/4 xl:p-15"
           >
             <h2 className="mb-15 text-3xl font-semibold text-black dark:text-white xl:text-sectiontitle2">
@@ -454,23 +442,11 @@ const ClientContact = ({ initialData, initialLanguage }: ContactProps) => {
                 </button>
               </div>
             </form>
-          </motion.div>
+          </ScrollReveal>
 
-          <motion.div
-            variants={{
-              hidden: {
-                opacity: 0,
-                y: -20,
-              },
-              visible: {
-                opacity: 1,
-                y: 0,
-              },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 2, delay: 0.1 }}
-            viewport={{ once: true }}
+          <ScrollReveal
+            duration={2}
+            delay={0.1}
             className="animate_top w-full md:w-2/5 md:p-7.5 lg:w-[26%] xl:pt-15"
           >
             <h2 className="mb-12.5 text-3xl font-semibold text-black dark:text-white xl:text-sectiontitle2">
@@ -518,7 +494,7 @@ const ClientContact = ({ initialData, initialLanguage }: ContactProps) => {
                 </a>
               </p>
             </div>
-          </motion.div>
+          </ScrollReveal>
         </div>
       </div>
     </section>
