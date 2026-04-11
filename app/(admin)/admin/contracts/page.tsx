@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   collection,
@@ -14,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { usePageHeader } from "@/app/context/PageHeaderContext";
+import Modal from "@/components/Admin/Modal";
 import type { Contract } from "@/types/contracts";
 import ContractFiltersComponent, {
   ContractFilters,
@@ -45,6 +47,7 @@ const defaultFilters: ContractFilters = {
 
 export default function ContractsPage() {
   usePageHeader("Manajemen Kontrak", "Kelola data kontrak");
+  const router = useRouter();
 
   const [contracts, setContracts] = useState<ContractTableRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,6 +55,7 @@ export default function ContractsPage() {
   const [filters, setFilters] = useState<ContractFilters>(defaultFilters);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [productModalContract, setProductModalContract] = useState<ContractTableRow | null>(null);
 
   const uniqueCustomers = useMemo(() => {
     const names = contracts.map((c) => c.customerName).filter((n) => n !== "-");
@@ -274,38 +278,15 @@ export default function ContractsPage() {
   };
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Link
-          href="/admin/contracts/create"
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Tambah Kontrak
-        </Link>
-      </div>
-
+    <div className="flex h-full flex-col">
       {error && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           {error}
         </div>
       )}
 
-      {/* Filter Component */}
-      <div className="mb-6">
+      {/* Filters & Actions */}
+      <div className="mb-4">
         <ContractFiltersComponent
           filters={filters}
           onFiltersChange={setFilters}
@@ -313,184 +294,127 @@ export default function ContractsPage() {
           contractCount={contracts.length}
           filteredCount={sortedContracts.length}
           availableCustomers={uniqueCustomers}
+          onAddContract={() => router.push("/admin/contracts/create")}
         />
       </div>
 
-      <div className="rounded-lg border border-stroke bg-white p-4">
+      <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <svg
-                className="mx-auto h-8 w-8 animate-spin text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
+              <svg className="mx-auto h-8 w-8 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
               <p className="mt-2 text-gray-500">Memuat kontrak...</p>
             </div>
           </div>
         ) : sortedContracts.length === 0 ? (
           <div className="py-12 text-center">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">
-              Tidak ada kontrak
-            </h3>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">Tidak ada kontrak</h3>
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="styled-scrollbar min-h-0 flex-1 overflow-auto">
               <table className="w-full table-auto">
-                <thead>
-                  <tr className="border-b border-stroke bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
-                    <th className="px-4 py-3">No. Kontrak</th>
-                    <th className="px-4 py-3">Nama Kontrak</th>
-                    <th className="px-4 py-3">Tipe</th>
-                    <th className="px-4 py-3">Deskripsi</th>
+                <thead className="sticky top-0 z-10 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+                    <th className="px-4 py-3">Kontrak</th>
                     <th className="px-4 py-3">Pelanggan</th>
-                    <th className="px-4 py-3">Tanggal Mulai</th>
-                    <th className="px-4 py-3">Tanggal Selesai</th>
+                    <th className="px-4 py-3">Periode</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Produk & Layanan</th>
+                    <th className="px-4 py-3">Produk</th>
                     <th className="px-4 py-3">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stroke">
-                  {currentContracts.map((contract) => (
-                    <tr key={contract.id} className="text-sm hover:bg-gray-50">
-                      <td className="px-4 py-3">{contract.contractNumber}</td>
-                      <td className="px-4 py-3">{contract.contractName}</td>
-                      <td className="px-4 py-3">{contract.contractType}</td>
-                      <td className="px-4 py-3">
-                        {contract.contractDescription}
-                      </td>
-                      <td className="px-4 py-3">{contract.customerName}</td>
-                      <td className="px-4 py-3">
-                        {contract.startDate &&
-                        (contract.startDate as any).toDate
-                          ? (contract.startDate as any)
-                              .toDate()
-                              .toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-3">
-                        {contract.endDate && (contract.endDate as any).toDate
-                          ? (contract.endDate as any)
-                              .toDate()
-                              .toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                            contractStatusColor[contract.status] ||
-                            "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {contract.status === "active"
-                            ? "Aktif"
-                            : contract.status === "inactive"
-                              ? "Tidak Aktif"
-                              : contract.status === "terminated"
-                                ? "Dihentikan"
-                                : "-"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {contract.productDetailsDisplay &&
-                        contract.productDetailsDisplay.length > 0 ? (
-                          <ul className="list-disc pl-4">
-                            {contract.productDetailsDisplay.map((item, idx) => (
-                              <div key={idx} className="mb-2 flex flex-col">
-                                <li>
-                                  Produk : {item.productName} (
-                                  {item.productNumber})
-                                </li>
-                                <li>
-                                  Layanan : {item.serviceType?.join(", ")}
-                                </li>
-                              </div>
-                            ))}
-                          </ul>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={`/admin/contracts/edit/${contract.id}`}
-                            className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="mr-1 h-3 w-3"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                  {currentContracts.map((contract) => {
+                    const startDate = contract.startDate && (contract.startDate as any).toDate
+                      ? (contract.startDate as any).toDate().toLocaleDateString()
+                      : "-";
+                    const endDate = contract.endDate && (contract.endDate as any).toDate
+                      ? (contract.endDate as any).toDate().toLocaleDateString()
+                      : "Ongoing";
+                    const productCount = contract.productDetailsDisplay?.length || 0;
+
+                    return (
+                      <tr key={contract.id} className="text-sm hover:bg-blue-50/50">
+                        {/* Kontrak: No + Nama + Tipe badge */}
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-gray-900">{contract.contractName}</div>
+                          <div className="mt-0.5 text-xs text-gray-500">{contract.contractNumber}</div>
+                          <span className="mt-1 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                            {contract.contractType}
+                          </span>
+                        </td>
+
+                        {/* Pelanggan */}
+                        <td className="px-4 py-3 text-gray-700">{contract.customerName}</td>
+
+                        {/* Periode: Start - End */}
+                        <td className="px-4 py-3">
+                          <div className="text-gray-900">{startDate}</div>
+                          <div className="text-xs text-gray-500">{endDate}</div>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                            contractStatusColor[contract.status] || "bg-gray-100 text-gray-800"
+                          }`}>
+                            {contract.status === "active" ? "Aktif"
+                              : contract.status === "inactive" ? "Nonaktif"
+                              : contract.status === "terminated" ? "Dihentikan"
+                              : "-"}
+                          </span>
+                        </td>
+
+                        {/* Produk: count + link */}
+                        <td className="px-4 py-3">
+                          {productCount > 0 ? (
+                            <div className="text-sm">
+                              <div className="font-medium text-gray-900">{productCount} produk</div>
+                              <button
+                                onClick={() => setProductModalContract(contract)}
+                                className="mt-1 text-xs font-medium text-primary hover:underline"
+                              >
+                                Lihat produk
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+
+                        {/* Aksi */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/admin/contracts/edit/${contract.id}`}
+                              className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6"
-                              />
-                            </svg>
-                            Edit
-                          </Link>
-                          <button
-                            onClick={() => handleDelete(contract.id)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="mr-1 h-3 w-3"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                              Edit
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(contract.id)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                            Hapus
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                              Hapus
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-            {/* Pagination Controls */}
-            <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t pt-4 sm:flex-row sm:space-y-0">
+
+            {/* Pagination */}
+            <div className="my-0 flex flex-col items-center justify-between space-y-3 border-t border-stroke p-2 sm:flex-row sm:space-y-0">
               <div className="text-xs text-gray-600">
                 Menampilkan {indexOfFirstItem + 1}-
                 {Math.min(indexOfLastItem, sortedContracts.length)} dari{" "}
@@ -500,11 +424,8 @@ export default function ContractsPage() {
                 <span className="text-sm text-gray-600">Item per halaman:</span>
                 <select
                   value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="rounded-md border px-2 py-1 text-sm"
+                  onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                  className="rounded-md border border-stroke bg-white px-2 py-1 text-sm outline-none focus:border-primary"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -519,53 +440,28 @@ export default function ContractsPage() {
                   disabled={currentPage === 1}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === 1
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : "border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <span className="text-sm text-gray-600">
-                  Halaman <span className="font-medium">{currentPage}</span>{" "}
-                  dari {totalPages}
+                  Halaman <span className="font-medium">{currentPage}</span> dari {totalPages}
                 </span>
                 <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages || totalPages === 0}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === totalPages || totalPages === 0
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : "border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
@@ -573,6 +469,38 @@ export default function ContractsPage() {
           </>
         )}
       </div>
+
+      {/* Product Detail Modal */}
+      <Modal
+        isOpen={productModalContract !== null}
+        onClose={() => setProductModalContract(null)}
+        title={productModalContract ? `Produk — ${productModalContract.contractName}` : "Produk"}
+      >
+        {productModalContract && productModalContract.productDetailsDisplay.length > 0 && (
+          <div className="styled-scrollbar max-h-[60vh] overflow-auto">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+                  <th className="px-3 py-2">Produk</th>
+                  <th className="px-3 py-2">No. Produk</th>
+                  <th className="px-3 py-2">Layanan</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stroke">
+                {productModalContract.productDetailsDisplay
+                .sort((a, b) => (Number(a.productNumber) || 0) - (Number(b.productNumber) || 0))
+                .map((item, idx) => (
+                  <tr key={idx} className="hover:bg-blue-50/50">
+                    <td className="px-3 py-2 font-medium text-gray-900">{item.productName || "-"}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-gray-600">{item.productNumber || "-"}</td>
+                    <td className="px-3 py-2 text-gray-700">{item.serviceType?.join(", ") || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

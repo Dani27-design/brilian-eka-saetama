@@ -62,7 +62,7 @@ export default function EditClientsPage({ params }) {
   }
 
   return (
-    <div className="container mx-auto">
+    <div className="">
       {error && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
           {error}

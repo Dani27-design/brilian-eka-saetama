@@ -11,7 +11,7 @@ export default function EditChecksheetAparPage({
   usePageHeader("Edit APAR Checksheet", "Edit an existing APAR inspection checksheet");
 
   return (
-    <div className="container mx-auto">
+    <div className="">
       <ChecksheetAparForm id={params.id} isEditing={true} />
     </div>
   );

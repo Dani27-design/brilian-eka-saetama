@@ -1009,7 +1009,7 @@ export default function EditProductPage() {
   if (loading) return <div className="p-8 text-center">Memuat...</div>;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="">
       {/* Enhanced Header */}
       <div className="mb-8">
         <nav className="mb-4 flex items-center text-sm text-gray-500">

@@ -314,7 +314,7 @@ export default function EditUserPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="">
       {/* Header with Breadcrumb */}
       <div className="mb-8">
         <nav className="mb-4 flex items-center text-sm text-gray-500">

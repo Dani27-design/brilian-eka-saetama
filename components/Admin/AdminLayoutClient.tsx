@@ -243,7 +243,7 @@ export default function AdminLayout({
                     : !isMobile
                     ? "lg:ml-20"
                     : ""
-                } flex min-h-0 flex-1 flex-col overflow-hidden bg-blue-50 p-4 transition-all duration-300 lg:p-6`}
+                } flex min-h-0 flex-1 flex-col overflow-y-auto bg-blue-50 p-4 transition-all duration-300 lg:p-6`}
               >
                 {children}
               </main>

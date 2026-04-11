@@ -143,7 +143,7 @@ export default function EditCustomerPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="">
       {/* Enhanced Header */}
       <div className="mb-8">
         <nav className="mb-4 flex items-center text-sm text-gray-500">

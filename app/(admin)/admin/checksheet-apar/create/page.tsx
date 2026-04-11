@@ -7,7 +7,7 @@ export default function CreateChecksheetAparPage() {
   usePageHeader("Create APAR Checksheet", "Create a new APAR inspection checksheet");
 
   return (
-    <div className="container mx-auto">
+    <div className="">
       <ChecksheetAparForm isEditing={false} />
     </div>
   );
