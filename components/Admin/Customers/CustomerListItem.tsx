@@ -8,17 +8,17 @@ import { formatAddressSingleLine } from "@/utils/addressHelper";
 interface CustomerListItemProps {
   customer: Customer & { id: string; contracts: any[] };
   onDelete: (id: string) => void;
-  bulkMode?: boolean;
   isSelected?: boolean;
   onToggleSelection?: () => void;
+  onViewContracts?: (customer: Customer & { id: string; contracts: any[] }) => void;
 }
 
 function CustomerListItem({
   customer,
   onDelete,
-  bulkMode = false,
   isSelected = false,
-  onToggleSelection
+  onToggleSelection,
+  onViewContracts,
 }: CustomerListItemProps) {
   // Get primary contact or first contact
   const getPrimaryContact = (): ContactPerson | null => {
@@ -96,18 +96,16 @@ function CustomerListItem({
   const canDelete = contractCount === 0;
 
   return (
-    <tr className="border-b text-sm hover:bg-gray-50">
-      {/* Bulk Selection Checkbox */}
-      {bulkMode && (
-        <td className="px-4 py-3 text-center">
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={onToggleSelection}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-          />
-        </td>
-      )}
+    <tr className={`text-sm transition-colors ${isSelected ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50/50"}`}>
+      {/* Selection Checkbox */}
+      <td className="px-4 py-3 text-center">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={onToggleSelection}
+          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+        />
+      </td>
       
       {/* Customer Name & Type */}
       <td className="px-4 py-3">
@@ -152,23 +150,25 @@ function CustomerListItem({
         )}
       </td>
 
-      {/* Additional Contacts */}
-      <td className="px-4 py-3 text-center">
-        {customer.contacts && customer.contacts.length > 1 ? (
-          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-            +{customer.contacts.length - 1} lainnya
-          </span>
-        ) : (
-          <span className="text-gray-400">-</span>
-        )}
-      </td>
-
       {/* Contracts */}
-      <td className="px-4 py-3 text-center">
+      <td className="px-4 py-3">
         {contractCount > 0 ? (
-          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-            {contractCount} kontrak
-          </span>
+          <div className="text-sm">
+            <div className="font-medium text-gray-900">
+              {customer.contracts[0]?.contractName || '-'}
+            </div>
+            {contractCount > 1 && (
+              <div className="text-xs text-gray-500">
+                +{contractCount - 1} kontrak lainnya
+              </div>
+            )}
+            <button
+              onClick={() => onViewContracts?.(customer)}
+              className="mt-1 text-xs font-medium text-primary hover:underline"
+            >
+              Lihat kontrak
+            </button>
+          </div>
         ) : (
           <span className="text-gray-400">-</span>
         )}
@@ -193,16 +193,11 @@ function CustomerListItem({
           <button
             onClick={handleDelete}
             disabled={!canDelete}
-            className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-              canDelete
-                ? "border border-red-300 bg-white text-red-600 hover:bg-red-50"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            className={`inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 ${
+              !canDelete ? "cursor-not-allowed opacity-50" : ""
             }`}
-            title={canDelete ? "Hapus pelanggan" : "Tidak dapat dihapus karena memiliki kontrak"}
+            title={canDelete ? "Hapus pelanggan" : "Tidak dapat dihapus — pelanggan memiliki kontrak aktif"}
           >
-            <svg className="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
             Hapus
           </button>
         </div>

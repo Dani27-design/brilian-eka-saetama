@@ -15,26 +15,35 @@ import { firestore } from "@/db/firebase/firebaseConfig";
 import Image from "next/image";
 import type { Product, ProductType } from "@/types/product";
 import { Contract } from "@/types/contracts";
-import { 
-  generateProductQRData, 
+import {
+  generateProductQRData,
   generateProductQRDataObject,
-  ProductQRData
+  ProductQRData,
 } from "@/utils/qrCodeGenerator";
 import { findProductLocation } from "@/utils/findProductLocation";
 import Modal from "@/components/Admin/Modal";
 import BulkEditDialog from "@/components/Admin/Products/BulkEditDialog";
 import BulkAddToContractDialog from "@/components/Admin/Products/BulkAddToContractDialog";
-import ProductFiltersComponent, { ProductFilters } from "@/components/Admin/Products/ProductFilters";
+import ProductFiltersComponent, {
+  ProductFilters,
+} from "@/components/Admin/Products/ProductFilters";
 import SortableHeader from "@/components/Admin/Products/SortableHeader";
 import { exportProducts } from "@/utils/exportGenerator";
-import { generateBulkQRCodes, downloadBulkQRZip, BulkQRProgressCallback } from "@/utils/bulkQRGenerator";
+import {
+  generateBulkQRCodes,
+  downloadBulkQRZip,
+  BulkQRProgressCallback,
+} from "@/utils/bulkQRGenerator";
 import { printQRCode } from "@/utils/qrCodePrint";
 import { buildProductQuery, getSortingStrategy } from "@/utils/productQuery";
 import { enrichProductsWithContracts } from "@/utils/productDataLoader";
 import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 export default function ProductsPage() {
-  usePageHeader("Manajemen Produk", "Kelola data produk dengan sistem yang terintegrasi.");
+  usePageHeader(
+    "Manajemen Produk",
+    "Kelola data produk dengan sistem yang terintegrasi.",
+  );
   const router = useRouter();
   const [products, setProducts] = useState<
     (Product & { contractData?: any })[]
@@ -44,7 +53,7 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [generatingQR, setGeneratingQR] = useState<string | null>(null);
-  
+
   // Filter state
   const [filters, setFilters] = useState<ProductFilters>({
     search: "",
@@ -53,27 +62,32 @@ export default function ProductsPage() {
     source: "",
     contractStatus: "",
     sortBy: "productNumber",
-    sortOrder: "asc"
+    sortOrder: "asc",
   });
-  
+
   // Bulk operations state
-  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(
+    new Set(),
+  );
   const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
-  const [showBulkAddToContractDialog, setShowBulkAddToContractDialog] = useState(false);
+  const [showBulkAddToContractDialog, setShowBulkAddToContractDialog] =
+    useState(false);
   const [bulkQRProgress, setBulkQRProgress] = useState<{
     isGenerating: boolean;
     current: number;
     total: number;
     currentProduct: string;
   } | null>(null);
-  
 
   // Specs modal state
-  const [specsModalProduct, setSpecsModalProduct] = useState<(Product & { contractData?: any }) | null>(null);
+  const [specsModalProduct, setSpecsModalProduct] = useState<
+    (Product & { contractData?: any }) | null
+  >(null);
 
   // Contract modal state
-  const [contractModalProduct, setContractModalProduct] = useState<(Product & { contractData?: any }) | null>(null);
-  
+  const [contractModalProduct, setContractModalProduct] = useState<
+    (Product & { contractData?: any }) | null
+  >(null);
 
   // Fetch products with smart querying
   const fetchProducts = async () => {
@@ -81,8 +95,11 @@ export default function ProductsPage() {
     setError(null);
     try {
       const productsCollection = collection(firestore, "products");
-      const { query: productQuery, useClientSort } = buildProductQuery(productsCollection, filters);
-      
+      const { query: productQuery, useClientSort } = buildProductQuery(
+        productsCollection,
+        filters,
+      );
+
       let querySnapshot;
       if (productQuery) {
         // Use Firestore query with sorting
@@ -91,17 +108,20 @@ export default function ProductsPage() {
         // Fallback to fetching all products for client-side processing
         querySnapshot = await getDocs(productsCollection);
       }
-      
+
       const data: Product[] = [];
       querySnapshot.forEach((docSnap) => {
         data.push({ ...docSnap.data(), id: docSnap.id } as Product);
       });
-      
+
       // Batch load contract and customer data (replaces N+1 queries)
       const productsWithContracts = await enrichProductsWithContracts(data);
       setProducts(productsWithContracts);
     } catch (err) {
-      console.error("Error fetching products:", err instanceof Error ? err.message : "Unknown error");
+      console.error(
+        "Error fetching products:",
+        err instanceof Error ? err.message : "Unknown error",
+      );
       setError("Gagal memuat produk");
     } finally {
       setIsLoading(false);
@@ -116,7 +136,6 @@ export default function ProductsPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
-
 
   // Get unique options for filters
   const availableTypes = Array.from(
@@ -140,9 +159,11 @@ export default function ProductsPage() {
           product.specs.brand || "",
           product.specs.brandType || "",
           product.productType,
-          product.source || ""
-        ].join(" ").toLowerCase();
-        
+          product.source || "",
+        ]
+          .join(" ")
+          .toLowerCase();
+
         if (!searchableText.includes(filters.search.toLowerCase())) {
           return false;
         }
@@ -167,7 +188,8 @@ export default function ProductsPage() {
       if (filters.contractStatus) {
         const hasContract = Boolean(product.contractData);
         if (filters.contractStatus === "assigned" && !hasContract) return false;
-        if (filters.contractStatus === "unassigned" && hasContract) return false;
+        if (filters.contractStatus === "unassigned" && hasContract)
+          return false;
       }
 
       return true;
@@ -176,7 +198,7 @@ export default function ProductsPage() {
     // Sorting
     filtered.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (filters.sortBy) {
         case "name":
           comparison = a.name.localeCompare(b.name);
@@ -190,8 +212,10 @@ export default function ProductsPage() {
           comparison = aDate.getTime() - bDate.getTime();
           break;
         case "updatedAt":
-          const aUpdated = a.updatedAt?.toDate?.() || a.createdAt?.toDate?.() || new Date(0);
-          const bUpdated = b.updatedAt?.toDate?.() || b.createdAt?.toDate?.() || new Date(0);
+          const aUpdated =
+            a.updatedAt?.toDate?.() || a.createdAt?.toDate?.() || new Date(0);
+          const bUpdated =
+            b.updatedAt?.toDate?.() || b.createdAt?.toDate?.() || new Date(0);
           comparison = aUpdated.getTime() - bUpdated.getTime();
           break;
       }
@@ -227,15 +251,23 @@ export default function ProductsPage() {
 
   // Bulk delete products
   const handleBulkDelete = async () => {
-    const selectedList = products.filter(p => p.id && selectedProducts.has(p.id));
-    const withContract = selectedList.filter(p => p.contract);
+    const selectedList = products.filter(
+      (p) => p.id && selectedProducts.has(p.id),
+    );
+    const withContract = selectedList.filter((p) => p.contract);
 
     if (withContract.length > 0) {
-      setError(`${withContract.length} produk memiliki kontrak aktif dan tidak dapat dihapus. Hapus kontrak terlebih dahulu.`);
+      setError(
+        `${withContract.length} produk memiliki kontrak aktif dan tidak dapat dihapus. Hapus kontrak terlebih dahulu.`,
+      );
       return;
     }
 
-    if (!window.confirm(`Hapus ${selectedList.length} produk yang dipilih? Tindakan ini tidak dapat dibatalkan.`)) {
+    if (
+      !window.confirm(
+        `Hapus ${selectedList.length} produk yang dipilih? Tindakan ini tidak dapat dibatalkan.`,
+      )
+    ) {
       return;
     }
 
@@ -246,7 +278,9 @@ export default function ProductsPage() {
           await deleteDoc(doc(firestore, "products", product.id));
         }
       }
-      setProducts(prev => prev.filter(p => !p.id || !selectedProducts.has(p.id)));
+      setProducts((prev) =>
+        prev.filter((p) => !p.id || !selectedProducts.has(p.id)),
+      );
       setSelectedProducts(new Set());
     } catch {
       setError("Gagal menghapus beberapa produk");
@@ -256,10 +290,12 @@ export default function ProductsPage() {
   /**
    * Handles QR code printing for a product
    * Opens new window with sticker-style QR code and triggers native print dialog
-   * 
+   *
    * @param product - The product to generate QR code for
    */
-  const handleGenerateQR = async (product: Product & { contractData?: any }) => {
+  const handleGenerateQR = async (
+    product: Product & { contractData?: any },
+  ) => {
     if (!product.id) return;
 
     setGeneratingQR(product.id);
@@ -272,7 +308,7 @@ export default function ProductsPage() {
       if (product.contractData?.productDetails) {
         location = findProductLocation(
           doc(firestore, "products", product.id),
-          product.contractData.productDetails
+          product.contractData.productDetails,
         );
         if (location === "N/A") location = undefined;
       }
@@ -287,14 +323,16 @@ export default function ProductsPage() {
         product.contractData?.id,
         location,
         customerName,
-        product.contractData?.contractName
+        product.contractData?.contractName,
       );
 
       // Print QR code directly (opens new window and triggers native print)
       await printQRCode(qrData, `QR Sticker - ${product.productNumber}`);
-
     } catch (err: any) {
-      console.error("Error generating QR code:", err instanceof Error ? err.message : "Unknown error");
+      console.error(
+        "Error generating QR code:",
+        err instanceof Error ? err.message : "Unknown error",
+      );
       setError(err.message || "Gagal membuat QR code");
     } finally {
       setGeneratingQR(null);
@@ -307,9 +345,9 @@ export default function ProductsPage() {
   };
 
   // Handle column sorting
-  const handleColumnSort = (sortBy: ProductFilters['sortBy']) => {
+  const handleColumnSort = (sortBy: ProductFilters["sortBy"]) => {
     const newFilters = { ...filters };
-    
+
     if (filters.sortBy === sortBy) {
       // Toggle sort order for the same column
       newFilters.sortOrder = filters.sortOrder === "asc" ? "desc" : "asc";
@@ -318,7 +356,7 @@ export default function ProductsPage() {
       newFilters.sortBy = sortBy;
       newFilters.sortOrder = "asc";
     }
-    
+
     setFilters(newFilters);
   };
 
@@ -331,7 +369,7 @@ export default function ProductsPage() {
       source: "",
       contractStatus: "",
       sortBy: "productNumber",
-      sortOrder: "asc"
+      sortOrder: "asc",
     });
   };
 
@@ -352,13 +390,16 @@ export default function ProductsPage() {
       setSelectedProducts(new Set());
     } else {
       // Select all current page products
-      const allIds = new Set(currentProducts.map(p => p.id).filter(Boolean) as string[]);
+      const allIds = new Set(
+        currentProducts.map((p) => p.id).filter(Boolean) as string[],
+      );
       setSelectedProducts(allIds);
     }
   };
 
-  const isAllSelected = currentProducts.length > 0 && 
-    currentProducts.every(p => p.id && selectedProducts.has(p.id));
+  const isAllSelected =
+    currentProducts.length > 0 &&
+    currentProducts.every((p) => p.id && selectedProducts.has(p.id));
 
   /**
    * Handles successful bulk operations by refreshing data and clearing selection
@@ -372,8 +413,10 @@ export default function ProductsPage() {
    * Handles bulk QR code generation for selected products
    */
   const handleBulkQRGeneration = async () => {
-    const selectedProductList = products.filter(p => p.id && selectedProducts.has(p.id));
-    
+    const selectedProductList = products.filter(
+      (p) => p.id && selectedProducts.has(p.id),
+    );
+
     if (selectedProductList.length === 0) {
       setError("No products selected for QR generation");
       return;
@@ -385,7 +428,7 @@ export default function ProductsPage() {
         isGenerating: true,
         current: 0,
         total: selectedProductList.length,
-        currentProduct: ''
+        currentProduct: "",
       });
 
       const progressCallback: BulkQRProgressCallback = (progress) => {
@@ -393,36 +436,40 @@ export default function ProductsPage() {
           isGenerating: true,
           current: progress.current,
           total: progress.total,
-          currentProduct: progress.productName
+          currentProduct: progress.productName,
         });
       };
 
       const result = await generateBulkQRCodes(
         selectedProductList,
         {
-          size: 'print',
+          size: "print",
           includeLabels: false, // No labels needed - PDF contains all info
-          errorCorrectionLevel: 'H',
-          format: 'pdf', // Changed from png to pdf
+          errorCorrectionLevel: "H",
+          format: "pdf", // Changed from png to pdf
           useDesignedQR: false,
           useStyledQR: true, // Use current company styled QR codes
-          logoUrl: '/images/logo/logo-light.png'
+          logoUrl: "/images/logo/logo-light.png",
         },
-        progressCallback
+        progressCallback,
       );
 
       if (result.zipBlob) {
         downloadBulkQRZip(result.zipBlob);
-        
+
         if (result.failed > 0) {
-          setError(`QR generation completed with ${result.failed} failures. Check the downloaded ZIP for details.`);
+          setError(
+            `QR generation completed with ${result.failed} failures. Check the downloaded ZIP for details.`,
+          );
         }
       } else {
         setError("Failed to generate QR codes");
       }
-
     } catch (err: any) {
-      console.error('Bulk QR generation error:', err instanceof Error ? err.message : "Unknown error");
+      console.error(
+        "Bulk QR generation error:",
+        err instanceof Error ? err.message : "Unknown error",
+      );
       setError(err.message || "Failed to generate QR codes");
     } finally {
       setBulkQRProgress(null);
@@ -450,7 +497,9 @@ export default function ProductsPage() {
 
   // Helper: Format a spec value for display
   const formatSpecValue = (key: string, value: any) => {
-    if (["manufactureDate", "installationDate", "expirationDate"].includes(key)) {
+    if (
+      ["manufactureDate", "installationDate", "expirationDate"].includes(key)
+    ) {
       return value?.toDate ? value.toDate().toLocaleDateString() : value || "-";
     }
     if (typeof value === "boolean") {
@@ -521,9 +570,10 @@ export default function ProductsPage() {
           selectedCount={selectedProducts.size}
           onExport={async () => {
             try {
-              const productsToExport = selectedProducts.size > 0
-                ? products.filter(p => p.id && selectedProducts.has(p.id))
-                : filteredProducts;
+              const productsToExport =
+                selectedProducts.size > 0
+                  ? products.filter((p) => p.id && selectedProducts.has(p.id))
+                  : filteredProducts;
               await exportProducts(productsToExport, {
                 includeSpecs: true,
                 includeContract: true,
@@ -544,9 +594,24 @@ export default function ProductsPage() {
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <svg className="mx-auto h-8 w-8 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              <svg
+                className="mx-auto h-8 w-8 animate-spin text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
               <p className="mt-2 text-gray-500">Memuat produk...</p>
             </div>
@@ -555,11 +620,25 @@ export default function ProductsPage() {
           <div className="py-12 text-center">
             {products.length === 0 ? (
               <div>
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
                 </svg>
-                <h3 className="mt-2 text-lg font-medium text-gray-900">Belum ada produk</h3>
-                <p className="mt-1 text-gray-500">Mulai dengan menambahkan produk pertama Anda.</p>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">
+                  Belum ada produk
+                </h3>
+                <p className="mt-1 text-gray-500">
+                  Mulai dengan menambahkan produk pertama Anda.
+                </p>
                 <div className="mt-6">
                   <p className="text-sm text-gray-500">
                     Gunakan tombol "Tambah Produk" di bagian atas untuk memulai.
@@ -568,10 +647,22 @@ export default function ProductsPage() {
               </div>
             ) : (
               <div>
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
-                <h3 className="mt-2 text-lg font-medium text-gray-900">Tidak ada hasil</h3>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">
+                  Tidak ada hasil
+                </h3>
                 <p className="mt-1 text-gray-500">
                   Tidak ada produk yang cocok dengan filter yang Anda terapkan.
                 </p>
@@ -634,10 +725,12 @@ export default function ProductsPage() {
                 </thead>
                 <tbody className="divide-y divide-stroke">
                   {currentProducts.map((product, index) => {
-                    const isSelected = product.id ? selectedProducts.has(product.id) : false;
+                    const isSelected = product.id
+                      ? selectedProducts.has(product.id)
+                      : false;
                     return (
-                      <tr 
-                        key={product.id} 
+                      <tr
+                        key={product.id}
                         className={`text-sm transition-colors ${
                           isSelected
                             ? "bg-blue-50 hover:bg-blue-100"
@@ -649,7 +742,9 @@ export default function ProductsPage() {
                             <input
                               type="checkbox"
                               checked={isSelected}
-                              onChange={() => product.id && handleSelectProduct(product.id)}
+                              onChange={() =>
+                                product.id && handleSelectProduct(product.id)
+                              }
                               className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                             />
                           </div>
@@ -660,26 +755,35 @@ export default function ProductsPage() {
                           </span>
                         </td>
                         <td className="px-4 py-4">
-                          <span className="font-medium text-gray-900">{product.name}</span>
+                          <span className="font-medium text-gray-900">
+                            {product.name}
+                          </span>
                         </td>
                         <td className="px-4 py-4">
                           <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
                             {product.productType}
                           </span>
                           <div className="mt-1 text-sm">
-                            <span className="font-medium text-gray-900">{product.specs.brand}</span>
+                            <span className="font-medium text-gray-900">
+                              {product.specs.brand}
+                            </span>
                             {product.specs.brandType && (
-                              <span className="text-gray-500"> · {product.specs.brandType}</span>
+                              <span className="text-gray-500">
+                                {" "}
+                                · {product.specs.brandType}
+                              </span>
                             )}
                           </div>
                         </td>
                         <td className="px-4 py-4">
-                          {product.specs && getFilledSpecs(product.specs).length > 0 ? (
+                          {product.specs &&
+                          getFilledSpecs(product.specs).length > 0 ? (
                             <button
                               onClick={() => setSpecsModalProduct(product)}
                               className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
                             >
-                              Lihat {getFilledSpecs(product.specs).length} spesifikasi
+                              Lihat {getFilledSpecs(product.specs).length}{" "}
+                              spesifikasi
                             </button>
                           ) : (
                             <span className="text-gray-400">-</span>
@@ -689,7 +793,23 @@ export default function ProductsPage() {
                           {product.contract ? (
                             <div className="text-sm">
                               <div className="font-medium text-gray-900">
-                                {product.contractData?.contractName ?? "-"}
+                                {product.contractData?.contractName ?? "-"}{"  "}
+                                <span
+                                  className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                                    product.contractData.status === "active"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
+                                  }`}
+                                >
+                                  {product.contractData.status === "active"
+                                    ? "Aktif"
+                                    : product.contractData.status === "inactive"
+                                    ? "Nonaktif"
+                                    : product.contractData.status ===
+                                      "terminated"
+                                    ? "Dihentikan"
+                                    : product.contractData.status ?? "-"}
+                                </span>
                               </div>
                               {getProductLocation(product) && (
                                 <div className="text-xs text-gray-500">
@@ -708,38 +828,13 @@ export default function ProductsPage() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {/* Primary Actions - Always Visible */}
-                          <Link
-                            href={`/admin/products/edit/${product.id}`}
-                            className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
-                            title="Edit Produk"
-                          >
-                            <svg
-                              className="h-3 w-3"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                          <div className="flex items-center gap-2">
+                            {/* Primary Actions - Always Visible */}
+                            <Link
+                              href={`/admin/products/edit/${product.id}`}
+                              className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
+                              title="Edit Produk"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                            <span className="hidden sm:inline">Edit</span>
-                          </Link>
-
-                          <button
-                            onClick={() => handleGenerateQR(product)}
-                            disabled={generatingQR === product.id}
-                            className="inline-flex whitespace-nowrap items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
-                            title="Cetak Barcode"
-                          >
-                            {generatingQR === product.id ? (
-                              <div className="h-3 w-3 animate-spin rounded-full border border-gray-600 border-t-transparent"></div>
-                            ) : (
                               <svg
                                 className="h-3 w-3"
                                 fill="none"
@@ -750,34 +845,67 @@ export default function ProductsPage() {
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                                 />
                               </svg>
-                            )}
-                            <span>
-                              {generatingQR === product.id ? "..." : "Cetak Barcode"}
-                            </span>
-                          </button>
+                              <span className="hidden sm:inline">Edit</span>
+                            </Link>
 
-                          <button
-                            onClick={() => handleDelete(product?.id ?? "")}
-                            disabled={!!product.contract}
-                            className={`inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 ${
-                              product.contract ? "cursor-not-allowed opacity-50" : ""
-                            }`}
-                            title={product.contract ? "Tidak dapat dihapus — produk memiliki kontrak aktif" : "Hapus produk"}
-                          >
-                            Hapus
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                            <button
+                              onClick={() => handleGenerateQR(product)}
+                              disabled={generatingQR === product.id}
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                              title="Cetak Barcode"
+                            >
+                              {generatingQR === product.id ? (
+                                <div className="h-3 w-3 animate-spin rounded-full border border-gray-600 border-t-transparent"></div>
+                              ) : (
+                                <svg
+                                  className="h-3 w-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                  />
+                                </svg>
+                              )}
+                              <span>
+                                {generatingQR === product.id
+                                  ? "..."
+                                  : "Cetak Barcode"}
+                              </span>
+                            </button>
+
+                            <button
+                              onClick={() => handleDelete(product?.id ?? "")}
+                              disabled={!!product.contract}
+                              className={`inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 ${
+                                product.contract
+                                  ? "cursor-not-allowed opacity-50"
+                                  : ""
+                              }`}
+                              title={
+                                product.contract
+                                  ? "Tidak dapat dihapus — produk memiliki kontrak aktif"
+                                  : "Hapus produk"
+                              }
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
                     );
                   })}
                 </tbody>
@@ -872,7 +1000,9 @@ export default function ProductsPage() {
       <BulkEditDialog
         isOpen={showBulkEditDialog}
         onClose={() => setShowBulkEditDialog(false)}
-        selectedProducts={products.filter(p => p.id && selectedProducts.has(p.id))}
+        selectedProducts={products.filter(
+          (p) => p.id && selectedProducts.has(p.id),
+        )}
         onSuccess={handleBulkOperationSuccess}
       />
 
@@ -880,36 +1010,44 @@ export default function ProductsPage() {
       <BulkAddToContractDialog
         isOpen={showBulkAddToContractDialog}
         onClose={() => setShowBulkAddToContractDialog(false)}
-        selectedProducts={products.filter(p => p.id && selectedProducts.has(p.id))}
+        selectedProducts={products.filter(
+          (p) => p.id && selectedProducts.has(p.id),
+        )}
         onSuccess={handleBulkOperationSuccess}
       />
 
       {/* Bulk QR Progress Modal */}
       {bulkQRProgress?.isGenerating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="rounded-lg bg-white p-6 max-w-md w-full mx-4">
+          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6">
             <div className="text-center">
-              <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
+              <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
               <h3 className="mt-4 text-lg font-semibold">Membuat Kode QR</h3>
               <p className="mt-2 text-sm text-gray-600">
-                Memproses {bulkQRProgress.current} dari {bulkQRProgress.total} produk
+                Memproses {bulkQRProgress.current} dari {bulkQRProgress.total}{" "}
+                produk
               </p>
               {bulkQRProgress.currentProduct && (
-                <p className="mt-1 text-xs text-gray-500 truncate">
+                <p className="mt-1 truncate text-xs text-gray-500">
                   {bulkQRProgress.currentProduct}
                 </p>
               )}
               <div className="mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="h-2 w-full rounded-full bg-gray-200">
                   <div
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    className="h-2 rounded-full bg-primary transition-all duration-300"
                     style={{
-                      width: `${(bulkQRProgress.current / bulkQRProgress.total) * 100}%`
+                      width: `${
+                        (bulkQRProgress.current / bulkQRProgress.total) * 100
+                      }%`,
                     }}
                   ></div>
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  {Math.round((bulkQRProgress.current / bulkQRProgress.total) * 100)}%
+                  {Math.round(
+                    (bulkQRProgress.current / bulkQRProgress.total) * 100,
+                  )}
+                  %
                 </p>
               </div>
             </div>
@@ -921,7 +1059,9 @@ export default function ProductsPage() {
       <Modal
         isOpen={contractModalProduct !== null}
         onClose={() => setContractModalProduct(null)}
-        title={contractModalProduct?.contractData?.contractName ?? "Detail Kontrak"}
+        title={
+          contractModalProduct?.contractData?.contractName ?? "Detail Kontrak"
+        }
       >
         {contractModalProduct?.contractData && (
           <div className="styled-scrollbar max-h-[60vh] overflow-auto">
@@ -934,56 +1074,82 @@ export default function ProductsPage() {
               </thead>
               <tbody className="divide-y divide-stroke">
                 <tr className="hover:bg-blue-50/50">
-                  <td className="px-3 py-2 font-medium text-gray-700">Perusahaan</td>
+                  <td className="px-3 py-2 font-medium text-gray-700">
+                    Perusahaan
+                  </td>
                   <td className="px-3 py-2 text-gray-900">
-                    {contractModalProduct.contractData.customerData?.name ?? "-"}
+                    {contractModalProduct.contractData.customerData?.name ??
+                      "-"}
                   </td>
                 </tr>
                 <tr className="hover:bg-blue-50/50">
-                  <td className="px-3 py-2 font-medium text-gray-700">Nama Kontrak</td>
+                  <td className="px-3 py-2 font-medium text-gray-700">
+                    Nama Kontrak
+                  </td>
                   <td className="px-3 py-2 text-gray-900">
                     {contractModalProduct.contractData.contractName ?? "-"}
                   </td>
                 </tr>
                 <tr className="hover:bg-blue-50/50">
-                  <td className="px-3 py-2 font-medium text-gray-700">Nomor Kontrak</td>
+                  <td className="px-3 py-2 font-medium text-gray-700">
+                    Nomor Kontrak
+                  </td>
                   <td className="px-3 py-2 text-gray-900">
                     {contractModalProduct.contractData.contractNumber ?? "-"}
                   </td>
                 </tr>
                 <tr className="hover:bg-blue-50/50">
-                  <td className="px-3 py-2 font-medium text-gray-700">Lokasi Produk</td>
+                  <td className="px-3 py-2 font-medium text-gray-700">
+                    Lokasi Produk
+                  </td>
                   <td className="px-3 py-2 text-gray-900">
                     {getProductLocation(contractModalProduct) ?? "-"}
                   </td>
                 </tr>
                 <tr className="hover:bg-blue-50/50">
-                  <td className="px-3 py-2 font-medium text-gray-700">Tanggal Mulai</td>
+                  <td className="px-3 py-2 font-medium text-gray-700">
+                    Tanggal Mulai
+                  </td>
                   <td className="px-3 py-2 text-gray-900">
                     {contractModalProduct.contractData.startDate
-                      ? contractModalProduct.contractData.startDate.toDate().toLocaleDateString()
+                      ? contractModalProduct.contractData.startDate
+                          .toDate()
+                          .toLocaleDateString()
                       : "-"}
                   </td>
                 </tr>
                 <tr className="hover:bg-blue-50/50">
-                  <td className="px-3 py-2 font-medium text-gray-700">Tanggal Selesai</td>
+                  <td className="px-3 py-2 font-medium text-gray-700">
+                    Tanggal Selesai
+                  </td>
                   <td className="px-3 py-2 text-gray-900">
                     {contractModalProduct.contractData.endDate
-                      ? contractModalProduct.contractData.endDate.toDate().toLocaleDateString()
+                      ? contractModalProduct.contractData.endDate
+                          .toDate()
+                          .toLocaleDateString()
                       : "Ongoing"}
                   </td>
                 </tr>
                 <tr className="hover:bg-blue-50/50">
-                  <td className="px-3 py-2 font-medium text-gray-700">Status</td>
+                  <td className="px-3 py-2 font-medium text-gray-700">
+                    Status
+                  </td>
                   <td className="px-3 py-2">
-                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                      contractModalProduct.contractData.status === "active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}>
-                      {contractModalProduct.contractData.status === "active" ? "Aktif"
-                        : contractModalProduct.contractData.status === "inactive" ? "Nonaktif"
-                        : contractModalProduct.contractData.status === "terminated" ? "Dihentikan"
+                    <span
+                      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                        contractModalProduct.contractData.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {contractModalProduct.contractData.status === "active"
+                        ? "Aktif"
+                        : contractModalProduct.contractData.status ===
+                          "inactive"
+                        ? "Nonaktif"
+                        : contractModalProduct.contractData.status ===
+                          "terminated"
+                        ? "Dihentikan"
                         : contractModalProduct.contractData.status ?? "-"}
                     </span>
                   </td>
@@ -998,7 +1164,11 @@ export default function ProductsPage() {
       <Modal
         isOpen={specsModalProduct !== null}
         onClose={() => setSpecsModalProduct(null)}
-        title={specsModalProduct ? `${specsModalProduct.name} - ${specsModalProduct.productNumber}` : "Spesifikasi"}
+        title={
+          specsModalProduct
+            ? `${specsModalProduct.name} - ${specsModalProduct.productNumber}`
+            : "Spesifikasi"
+        }
       >
         {specsModalProduct && (
           <div className="styled-scrollbar max-h-[60vh] overflow-auto">
@@ -1012,9 +1182,14 @@ export default function ProductsPage() {
               <tbody className="divide-y divide-stroke">
                 {getFilledSpecs(specsModalProduct.specs).map((col) => (
                   <tr key={col.key} className="hover:bg-blue-50/50">
-                    <td className="px-3 py-2 font-medium text-gray-700">{col.label}</td>
+                    <td className="px-3 py-2 font-medium text-gray-700">
+                      {col.label}
+                    </td>
                     <td className="px-3 py-2 text-gray-900">
-                      {formatSpecValue(col.key, specsModalProduct.specs[col.key])}
+                      {formatSpecValue(
+                        col.key,
+                        specsModalProduct.specs[col.key],
+                      )}
                     </td>
                   </tr>
                 ))}

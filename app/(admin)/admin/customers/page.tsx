@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   collection,
   getDocs,
@@ -16,7 +16,7 @@ import CustomerFiltersComponent, {
   CustomerFilters,
 } from "@/components/Admin/Customers/CustomerFilters";
 import CustomerListItem from "@/components/Admin/Customers/CustomerListItem";
-import BulkOperationsToolbar from "@/components/Admin/Customers/BulkOperationsToolbar";
+import Modal from "@/components/Admin/Modal";
 import { formatAddressSingleLine } from "@/utils/addressHelper";
 import {
   downloadCustomersAsCSV,
@@ -26,7 +26,7 @@ import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 export default function CustomersPage() {
   usePageHeader("Manajemen Pelanggan", "Kelola data pelanggan dengan sistem yang terintegrasi.");
-
+  const router = useRouter();
   const [customers, setCustomers] = useState<
     (Customer & { id: string; contracts: any[] })[]
   >([]);
@@ -50,8 +50,8 @@ export default function CustomersPage() {
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(
     new Set(),
   );
-  const [bulkMode, setBulkMode] = useState(false);
   const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
+  const [contractModalCustomer, setContractModalCustomer] = useState<(Customer & { id: string; contracts: any[] }) | null>(null);
 
   // Fetch customers
   const fetchCustomers = async () => {
@@ -211,6 +211,32 @@ export default function CustomersPage() {
     }
   };
 
+  // Bulk delete customers
+  const handleBulkDelete = async () => {
+    const selectedList = customers.filter(c => selectedCustomers.has(c.id));
+    const withContracts = selectedList.filter(c => (c.contracts?.length || 0) > 0);
+
+    if (withContracts.length > 0) {
+      setError(`${withContracts.length} pelanggan memiliki kontrak aktif dan tidak dapat dihapus.`);
+      return;
+    }
+
+    if (!window.confirm(`Hapus ${selectedList.length} pelanggan yang dipilih? Tindakan ini tidak dapat dibatalkan.`)) {
+      return;
+    }
+
+    try {
+      setError(null);
+      for (const customer of selectedList) {
+        await deleteDoc(doc(firestore, "customers", customer.id));
+      }
+      setCustomers(prev => prev.filter(c => !selectedCustomers.has(c.id)));
+      setSelectedCustomers(new Set());
+    } catch {
+      setError("Gagal menghapus beberapa pelanggan");
+    }
+  };
+
   // Handle filter changes
   const handleFiltersChange = (newFilters: CustomerFilters) => {
     setFilters(newFilters);
@@ -251,17 +277,6 @@ export default function CustomersPage() {
     setSelectedCustomers(new Set());
   };
 
-  const handleToggleBulkMode = () => {
-    setBulkMode(!bulkMode);
-    if (bulkMode) {
-      setSelectedCustomers(new Set()); // Clear selection when turning off bulk mode
-    }
-  };
-
-  const handleDownloadTemplate = () => {
-    downloadCustomerCSVTemplate();
-  };
-
   const handleToggleCustomerSelection = (customerId: string) => {
     const newSelected = new Set(selectedCustomers);
     if (newSelected.has(customerId)) {
@@ -273,76 +288,35 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 md:p-6 xl:p-7.5">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
-        <Link
-          href="/admin/customers/create"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:w-auto"
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Tambah Pelanggan
-        </Link>
-      </div>
-
+    <div className="flex h-full flex-col">
       {/* Error Display */}
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-red-800">{error}</p>
-            </div>
-          </div>
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {error}
         </div>
       )}
 
-      {/* Bulk Operations Toolbar */}
-      <BulkOperationsToolbar
-        selectedCount={selectedCustomers.size}
-        onExport={handleExport}
-        onBulkEdit={handleBulkEdit}
-        onClearSelection={handleClearSelection}
-        bulkMode={bulkMode}
-        onToggleBulkMode={handleToggleBulkMode}
-        onDownloadTemplate={handleDownloadTemplate}
-      />
-
-      {/* Filters */}
-      <div className="mb-6">
+      {/* Filters & Actions */}
+      <div className="mb-4">
         <CustomerFiltersComponent
           filters={filters}
           onFiltersChange={handleFiltersChange}
           onClearFilters={handleClearFilters}
           customerCount={customers.length}
           filteredCount={filteredCustomers.length}
+          onAddCustomer={() => router.push("/admin/customers/create")}
+          addCustomerLabel="Tambah Pelanggan"
+          selectedCount={selectedCustomers.size}
+          onExport={handleExport}
+          onBulkEdit={handleBulkEdit}
+          onBulkDelete={handleBulkDelete}
+          onClearSelection={handleClearSelection}
+          onImport={() => router.push("/admin/customers/import")}
+          onDownloadTemplate={() => downloadCustomerCSVTemplate()}
         />
       </div>
 
-      <div className=" rounded-lg border border-stroke bg-white p-4">
+      <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -435,51 +409,33 @@ export default function CustomersPage() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="styled-scrollbar min-h-0 flex-1 overflow-auto">
               <table className="w-full table-auto">
-                <thead>
-                  <tr className="border-b border-stroke bg-gray-50">
-                    {bulkMode && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700">
-                        <input
-                          type="checkbox"
-                          checked={
-                            selectedCustomers.size ===
-                              currentCustomers.length &&
-                            currentCustomers.length > 0
+                <thead className="sticky top-0 z-10 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+                    <th className="px-4 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={
+                          selectedCustomers.size === currentCustomers.length &&
+                          currentCustomers.length > 0
+                        }
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const allIds = new Set(currentCustomers.map((c) => c.id));
+                            setSelectedCustomers(allIds);
+                          } else {
+                            setSelectedCustomers(new Set());
                           }
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              const allIds = new Set(
-                                currentCustomers.map((c) => c.id),
-                              );
-                              setSelectedCustomers(allIds);
-                            } else {
-                              setSelectedCustomers(new Set());
-                            }
-                          }}
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                      </th>
-                    )}
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
-                      Pelanggan
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
-                      Alamat
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
-                      Kontak Utama
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700">
-                      Kontak Lain
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700">
-                      Kontrak
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
-                      Aksi
-                    </th>
+                    <th className="px-4 py-3">Pelanggan</th>
+                    <th className="px-4 py-3">Alamat</th>
+                    <th className="px-4 py-3">Kontak Utama</th>
+                    <th className="px-4 py-3">Kontrak</th>
+                    <th className="px-4 py-3">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stroke">
@@ -488,34 +444,32 @@ export default function CustomersPage() {
                       key={customer.id}
                       customer={customer}
                       onDelete={handleDelete}
-                      bulkMode={bulkMode}
                       isSelected={selectedCustomers.has(customer.id)}
                       onToggleSelection={() =>
                         handleToggleCustomerSelection(customer.id)
                       }
+                      onViewContracts={setContractModalCustomer}
                     />
                   ))}
                 </tbody>
               </table>
             </div>
             {/* Pagination Controls */}
-            <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t border-stroke pt-4 sm:flex-row sm:space-y-0">
+            <div className="my-0 flex flex-col items-center justify-between space-y-3 border-t border-stroke p-2 sm:flex-row sm:space-y-0">
               <div className="text-xs text-gray-600">
                 Menampilkan {indexOfFirstItem + 1}-
                 {Math.min(indexOfLastItem, filteredCustomers.length)} dari{" "}
                 {filteredCustomers.length} pelanggan
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">
-                  Item per halaman:
-                </span>
+                <span className="text-sm text-gray-600">Item per halaman:</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className=" rounded-md border border-stroke bg-white px-2 py-1 text-sm"
+                  className="rounded-md border border-stroke bg-white px-2 py-1 text-sm outline-none focus:border-primary"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -530,23 +484,12 @@ export default function CustomersPage() {
                   disabled={currentPage === 1}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === 1
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : " border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <span className="text-sm text-gray-600">
@@ -554,29 +497,16 @@ export default function CustomersPage() {
                   dari {totalPages}
                 </span>
                 <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages || totalPages === 0}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === totalPages || totalPages === 0
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : " border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
@@ -584,6 +514,63 @@ export default function CustomersPage() {
           </>
         )}
       </div>
+
+      {/* Contract Detail Modal */}
+      <Modal
+        isOpen={contractModalCustomer !== null}
+        onClose={() => setContractModalCustomer(null)}
+        title={`Kontrak — ${contractModalCustomer?.name || ''}`}
+      >
+        {contractModalCustomer && contractModalCustomer.contracts.length > 0 && (
+          <div className="styled-scrollbar max-h-[60vh] overflow-auto">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+                  <th className="px-3 py-2">Nama Kontrak</th>
+                  <th className="px-3 py-2">Nomor</th>
+                  <th className="px-3 py-2">Mulai</th>
+                  <th className="px-3 py-2">Selesai</th>
+                  <th className="px-3 py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stroke">
+                {contractModalCustomer.contracts.map((contract: any) => (
+                  <tr key={contract.id} className="hover:bg-blue-50/50">
+                    <td className="px-3 py-2 font-medium text-gray-900">
+                      {contract.contractName || '-'}
+                    </td>
+                    <td className="px-3 py-2 text-gray-700">
+                      {contract.contractNumber || '-'}
+                    </td>
+                    <td className="px-3 py-2 text-gray-700">
+                      {contract.startDate?.toDate?.()
+                        ? contract.startDate.toDate().toLocaleDateString()
+                        : '-'}
+                    </td>
+                    <td className="px-3 py-2 text-gray-700">
+                      {contract.endDate?.toDate?.()
+                        ? contract.endDate.toDate().toLocaleDateString()
+                        : 'Ongoing'}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                        contract.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {contract.status === 'active' ? 'Aktif'
+                          : contract.status === 'inactive' ? 'Nonaktif'
+                          : contract.status === 'terminated' ? 'Dihentikan'
+                          : contract.status || '-'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
