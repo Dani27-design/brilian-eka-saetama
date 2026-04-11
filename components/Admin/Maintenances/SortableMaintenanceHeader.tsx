@@ -27,9 +27,7 @@ export default function SortableMaintenanceHeader({
 
   return (
     <th 
-      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors ${className} ${
-        isActive ? 'bg-blue-50' : ''
-      }`}
+      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 cursor-pointer transition-colors ${className}`}
       onClick={handleClick}
       title={`Sort by ${children}`}
     >

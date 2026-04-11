@@ -55,7 +55,8 @@ export default function ContractsPage() {
   const [filters, setFilters] = useState<ContractFilters>(defaultFilters);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [productModalContract, setProductModalContract] = useState<ContractTableRow | null>(null);
+  const [productModalContract, setProductModalContract] =
+    useState<ContractTableRow | null>(null);
 
   const uniqueCustomers = useMemo(() => {
     const names = contracts.map((c) => c.customerName).filter((n) => n !== "-");
@@ -93,7 +94,7 @@ export default function ContractsPage() {
       });
 
       const customerSnaps = await Promise.all(
-        Object.values(customerRefs).map((ref) => getDoc(ref))
+        Object.values(customerRefs).map((ref) => getDoc(ref)),
       );
       const customerMap: Record<string, string> = {};
       customerSnaps.forEach((snap) => {
@@ -101,7 +102,7 @@ export default function ContractsPage() {
       });
 
       const productSnaps = await Promise.all(
-        Object.values(productRefs).map((ref) => getDoc(ref))
+        Object.values(productRefs).map((ref) => getDoc(ref)),
       );
       const productMap: Record<
         string,
@@ -176,8 +177,7 @@ export default function ContractsPage() {
       )
         .toLowerCase()
         .includes(filters.search.toLowerCase());
-    const matchesStatus =
-      filters.status === "" || c.status === filters.status;
+    const matchesStatus = filters.status === "" || c.status === filters.status;
     const matchesType =
       filters.contractType === "" || c.contractType === filters.contractType;
     const matchesCustomer =
@@ -189,24 +189,30 @@ export default function ContractsPage() {
   const sortedContracts = [...filteredContracts].sort((a, b) => {
     const order = filters.sortOrder === "asc" ? 1 : -1;
     if (filters.sortBy === "contractNumber") {
-      return (a.contractNumber || "").localeCompare(b.contractNumber || "") * order;
+      return (
+        (a.contractNumber || "").localeCompare(b.contractNumber || "") * order
+      );
     } else if (filters.sortBy === "contractName") {
       return (a.contractName || "").localeCompare(b.contractName || "") * order;
     } else if (filters.sortBy === "startDate") {
-      const dateA = a.startDate && (a.startDate as any).toDate
-        ? (a.startDate as any).toDate().getTime()
-        : 0;
-      const dateB = b.startDate && (b.startDate as any).toDate
-        ? (b.startDate as any).toDate().getTime()
-        : 0;
+      const dateA =
+        a.startDate && (a.startDate as any).toDate
+          ? (a.startDate as any).toDate().getTime()
+          : 0;
+      const dateB =
+        b.startDate && (b.startDate as any).toDate
+          ? (b.startDate as any).toDate().getTime()
+          : 0;
       return (dateA - dateB) * order;
     } else if (filters.sortBy === "endDate") {
-      const dateA = a.endDate && (a.endDate as any).toDate
-        ? (a.endDate as any).toDate().getTime()
-        : 0;
-      const dateB = b.endDate && (b.endDate as any).toDate
-        ? (b.endDate as any).toDate().getTime()
-        : 0;
+      const dateA =
+        a.endDate && (a.endDate as any).toDate
+          ? (a.endDate as any).toDate().getTime()
+          : 0;
+      const dateB =
+        b.endDate && (b.endDate as any).toDate
+          ? (b.endDate as any).toDate().getTime()
+          : 0;
       return (dateA - dateB) * order;
     } else {
       return 0;
@@ -219,29 +225,29 @@ export default function ContractsPage() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentContracts = sortedContracts.slice(
     indexOfFirstItem,
-    indexOfLastItem
+    indexOfLastItem,
   );
 
   // Delete contract
   const handleDelete = async (id: string) => {
     if (
       window.confirm(
-        "Hapus kontrak ini? PERHATIAN: Semua data maintenance yang terkait dengan kontrak ini juga akan dihapus."
+        "Hapus kontrak ini? PERHATIAN: Semua data maintenance yang terkait dengan kontrak ini juga akan dihapus.",
       )
     ) {
       try {
         const relatedMaintenancesQuery = await getDocs(
           query(
             collection(firestore, "maintenances"),
-            where("contract", "==", doc(firestore, "contracts", id))
-          )
+            where("contract", "==", doc(firestore, "contracts", id)),
+          ),
         );
 
         const affiliatedProductsQuery = await getDocs(
           query(
             collection(firestore, "products"),
-            where("contract", "==", doc(firestore, "contracts", id))
-          )
+            where("contract", "==", doc(firestore, "contracts", id)),
+          ),
         );
 
         const batch = writeBatch(firestore);
@@ -264,13 +270,13 @@ export default function ContractsPage() {
 
         if (relatedMaintenancesQuery.docs.length > 0) {
           alert(
-            `Kontrak berhasil dihapus bersama dengan ${relatedMaintenancesQuery.docs.length} data maintenance terkait.`
+            `Kontrak berhasil dihapus bersama dengan ${relatedMaintenancesQuery.docs.length} data maintenance terkait.`,
           );
         }
       } catch (error) {
         console.error(
           "Error deleting contract:",
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : "Unknown error",
         );
         setError("Gagal menghapus kontrak dan data terkait");
       }
@@ -302,19 +308,46 @@ export default function ContractsPage() {
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <svg className="mx-auto h-8 w-8 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              <svg
+                className="mx-auto h-8 w-8 animate-spin text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
               <p className="mt-2 text-gray-500">Memuat kontrak...</p>
             </div>
           </div>
         ) : sortedContracts.length === 0 ? (
           <div className="py-12 text-center">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">Tidak ada kontrak</h3>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">
+              Tidak ada kontrak
+            </h3>
           </div>
         ) : (
           <>
@@ -332,27 +365,43 @@ export default function ContractsPage() {
                 </thead>
                 <tbody className="divide-y divide-stroke">
                   {currentContracts.map((contract) => {
-                    const startDate = contract.startDate && (contract.startDate as any).toDate
-                      ? (contract.startDate as any).toDate().toLocaleDateString()
-                      : "-";
-                    const endDate = contract.endDate && (contract.endDate as any).toDate
-                      ? (contract.endDate as any).toDate().toLocaleDateString()
-                      : "Ongoing";
-                    const productCount = contract.productDetailsDisplay?.length || 0;
+                    const startDate =
+                      contract.startDate && (contract.startDate as any).toDate
+                        ? (contract.startDate as any)
+                            .toDate()
+                            .toLocaleDateString()
+                        : "-";
+                    const endDate =
+                      contract.endDate && (contract.endDate as any).toDate
+                        ? (contract.endDate as any)
+                            .toDate()
+                            .toLocaleDateString()
+                        : "Ongoing";
+                    const productCount =
+                      contract.productDetailsDisplay?.length || 0;
 
                     return (
-                      <tr key={contract.id} className="text-sm hover:bg-blue-50/50">
+                      <tr
+                        key={contract.id}
+                        className="text-sm hover:bg-blue-50/50"
+                      >
                         {/* Kontrak: No + Nama + Tipe badge */}
                         <td className="px-4 py-3">
-                          <div className="font-medium text-gray-900">{contract.contractName}</div>
-                          <div className="mt-0.5 text-xs text-gray-500">{contract.contractNumber}</div>
+                          <div className="font-medium text-gray-900">
+                            {contract.contractName}
+                          </div>
+                          <div className="mt-0.5 text-xs text-gray-500">
+                            {contract.contractNumber}
+                          </div>
                           <span className="mt-1 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
                             {contract.contractType}
                           </span>
                         </td>
 
                         {/* Pelanggan */}
-                        <td className="px-4 py-3 text-gray-700">{contract.customerName}</td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {contract.customerName}
+                        </td>
 
                         {/* Periode: Start - End */}
                         <td className="px-4 py-3">
@@ -362,12 +411,18 @@ export default function ContractsPage() {
 
                         {/* Status */}
                         <td className="px-4 py-3">
-                          <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                            contractStatusColor[contract.status] || "bg-gray-100 text-gray-800"
-                          }`}>
-                            {contract.status === "active" ? "Aktif"
-                              : contract.status === "inactive" ? "Nonaktif"
-                              : contract.status === "terminated" ? "Dihentikan"
+                          <span
+                            className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                              contractStatusColor[contract.status] ||
+                              "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {contract.status === "active"
+                              ? "Aktif"
+                              : contract.status === "inactive"
+                              ? "Nonaktif"
+                              : contract.status === "terminated"
+                              ? "Dihentikan"
                               : "-"}
                           </span>
                         </td>
@@ -376,12 +431,13 @@ export default function ContractsPage() {
                         <td className="px-4 py-3">
                           {productCount > 0 ? (
                             <div className="text-sm">
-                              <div className="font-medium text-gray-900">{productCount} produk</div>
                               <button
-                                onClick={() => setProductModalContract(contract)}
-                                className="mt-1 text-xs font-medium text-primary hover:underline"
+                                onClick={() =>
+                                  setProductModalContract(contract)
+                                }
+                                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
                               >
-                                Lihat produk
+                                Lihat {productCount} produk
                               </button>
                             </div>
                           ) : (
@@ -424,7 +480,10 @@ export default function ContractsPage() {
                 <span className="text-sm text-gray-600">Item per halaman:</span>
                 <select
                   value={itemsPerPage}
-                  onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
                   className="rounded-md border border-stroke bg-white px-2 py-1 text-sm outline-none focus:border-primary"
                 >
                   <option value={5}>5</option>
@@ -444,15 +503,29 @@ export default function ContractsPage() {
                       : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                 </button>
                 <span className="text-sm text-gray-600">
-                  Halaman <span className="font-medium">{currentPage}</span> dari {totalPages}
+                  Halaman <span className="font-medium">{currentPage}</span>{" "}
+                  dari {totalPages}
                 </span>
                 <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                   disabled={currentPage === totalPages || totalPages === 0}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === totalPages || totalPages === 0
@@ -460,8 +533,19 @@ export default function ContractsPage() {
                       : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
               </div>
@@ -474,32 +558,47 @@ export default function ContractsPage() {
       <Modal
         isOpen={productModalContract !== null}
         onClose={() => setProductModalContract(null)}
-        title={productModalContract ? `Produk — ${productModalContract.contractName}` : "Produk"}
+        title={
+          productModalContract
+            ? `Produk — ${productModalContract.contractName}`
+            : "Produk"
+        }
       >
-        {productModalContract && productModalContract.productDetailsDisplay.length > 0 && (
-          <div className="styled-scrollbar max-h-[60vh] overflow-auto">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
-                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
-                  <th className="px-3 py-2">Produk</th>
-                  <th className="px-3 py-2">No. Produk</th>
-                  <th className="px-3 py-2">Layanan</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stroke">
-                {productModalContract.productDetailsDisplay
-                .sort((a, b) => (Number(a.productNumber) || 0) - (Number(b.productNumber) || 0))
-                .map((item, idx) => (
-                  <tr key={idx} className="hover:bg-blue-50/50">
-                    <td className="px-3 py-2 font-medium text-gray-900">{item.productName || "-"}</td>
-                    <td className="px-3 py-2 font-mono text-xs text-gray-600">{item.productNumber || "-"}</td>
-                    <td className="px-3 py-2 text-gray-700">{item.serviceType?.join(", ") || "-"}</td>
+        {productModalContract &&
+          productModalContract.productDetailsDisplay.length > 0 && (
+            <div className="styled-scrollbar max-h-[60vh] overflow-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+                    <th className="px-3 py-2">Produk</th>
+                    <th className="px-3 py-2">No. Produk</th>
+                    <th className="px-3 py-2">Layanan</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-stroke">
+                  {productModalContract.productDetailsDisplay
+                    .sort(
+                      (a, b) =>
+                        (Number(a.productNumber) || 0) -
+                        (Number(b.productNumber) || 0),
+                    )
+                    .map((item, idx) => (
+                      <tr key={idx} className="hover:bg-blue-50/50">
+                        <td className="px-3 py-2 font-medium text-gray-900">
+                          {item.productName || "-"}
+                        </td>
+                        <td className="font-mono px-3 py-2 text-xs text-gray-600">
+                          {item.productNumber || "-"}
+                        </td>
+                        <td className="px-3 py-2 text-gray-700">
+                          {item.serviceType?.join(", ") || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          )}
       </Modal>
     </div>
   );

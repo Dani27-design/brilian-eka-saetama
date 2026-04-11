@@ -30,6 +30,14 @@ interface MaintenanceFiltersProps {
   availableEngineers: Array<{ id: string; name: string }>;
   availableContracts: Array<{ id: string; contractNumber: string }>;
   availableProductTypes: ProductType[];
+  onAddMaintenance: () => void;
+  onCalendarView: () => void;
+  selectedCount: number;
+  onExport: () => void;
+  onBulkStatusUpdate: () => void;
+  onBulkEngineerAssignment: () => void;
+  onBulkDelete: () => void;
+  onClearSelection: () => void;
 }
 
 const statusDisplayNames: Record<MaintenanceStatus, string> = {
@@ -65,6 +73,16 @@ const productTypeDisplayNames: Record<ProductType, string> = {
   PATROL_GUARD: "Patrol Guard",
 };
 
+const inputBaseClass =
+  "h-10 w-full rounded-lg border border-stroke bg-white px-4 text-sm outline-none transition-colors focus:border-primary";
+const selectBaseClass =
+  "h-10 w-full rounded-lg border border-stroke bg-white px-4 text-sm outline-none transition-colors focus:border-primary";
+const buttonPrimaryClass =
+  "inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary/90";
+const buttonOutlineClass =
+  "inline-flex h-10 items-center gap-2 rounded-lg border border-stroke bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50";
+const labelClass = "mb-1.5 block text-sm font-medium text-gray-700";
+
 export default function MaintenanceFiltersComponent({
   filters,
   onFiltersChange,
@@ -74,6 +92,14 @@ export default function MaintenanceFiltersComponent({
   availableEngineers,
   availableContracts,
   availableProductTypes,
+  onAddMaintenance,
+  onCalendarView,
+  selectedCount,
+  onExport,
+  onBulkStatusUpdate,
+  onBulkEngineerAssignment,
+  onBulkDelete,
+  onClearSelection,
 }: MaintenanceFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -125,187 +151,21 @@ export default function MaintenanceFiltersComponent({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Search and Quick Actions */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        {/* Search and Month Filter */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-          {/* Search */}
-          <div className="flex-1 sm:flex-[2]">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Cari Maintenance
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Kontrak, produk, teknisi..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange("search", e.target.value)}
-                className=" h-10 w-full rounded-lg border border-stroke bg-white px-4 pl-10 outline-none focus:border-primary"
-              />
-              <svg
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Month Filter - Prominent Position */}
-          <div className="w-full sm:w-auto sm:min-w-[240px]">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Bulan
-            </label>
-            <div className="flex items-center">
-              <button
-                onClick={() => {
-                  const currentMonth = filters.month;
-                  const newMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-                  handleFilterChange("month", newMonth);
-                }}
-                className=" flex h-10 w-10 items-center justify-center rounded-l-lg border border-r-0 border-stroke bg-white text-gray-600 hover:bg-gray-50"
-                title="Bulan Sebelumnya"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              <select
-                value={filters.month}
-                onChange={(e) =>
-                  handleFilterChange("month", Number(e.target.value))
-                }
-                className={` h-10 w-full border border-stroke bg-white px-4 text-sm outline-none focus:border-primary ${
-                  filters.month > 0
-                    ? "font-medium text-primary"
-                    : ""
-                }`}
-              >
-                <option value={0}>Semua Bulan</option>
-                {monthNames.map((month, index) => (
-                  <option key={index + 1} value={index + 1}>
-                    {month}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={() => {
-                  const currentMonth = filters.month;
-                  const newMonth = currentMonth === 12 ? 1 : currentMonth + 1;
-                  handleFilterChange("month", newMonth);
-                }}
-                className=" flex h-10 w-10 items-center justify-center rounded-r-lg border border-l-0 border-stroke bg-white text-gray-600 hover:bg-gray-50"
-                title="Bulan Berikutnya"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-            </div>
-            {filters.month > 0 && (
-              <div className="mt-1 text-xs text-primary">
-                Menampilkan: {monthNames[filters.month - 1]}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Quick Filters and Results Count */}
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Quick Status Filters */}
-          <div className="flex gap-2">
-            <button
-              onClick={() =>
-                handleFilterChange(
-                  "status",
-                  filters.status === "pending" ? "" : "pending",
-                )
-              }
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                filters.status === "pending"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              Tertunda
-            </button>
-            <button
-              onClick={() =>
-                handleFilterChange(
-                  "status",
-                  filters.status === "scheduled" ? "" : "scheduled",
-                )
-              }
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                filters.status === "scheduled"
-                  ? "bg-blue-100 text-blue-800"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              Dijadwalkan
-            </button>
-            <button
-              onClick={() =>
-                handleFilterChange(
-                  "status",
-                  filters.status === "waiting_approval"
-                    ? ""
-                    : "waiting_approval",
-                )
-              }
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                filters.status === "waiting_approval"
-                  ? "bg-orange-100 text-orange-800"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              Menunggu Approval
-            </button>
-          </div>
-
-          <div className="h-6 w-px bg-gray-300"></div>
-
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">{filteredCount}</span> dari{" "}
-            <span className="font-medium">{maintenanceCount}</span> maintenance
-          </div>
-
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className=" flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
+    <div className="space-y-3">
+      {/* Search, Month Filter, and Actions Row */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {/* Search + Month */}
+        <div className="flex flex-1 items-center gap-3">
+          <div className="relative max-w-md flex-1">
+            <input
+              type="text"
+              placeholder="Cari berdasarkan kontrak, produk, atau teknisi"
+              value={filters.search}
+              onChange={(e) => handleFilterChange("search", e.target.value)}
+              className={`${inputBaseClass} pl-10`}
+            />
             <svg
-              className={`h-4 w-4 transition-transform ${
-                isExpanded ? "rotate-180" : ""
-              }`}
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -314,41 +174,165 @@ export default function MaintenanceFiltersComponent({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M19 9l-7 7-7-7"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
-            Filter Lanjutan
+          </div>
+
+          {/* Month Filter */}
+          <select
+            value={filters.month}
+            onChange={(e) =>
+              handleFilterChange("month", Number(e.target.value))
+            }
+            className={`h-10 w-auto min-w-[140px] rounded-lg border border-stroke bg-white p-2 text-sm outline-none transition-colors focus:border-primary ${
+              filters.month > 0 ? "font-medium text-primary" : ""
+            }`}
+          >
+            <option value={0}>Semua Bulan</option>
+            {monthNames.map((month, index) => (
+              <option key={index + 1} value={index + 1}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Buat Jadwal */}
+          <button onClick={onAddMaintenance} className={buttonPrimaryClass}>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Buat Jadwal
+          </button>
+
+          {/* Kalender */}
+          <button onClick={onCalendarView} className={buttonOutlineClass}>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            Kalender
+          </button>
+
+          {/* Ekspor */}
+          <button onClick={onExport} className={buttonOutlineClass}>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Ekspor
+          </button>
+
+          {/* Filter */}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={buttonOutlineClass}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill="currentColor"
+                fillRule="evenodd"
+                d="m8.5 8.379l.44-.44l4.56-4.56V2.5h-11v.879l4.56 4.56l.44.44v4l1-1v-3ZM10 12l-2.5 2.5L6 16V9L1.293 4.293A1 1 0 0 1 1 3.586V2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v1.586a1 1 0 0 1-.293.707L10 9v3Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Filter
             {hasActiveFilters && (
-              <span className="flex h-2 w-2 rounded-full bg-orange-400"></span>
+              <span className="flex h-2 w-2 rounded-full bg-primary"></span>
             )}
           </button>
 
+          {/* Hapus Filter */}
           {hasActiveFilters && (
-            <button
-              onClick={onClearFilters}
-              className="text-sm text-red-600 hover:text-red-700"
-            >
-              Clear Filters
+            <button onClick={onClearFilters} className={buttonOutlineClass}>
+              Hapus Filter
             </button>
           )}
         </div>
       </div>
 
+      {/* Bulk Operations Row */}
+      {selectedCount > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-stroke bg-white px-4 py-2.5 shadow-sm">
+          <span className="text-sm text-gray-500">
+            <span className="font-medium text-gray-700">{selectedCount}</span>{" "}
+            maintenance dipilih
+          </span>
+
+          <button onClick={onBulkStatusUpdate} className={buttonOutlineClass}>
+            Update Status
+          </button>
+
+          <button
+            onClick={onBulkEngineerAssignment}
+            className={buttonOutlineClass}
+          >
+            Tugaskan Teknisi
+          </button>
+
+          <button onClick={onExport} className={buttonOutlineClass}>
+            Ekspor Terpilih
+          </button>
+
+          <button onClick={onBulkDelete} className={buttonOutlineClass}>
+            Hapus Maintenance
+          </button>
+
+          <button onClick={onClearSelection} className={buttonOutlineClass}>
+            Batal Pilih
+          </button>
+        </div>
+      )}
+
       {/* Advanced Filters */}
       {isExpanded && (
-        <div className="rounded-lg border border-stroke bg-gray-50 p-4">
+        <div className="rounded-lg border border-stroke bg-white p-4">
           <div className="space-y-4">
             {/* First Row: Status and Type Filters */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Status Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Status
-                </label>
+                <label className={labelClass}>Status</label>
                 <select
                   value={filters.status}
                   onChange={(e) => handleFilterChange("status", e.target.value)}
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                  className={selectBaseClass}
                 >
                   <option value="">Semua Status</option>
                   {Object.entries(statusDisplayNames).map(([value, label]) => (
@@ -361,15 +345,13 @@ export default function MaintenanceFiltersComponent({
 
               {/* Product Type Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Tipe Produk
-                </label>
+                <label className={labelClass}>Tipe Produk</label>
                 <select
                   value={filters.productType}
                   onChange={(e) =>
                     handleFilterChange("productType", e.target.value)
                   }
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                  className={selectBaseClass}
                 >
                   <option value="">Semua Tipe</option>
                   {availableProductTypes.map((type) => (
@@ -382,15 +364,13 @@ export default function MaintenanceFiltersComponent({
 
               {/* Inspection Status Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Status Inspeksi
-                </label>
+                <label className={labelClass}>Status Inspeksi</label>
                 <select
                   value={filters.hasInspection}
                   onChange={(e) =>
                     handleFilterChange("hasInspection", e.target.value)
                   }
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                  className={selectBaseClass}
                 >
                   <option value="">Semua</option>
                   <option value="yes">Sudah Diinspeksi</option>
@@ -400,15 +380,13 @@ export default function MaintenanceFiltersComponent({
 
               {/* Engineer Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Teknisi
-                </label>
+                <label className={labelClass}>Teknisi</label>
                 <select
                   value={filters.engineerId}
                   onChange={(e) =>
                     handleFilterChange("engineerId", e.target.value)
                   }
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                  className={selectBaseClass}
                 >
                   <option value="">Semua Teknisi</option>
                   {availableEngineers.map((engineer) => (
@@ -424,15 +402,13 @@ export default function MaintenanceFiltersComponent({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {/* Year Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Tahun
-                </label>
+                <label className={labelClass}>Tahun</label>
                 <select
                   value={filters.year}
                   onChange={(e) =>
                     handleFilterChange("year", Number(e.target.value))
                   }
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                  className={selectBaseClass}
                 >
                   <option value={0}>Semua Tahun</option>
                   {getYearRange().map((year) => (
@@ -445,29 +421,25 @@ export default function MaintenanceFiltersComponent({
 
               {/* Date Range Start */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Tanggal Mulai
-                </label>
+                <label className={labelClass}>Tanggal Mulai</label>
                 <input
                   type="date"
                   value={formatDateForInput(filters.dateRange.start)}
                   onChange={(e) =>
                     handleDateRangeChange("start", e.target.value)
                   }
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none [color-scheme:light] focus:border-primary"
+                  className={`${inputBaseClass} [color-scheme:light]`}
                 />
               </div>
 
               {/* Date Range End */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Tanggal Selesai
-                </label>
+                <label className={labelClass}>Tanggal Selesai</label>
                 <input
                   type="date"
                   value={formatDateForInput(filters.dateRange.end)}
                   onChange={(e) => handleDateRangeChange("end", e.target.value)}
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none [color-scheme:light] focus:border-primary"
+                  className={`${inputBaseClass} [color-scheme:light]`}
                 />
               </div>
             </div>
@@ -475,13 +447,11 @@ export default function MaintenanceFiltersComponent({
             {/* Third Row: Sorting */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Urutkan Berdasarkan
-                </label>
+                <label className={labelClass}>Urutkan Berdasarkan</label>
                 <select
                   value={filters.sortBy}
                   onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                  className={selectBaseClass}
                 >
                   <option value="startDate">Tanggal Mulai</option>
                   <option value="endDate">Tanggal Selesai</option>
@@ -492,15 +462,13 @@ export default function MaintenanceFiltersComponent({
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Urutan
-                </label>
+                <label className={labelClass}>Urutan</label>
                 <select
                   value={filters.sortOrder}
                   onChange={(e) =>
                     handleFilterChange("sortOrder", e.target.value)
                   }
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                  className={selectBaseClass}
                 >
                   <option value="asc">Terlama ke Terbaru</option>
                   <option value="desc">Terbaru ke Terlama</option>
@@ -511,9 +479,7 @@ export default function MaintenanceFiltersComponent({
             {/* Contract Number Search */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Nomor Kontrak
-                </label>
+                <label className={labelClass}>Nomor Kontrak</label>
                 <input
                   type="text"
                   placeholder="Cari nomor kontrak..."
@@ -521,7 +487,7 @@ export default function MaintenanceFiltersComponent({
                   onChange={(e) =>
                     handleFilterChange("contractNumber", e.target.value)
                   }
-                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                  className={inputBaseClass}
                 />
               </div>
             </div>

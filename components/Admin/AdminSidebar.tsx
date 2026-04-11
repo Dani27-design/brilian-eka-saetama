@@ -416,7 +416,7 @@ export default function AdminSidebar({
                         <g
                           id="Icon-Set"
                           transform="translate(-569.000000, -308.000000)"
-                          fill="#000000"
+                          fill="currentColor"
                         >
                           {" "}
                           <path

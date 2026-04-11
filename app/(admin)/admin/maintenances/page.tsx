@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { collection, getDocs, updateDoc, doc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
@@ -10,10 +11,8 @@ import { useAdmin } from "@/app/context/AdminContext";
 import { usePageHeader } from "@/app/context/PageHeaderContext";
 import toast from "react-hot-toast";
 
-// Import our new optimized components and utilities
 import MaintenanceFiltersComponent, { MaintenanceFilters } from "@/components/Admin/Maintenances/MaintenanceFilters";
 import SortableMaintenanceHeader from "@/components/Admin/Maintenances/SortableMaintenanceHeader";
-import MaintenanceBulkOperationsToolbar from "@/components/Admin/Maintenances/MaintenanceBulkOperationsToolbar";
 import BulkEngineerAssignmentModal, { AssignmentMode } from "@/components/Admin/Maintenances/BulkEngineerAssignmentModal";
 import { buildMaintenanceQuery, canUseMaintenanceFirestoreSort } from "@/utils/maintenanceQuery";
 import { loadMaintenancesWithRelatedData, loadAvailableEngineers, loadAvailableContracts, createPerformanceMonitor, MaintenanceTableRow } from "@/utils/maintenanceDataLoader";
@@ -46,6 +45,7 @@ const statusDisplay: Record<MaintenanceStatus, string> = {
 
 export default function MaintenancesPage() {
   const { user } = useAdmin();
+  const router = useRouter();
   usePageHeader("Manajemen Pemeliharaan", "Kelola jadwal pemeliharaan dengan sistem yang dioptimalkan");
 
   // Core data state
@@ -412,44 +412,37 @@ export default function MaintenancesPage() {
   }, [allMaintenances]);
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
+    <div className="flex h-full flex-col">
       {error && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-          <p>{error}</p>
-          <button
-            className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
-            onClick={() => setError("")}
-          >
-            Tutup
-          </button>
+          {error}
         </div>
       )}
 
-      {/* Enhanced Bulk Operations Toolbar */}
-      <MaintenanceBulkOperationsToolbar
-        selectedCount={selectedMaintenances.size}
-        onExport={handleExport}
-        onBulkStatusUpdate={handleBulkStatusUpdate}
-        onBulkEngineerAssignment={handleBulkEngineerAssignment}
-        onBulkDelete={handleBulkDelete}
-        onClearSelection={clearSelection}
-        loading={loading}
-      />
+      {/* Filters & Actions */}
+      <div className="mb-4">
+        <MaintenanceFiltersComponent
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          onClearFilters={handleClearFilters}
+          maintenanceCount={allMaintenances.length}
+          filteredCount={filteredMaintenances.length}
+          availableEngineers={availableEngineers}
+          availableContracts={availableContracts}
+          availableProductTypes={availableProductTypes}
+          onAddMaintenance={() => router.push("/admin/maintenances/create")}
+          onCalendarView={() => router.push("/admin/maintenances/calendar")}
+          selectedCount={selectedMaintenances.size}
+          onExport={handleExport}
+          onBulkStatusUpdate={handleBulkStatusUpdate}
+          onBulkEngineerAssignment={handleBulkEngineerAssignment}
+          onBulkDelete={handleBulkDelete}
+          onClearSelection={clearSelection}
+        />
+      </div>
 
-      {/* Advanced Filters */}
-      <MaintenanceFiltersComponent
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        onClearFilters={handleClearFilters}
-        maintenanceCount={allMaintenances.length}
-        filteredCount={filteredMaintenances.length}
-        availableEngineers={availableEngineers}
-        availableContracts={availableContracts}
-        availableProductTypes={availableProductTypes}
-      />
-
-      {/* Main Table Section */}
-      <div className="rounded-lg border border-stroke bg-white p-4">
+      {/* Table */}
+      <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -465,14 +458,14 @@ export default function MaintenancesPage() {
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">Tidak ada maintenance yang ditemukan</h3>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">Tidak ada maintenance</h3>
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="styled-scrollbar min-h-0 flex-1 overflow-auto">
               <table className="w-full table-auto">
-                <thead>
-                  <tr className="border-b border-stroke bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+                <thead className="sticky top-0 z-10 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
                     <th className="px-4 py-3 w-12">
                       <input
                         type="checkbox"
@@ -484,27 +477,17 @@ export default function MaintenancesPage() {
                             setSelectedMaintenances(new Set());
                           }
                         }}
-                        className="rounded border-gray-300"
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                       />
                     </th>
                     <th className="px-4 py-3">Kontrak</th>
                     <th className="px-4 py-3">Produk</th>
-                    <SortableMaintenanceHeader
-                      sortKey="startDate"
-                      currentSort={filters.sortBy}
-                      currentOrder={filters.sortOrder}
-                      onSort={handleSort}
-                    >
+                    <SortableMaintenanceHeader sortKey="startDate" currentSort={filters.sortBy} currentOrder={filters.sortOrder} onSort={handleSort}>
                       Periode
                     </SortableMaintenanceHeader>
                     <th className="px-4 py-3">Teknisi</th>
                     <th className="px-4 py-3">Inspeksi</th>
-                    <SortableMaintenanceHeader
-                      sortKey="status"
-                      currentSort={filters.sortBy}
-                      currentOrder={filters.sortOrder}
-                      onSort={handleSort}
-                    >
+                    <SortableMaintenanceHeader sortKey="status" currentSort={filters.sortBy} currentOrder={filters.sortOrder} onSort={handleSort}>
                       Status
                     </SortableMaintenanceHeader>
                     <th className="px-4 py-3">Aksi</th>
@@ -512,10 +495,10 @@ export default function MaintenancesPage() {
                 </thead>
                 <tbody className="divide-y divide-stroke">
                   {paginatedMaintenances.map((maintenance) => (
-                    <tr 
-                      key={maintenance.id} 
-                      className={`text-sm hover:bg-gray-50 ${
-                        selectedMaintenances.has(maintenance.id) ? 'bg-blue-50' : ''
+                    <tr
+                      key={maintenance.id}
+                      className={`text-sm transition-colors ${
+                        selectedMaintenances.has(maintenance.id) ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50/50"
                       }`}
                     >
                       <td className="px-4 py-3">
@@ -523,119 +506,82 @@ export default function MaintenancesPage() {
                           type="checkbox"
                           checked={selectedMaintenances.has(maintenance.id)}
                           onChange={() => toggleMaintenanceSelection(maintenance.id)}
-                          className="rounded border-gray-300"
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                         />
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex flex-col">
-                          <span className="font-medium">{maintenance.contractNumber}</span>
-                          <span className="text-xs text-gray-500">{maintenance.contractName}</span>
+                        <div className="font-medium text-gray-900">{maintenance.contractNumber}</div>
+                        <div className="text-xs text-gray-500">{maintenance.contractName}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                          {maintenance.productType}
+                        </span>
+                        <div className="mt-1 text-sm">
+                          <span className="font-medium text-gray-900">{maintenance.productName}</span>
+                          <span className="text-gray-500"> · {maintenance.productNumber}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex flex-col">
-                          <div className="flex items-center">
-                            <span className="font-medium">{maintenance.productNumber}</span>
-                            <span className="ml-2 rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-800">
-                              {maintenance.productType}
-                            </span>
+                        <div className="text-gray-900">
+                          {maintenance.startDate ? format(maintenance.startDate, "dd MMM yyyy", { locale: idLocale }) : "-"}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          s/d {maintenance.endDate ? format(maintenance.endDate, "dd MMM yyyy", { locale: idLocale }) : "-"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {maintenance.engineers.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {maintenance.engineers.map((eng) => (
+                              <span key={eng.id} className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
+                                {eng.name}
+                              </span>
+                            ))}
                           </div>
-                          <span className="text-xs text-gray-500">{maintenance.productName}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-col">
-                          <span>
-                            {maintenance.startDate
-                              ? format(maintenance.startDate, "dd MMMM yyyy", { locale: idLocale })
-                              : "-"}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            s/d{" "}
-                            {maintenance.endDate
-                              ? format(maintenance.endDate, "dd MMMM yyyy", { locale: idLocale })
-                              : "-"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-col">
-                          {maintenance.engineers.length > 0 && (
-                            <div className="mb-1 flex flex-wrap gap-1">
-                              {maintenance.engineers.map((eng) => (
-                                <span
-                                  key={eng.id}
-                                  className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs"
-                                >
-                                  {eng.name}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          {maintenance.engineers.length === 0 && (
-                            <span className="text-xs text-gray-500">Belum ditugaskan</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        {maintenance.hasInspection ? (
-                          <span className="inline-block rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
-                            Sudah diinspeksi
-                          </span>
                         ) : (
-                          <span className="inline-block rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
-                            Belum diinspeksi
-                          </span>
+                          <span className="text-xs text-gray-400">Belum ditugaskan</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                          maintenance.hasInspection ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"
+                        }`}>
+                          {maintenance.hasInspection ? "Sudah" : "Belum"}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           <span className={`${statusColor[maintenance.status]} inline-flex rounded-full px-2 py-1 text-xs font-medium`}>
                             {statusDisplay[maintenance.status]}
                           </span>
-                          
                           {maintenance.status === "waiting_approval" && maintenance.hasInspection && (
-                            <div className="flex space-x-1">
+                            <div className="flex gap-1">
                               <button
                                 onClick={() => updateMaintenanceStatus(maintenance.id, "approved")}
                                 disabled={actionLoading === maintenance.id}
-                                className="rounded bg-green-500 px-2 py-1 text-xs font-medium text-white hover:bg-green-600"
+                                className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
                               >
-                                {actionLoading === maintenance.id ? "..." : "✓"}
+                                {actionLoading === maintenance.id ? "..." : "Setujui"}
                               </button>
                               <button
                                 onClick={() => updateMaintenanceStatus(maintenance.id, "rejected")}
                                 disabled={actionLoading === maintenance.id}
-                                className="rounded bg-red-500 px-2 py-1 text-xs font-medium text-white hover:bg-red-600"
+                                className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
                               >
-                                {actionLoading === maintenance.id ? "..." : "✕"}
+                                {actionLoading === maintenance.id ? "..." : "Tolak"}
                               </button>
                             </div>
                           )}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={`/admin/maintenances/edit/${maintenance.id}`}
-                            className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
-                          >
-                            <svg
-                              className="mr-1 h-3 w-3"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                            Edit
-                          </Link>
-                        </div>
+                        <Link
+                          href={`/admin/maintenances/edit/${maintenance.id}`}
+                          className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
+                        >
+                          Edit
+                        </Link>
                       </td>
                     </tr>
                   ))}
@@ -643,8 +589,8 @@ export default function MaintenancesPage() {
               </table>
             </div>
 
-            {/* Pagination Controls */}
-            <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t pt-4 sm:flex-row sm:space-y-0">
+            {/* Pagination */}
+            <div className="my-0 flex flex-col items-center justify-between space-y-3 border-t border-stroke p-2 sm:flex-row sm:space-y-0">
               <div className="text-xs text-gray-600">
                 Menampilkan {((currentPage - 1) * itemsPerPage) + 1}-
                 {Math.min(currentPage * itemsPerPage, filteredMaintenances.length)} dari{" "}
@@ -654,11 +600,8 @@ export default function MaintenancesPage() {
                 <span className="text-sm text-gray-600">Item per halaman:</span>
                 <select
                   value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="rounded-md border px-2 py-1 text-sm"
+                  onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                  className="rounded-md border border-stroke bg-white px-2 py-1 text-sm outline-none focus:border-primary"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -673,23 +616,12 @@ export default function MaintenancesPage() {
                   disabled={currentPage === 1}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === 1
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : "border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <span className="text-sm text-gray-600">
@@ -700,23 +632,12 @@ export default function MaintenancesPage() {
                   disabled={currentPage === totalPages || totalPages === 0}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === totalPages || totalPages === 0
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : "border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>

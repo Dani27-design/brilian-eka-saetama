@@ -1060,7 +1060,9 @@ export default function ProductsPage() {
         isOpen={contractModalProduct !== null}
         onClose={() => setContractModalProduct(null)}
         title={
-          contractModalProduct?.contractData?.contractName ?? "Detail Kontrak"
+          contractModalProduct
+            ? `Kontrak — ${contractModalProduct.contractData?.contractName}`
+            : "Produk"
         }
       >
         {contractModalProduct?.contractData && (
@@ -1166,7 +1168,7 @@ export default function ProductsPage() {
         onClose={() => setSpecsModalProduct(null)}
         title={
           specsModalProduct
-            ? `${specsModalProduct.name} - ${specsModalProduct.productNumber}`
+            ? `Spesifikasi — ${specsModalProduct.name} - ${specsModalProduct.productNumber}`
             : "Spesifikasi"
         }
       >

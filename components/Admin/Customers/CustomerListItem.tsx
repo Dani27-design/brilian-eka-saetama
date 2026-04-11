@@ -10,7 +10,9 @@ interface CustomerListItemProps {
   onDelete: (id: string) => void;
   isSelected?: boolean;
   onToggleSelection?: () => void;
-  onViewContracts?: (customer: Customer & { id: string; contracts: any[] }) => void;
+  onViewContracts?: (
+    customer: Customer & { id: string; contracts: any[] },
+  ) => void;
 }
 
 function CustomerListItem({
@@ -23,7 +25,9 @@ function CustomerListItem({
   // Get primary contact or first contact
   const getPrimaryContact = (): ContactPerson | null => {
     if (customer.contacts && customer.contacts.length > 0) {
-      const primaryContact = customer.contacts.find(c => c.id === customer.primaryContactId);
+      const primaryContact = customer.contacts.find(
+        (c) => c.id === customer.primaryContactId,
+      );
       return primaryContact || customer.contacts[0];
     }
     return null;
@@ -32,43 +36,47 @@ function CustomerListItem({
   // Fallback to legacy contact if no new contacts
   const getDisplayContact = () => {
     const primaryContact = getPrimaryContact();
-    
+
     if (primaryContact) {
       return {
         name: primaryContact.name,
         phone: primaryContact.phone,
         email: primaryContact.email,
-        position: primaryContact.position
+        position: primaryContact.position,
       };
     }
-    
+
     // Fallback to legacy contact
     if (customer.contact) {
       return {
         name: customer.contact.name,
         phone: customer.contact.phone?.toString() || "",
         email: customer.contact.email,
-        position: ""
+        position: "",
       };
     }
-    
+
     return null;
   };
 
   // Format address for display
   const getDisplayAddress = (): string => {
-    if (customer.address && typeof customer.address === 'object' && 'street' in customer.address) {
+    if (
+      customer.address &&
+      typeof customer.address === "object" &&
+      "street" in customer.address
+    ) {
       return formatAddressSingleLine(customer.address, 60);
     }
-    
+
     // Fallback to legacy address (string)
-    if (typeof customer.address === 'string' && customer.address) {
+    if (typeof customer.address === "string" && customer.address) {
       const addressString = customer.address as string;
-      return addressString.length > 60 
-        ? addressString.substring(0, 57) + '...' 
+      return addressString.length > 60
+        ? addressString.substring(0, 57) + "..."
         : addressString;
     }
-    
+
     return "-";
   };
 
@@ -79,9 +87,13 @@ function CustomerListItem({
   const getBusinessInfo = (): string => {
     if (customer.businessField) return customer.businessField;
     if (customer.customerType) {
-      return customer.customerType === "corporate" ? "Korporat" : 
-             customer.customerType === "individual" ? "Individu" : 
-             customer.customerType === "government" ? "Pemerintah" : "BUMN";
+      return customer.customerType === "corporate"
+        ? "Korporat"
+        : customer.customerType === "individual"
+        ? "Individu"
+        : customer.customerType === "government"
+        ? "Pemerintah"
+        : "BUMN";
     }
     return "-";
   };
@@ -96,7 +108,11 @@ function CustomerListItem({
   const canDelete = contractCount === 0;
 
   return (
-    <tr className={`text-sm transition-colors ${isSelected ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50/50"}`}>
+    <tr
+      className={`text-sm transition-colors ${
+        isSelected ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50/50"
+      }`}
+    >
       {/* Selection Checkbox */}
       <td className="px-4 py-3 text-center">
         <input
@@ -106,16 +122,12 @@ function CustomerListItem({
           className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
         />
       </td>
-      
+
       {/* Customer Name & Type */}
       <td className="px-4 py-3">
         <div>
-          <div className="font-medium text-gray-900">
-            {customer.name}
-          </div>
-          <div className="text-xs text-gray-500">
-            {getBusinessInfo()}
-          </div>
+          <div className="font-medium text-gray-900">{customer.name}</div>
+          <div className="text-xs text-gray-500">{getBusinessInfo()}</div>
         </div>
       </td>
 
@@ -138,12 +150,8 @@ function CustomerListItem({
                 </span>
               )}
             </div>
-            <div className="text-xs text-gray-600">
-              {displayContact.phone}
-            </div>
-            <div className="text-xs text-gray-600">
-              {displayContact.email}
-            </div>
+            <div className="text-xs text-gray-600">{displayContact.phone}</div>
+            <div className="text-xs text-gray-600">{displayContact.email}</div>
           </div>
         ) : (
           <span className="text-gray-400">-</span>
@@ -154,19 +162,11 @@ function CustomerListItem({
       <td className="px-4 py-3">
         {contractCount > 0 ? (
           <div className="text-sm">
-            <div className="font-medium text-gray-900">
-              {customer.contracts[0]?.contractName || '-'}
-            </div>
-            {contractCount > 1 && (
-              <div className="text-xs text-gray-500">
-                +{contractCount - 1} kontrak lainnya
-              </div>
-            )}
             <button
               onClick={() => onViewContracts?.(customer)}
-              className="mt-1 text-xs font-medium text-primary hover:underline"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
             >
-              Lihat kontrak
+              Lihat {contractCount} kontrak
             </button>
           </div>
         ) : (
@@ -183,8 +183,18 @@ function CustomerListItem({
             className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
             title="Edit pelanggan"
           >
-            <svg className="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <svg
+              className="mr-1 h-3 w-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
             Edit
           </Link>
@@ -196,7 +206,11 @@ function CustomerListItem({
             className={`inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 ${
               !canDelete ? "cursor-not-allowed opacity-50" : ""
             }`}
-            title={canDelete ? "Hapus pelanggan" : "Tidak dapat dihapus — pelanggan memiliki kontrak aktif"}
+            title={
+              canDelete
+                ? "Hapus pelanggan"
+                : "Tidak dapat dihapus — pelanggan memiliki kontrak aktif"
+            }
           >
             Hapus
           </button>
