@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, ReactNode, CSSProperties } from "react";
+import { useEffect, useRef, useState, ReactNode, CSSProperties, memo } from "react";
 
 interface ScrollRevealProps {
   children?: ReactNode;
@@ -17,7 +17,7 @@ interface ScrollRevealProps {
   style?: CSSProperties;
 }
 
-export default function ScrollReveal({
+function ScrollReveal({
   children,
   className = "",
   direction = "up",
@@ -86,3 +86,5 @@ export default function ScrollReveal({
     </Component>
   );
 }
+
+export default memo(ScrollReveal);

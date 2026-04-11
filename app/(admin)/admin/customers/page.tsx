@@ -22,8 +22,11 @@ import {
   downloadCustomersAsCSV,
   downloadCustomerCSVTemplate,
 } from "@/utils/customerImportExport";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 export default function CustomersPage() {
+  usePageHeader("Manajemen Pelanggan", "Kelola data pelanggan dengan sistem yang terintegrasi.");
+
   const [customers, setCustomers] = useState<
     (Customer & { id: string; contracts: any[] })[]
   >([]);
@@ -270,16 +273,8 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-2 dark:border-strokedark md:p-6 xl:p-7.5">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-black dark:text-white sm:text-2xl">
-            Manajemen Pelanggan
-          </h2>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
-            Kelola data pelanggan dengan sistem yang terintegrasi.
-          </p>
-        </div>
+    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 md:p-6 xl:p-7.5">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
         <Link
           href="/admin/customers/create"
           className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:w-auto"
@@ -303,7 +298,7 @@ export default function CustomersPage() {
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
+        <div className="mb-4 rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="shrink-0">
               <svg
@@ -319,7 +314,7 @@ export default function CustomersPage() {
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-red-800 dark:text-red-200">{error}</p>
+              <p className="text-red-800">{error}</p>
             </div>
           </div>
         </div>
@@ -347,7 +342,7 @@ export default function CustomersPage() {
         />
       </div>
 
-      <div className="dark:bg-boxdark rounded-lg border border-stroke bg-white p-4 dark:border-strokedark">
+      <div className=" rounded-lg border border-stroke bg-white p-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -370,7 +365,7 @@ export default function CustomersPage() {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              <p className="mt-2 text-gray-500 dark:text-gray-400">
+              <p className="mt-2 text-gray-500">
                 Memuat pelanggan...
               </p>
             </div>
@@ -392,14 +387,14 @@ export default function CustomersPage() {
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">
+                <h3 className="mt-2 text-lg font-medium text-gray-900">
                   Belum ada pelanggan
                 </h3>
-                <p className="mt-1 text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-gray-500">
                   Mulai dengan menambahkan pelanggan pertama Anda.
                 </p>
                 <div className="mt-6">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-gray-500">
                     Gunakan tombol "Tambah Pelanggan" di bagian atas untuk
                     memulai.
                   </p>
@@ -420,17 +415,17 @@ export default function CustomersPage() {
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
-                <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">
+                <h3 className="mt-2 text-lg font-medium text-gray-900">
                   Tidak ada hasil
                 </h3>
-                <p className="mt-1 text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-gray-500">
                   Tidak ada pelanggan yang cocok dengan filter yang Anda
                   terapkan.
                 </p>
                 <div className="mt-6">
                   <button
                     onClick={handleClearFilters}
-                    className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                    className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Clear Filters
                   </button>
@@ -443,9 +438,9 @@ export default function CustomersPage() {
             <div className="overflow-x-auto">
               <table className="w-full table-auto">
                 <thead>
-                  <tr className="border-b border-stroke bg-gray-50 dark:border-strokedark dark:bg-gray-800">
+                  <tr className="border-b border-stroke bg-gray-50">
                     {bulkMode && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700">
                         <input
                           type="checkbox"
                           checked={
@@ -467,27 +462,27 @@ export default function CustomersPage() {
                         />
                       </th>
                     )}
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
                       Pelanggan
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
                       Alamat
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
                       Kontak Utama
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700">
                       Kontak Lain
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700">
                       Kontrak
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
                       Aksi
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stroke dark:divide-strokedark">
+                <tbody className="divide-y divide-stroke">
                   {currentCustomers.map((customer) => (
                     <CustomerListItem
                       key={customer.id}
@@ -504,14 +499,14 @@ export default function CustomersPage() {
               </table>
             </div>
             {/* Pagination Controls */}
-            <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t border-stroke pt-4 dark:border-strokedark sm:flex-row sm:space-y-0">
-              <div className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t border-stroke pt-4 sm:flex-row sm:space-y-0">
+              <div className="text-xs text-gray-600">
                 Menampilkan {indexOfFirstItem + 1}-
                 {Math.min(indexOfLastItem, filteredCustomers.length)} dari{" "}
                 {filteredCustomers.length} pelanggan
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-600">
                   Item per halaman:
                 </span>
                 <select
@@ -520,7 +515,7 @@ export default function CustomersPage() {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="dark:bg-boxdark rounded-md border border-stroke bg-white px-2 py-1 text-sm dark:border-strokedark dark:text-white"
+                  className=" rounded-md border border-stroke bg-white px-2 py-1 text-sm"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -535,13 +530,26 @@ export default function CustomersPage() {
                   disabled={currentPage === 1}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === 1
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-500"
-                      : "dark:bg-boxdark border-stroke bg-white hover:bg-gray-100 dark:border-strokedark dark:text-white dark:hover:bg-gray-700"
+                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                      : " border-stroke bg-white hover:bg-gray-100"
                   }`}
                 >
-                  &lt;
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
                 </button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-600">
                   Halaman <span className="font-medium">{currentPage}</span>{" "}
                   dari {totalPages}
                 </span>
@@ -552,11 +560,24 @@ export default function CustomersPage() {
                   disabled={currentPage === totalPages || totalPages === 0}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === totalPages || totalPages === 0
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-500"
-                      : "dark:bg-boxdark border-stroke bg-white hover:bg-gray-100 dark:border-strokedark dark:text-white dark:hover:bg-gray-700"
+                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                      : " border-stroke bg-white hover:bg-gray-100"
                   }`}
                 >
-                  &gt;
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
                 </button>
               </div>
             </div>

@@ -291,14 +291,14 @@ const AboutEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 About Section Title
               </label>
               <input
                 type="text"
                 value={localTextInputs.title || ""}
                 onChange={(e) => handleTextInputChange(e, "title")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={activeTab === "en" ? "About Us" : "Tentang Kami"}
               />
               <p className="mt-1 text-sm text-gray-500">
@@ -312,13 +312,13 @@ const AboutEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 About Section Subtitle
               </label>
               <textarea
                 value={localTextInputs.subtitle || ""}
                 onChange={(e) => handleTextInputChange(e, "subtitle")}
-                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "Learn more about our company."
@@ -336,7 +336,7 @@ const AboutEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 About Sections
               </label>
               <p className="mb-4 text-sm text-gray-500">
@@ -344,7 +344,7 @@ const AboutEditor = ({
               </p>
 
               {aboutSections.length === 0 && (
-                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500 dark:bg-gray-800">
+                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500">
                   No about sections yet. Add one below.
                 </div>
               )}
@@ -352,16 +352,16 @@ const AboutEditor = ({
               {aboutSections.map((section, index) => (
                 <div
                   key={index}
-                  className="mb-8 rounded-lg border border-gray-300 bg-white p-6 dark:border-gray-600 dark:bg-gray-700"
+                  className="mb-8 rounded-lg border border-gray-300 bg-white p-6"
                 >
                   <div className="mb-4 flex items-center justify-between">
-                    <h3 className="font-medium text-black dark:text-white">
+                    <h3 className="font-medium text-black">
                       Section {index + 1}
                     </h3>
                     <button
                       type="button"
                       onClick={() => removeSection(index)}
-                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200"
                     >
                       Remove Section
                     </button>
@@ -370,7 +370,7 @@ const AboutEditor = ({
                   <div className="space-y-4">
                     {/* Section Title */}
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <label className="mb-1 block text-xs font-medium text-gray-700">
                         Section Title
                       </label>
                       <input
@@ -379,13 +379,13 @@ const AboutEditor = ({
                         onChange={(e) =>
                           handleSectionChange(index, "title", e.target.value)
                         }
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
 
                     {/* Section Subtitle */}
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <label className="mb-1 block text-xs font-medium text-gray-700">
                         Section Subtitle
                       </label>
                       <input
@@ -394,13 +394,13 @@ const AboutEditor = ({
                         onChange={(e) =>
                           handleSectionChange(index, "subtitle", e.target.value)
                         }
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
 
                     {/* Section Description */}
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <label className="mb-1 block text-xs font-medium text-gray-700">
                         Section Description
                       </label>
                       <textarea
@@ -412,7 +412,7 @@ const AboutEditor = ({
                             e.target.value,
                           )
                         }
-                        className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
 
@@ -420,7 +420,7 @@ const AboutEditor = ({
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                       {/* Light Mode Image */}
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                        <label className="mb-1 block text-xs font-medium text-gray-700">
                           Light Mode Image
                         </label>
                         <ImageUploader
@@ -435,7 +435,7 @@ const AboutEditor = ({
 
                       {/* Dark Mode Image */}
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                        <label className="mb-1 block text-xs font-medium text-gray-700">
                           Dark Mode Image
                         </label>
                         <ImageUploader
@@ -452,13 +452,13 @@ const AboutEditor = ({
                     {/* Points (Optional) */}
                     <div className="pt-4">
                       <div className="mb-2 flex items-center justify-between">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label className="text-sm font-medium text-gray-700">
                           Points (Optional)
                         </label>
                         <button
                           type="button"
                           onClick={() => addPoint(index)}
-                          className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300"
+                          className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200"
                         >
                           + Add Point
                         </button>
@@ -469,7 +469,7 @@ const AboutEditor = ({
                           {section.points.map((point, pointIndex) => (
                             <div
                               key={point.id || pointIndex}
-                              className="rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800"
+                              className="rounded-md border border-gray-200 bg-gray-50 p-3"
                             >
                               <div className="mb-2 flex items-center justify-between">
                                 <span className="text-xs font-medium">
@@ -478,7 +478,7 @@ const AboutEditor = ({
                                 <button
                                   type="button"
                                   onClick={() => removePoint(index, pointIndex)}
-                                  className="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+                                  className="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-700 hover:bg-red-200"
                                 >
                                   Remove
                                 </button>
@@ -486,7 +486,7 @@ const AboutEditor = ({
 
                               <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                                 <div>
-                                  <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">
+                                  <label className="mb-1 block text-xs text-gray-600">
                                     Number
                                   </label>
                                   <input
@@ -500,11 +500,11 @@ const AboutEditor = ({
                                         e.target.value,
                                       )
                                     }
-                                    className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                                   />
                                 </div>
                                 <div className="md:col-span-2">
-                                  <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">
+                                  <label className="mb-1 block text-xs text-gray-600">
                                     Title
                                   </label>
                                   <input
@@ -518,12 +518,12 @@ const AboutEditor = ({
                                         e.target.value,
                                       )
                                     }
-                                    className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                                   />
                                 </div>
                               </div>
                               <div className="mt-2">
-                                <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">
+                                <label className="mb-1 block text-xs text-gray-600">
                                   Description
                                 </label>
                                 <textarea
@@ -536,7 +536,7 @@ const AboutEditor = ({
                                       e.target.value,
                                     )
                                   }
-                                  className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                  className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                                   rows={2}
                                 />
                               </div>
@@ -544,7 +544,7 @@ const AboutEditor = ({
                           ))}
                         </div>
                       ) : (
-                        <div className="rounded-md bg-gray-50 p-4 text-center text-xs text-gray-500 dark:bg-gray-800">
+                        <div className="rounded-md bg-gray-50 p-4 text-center text-xs text-gray-500">
                           No points added. Click "Add Point" to add numbered
                           points to this section.
                         </div>
@@ -557,7 +557,7 @@ const AboutEditor = ({
               <button
                 type="button"
                 onClick={addSection}
-                className="mt-4 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5 dark:bg-transparent"
+                className="mt-4 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5"
               >
                 + Add Section
               </button>
@@ -597,12 +597,12 @@ const AboutEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -610,7 +610,7 @@ const AboutEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -621,7 +621,7 @@ const AboutEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -635,7 +635,7 @@ const AboutEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

@@ -277,14 +277,14 @@ const ContactEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Contact Title
               </label>
               <input
                 type="text"
                 value={localInputs.title || ""}
                 onChange={(e) => handleTextInputChange(e, activeTab, "title")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={activeTab === "en" ? "Contact Us" : "Hubungi Kami"}
               />
               <p className="mt-1 text-sm text-gray-500">
@@ -293,7 +293,7 @@ const ContactEditor = ({
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Contact Subtitle
               </label>
               <textarea
@@ -301,7 +301,7 @@ const ContactEditor = ({
                 onChange={(e) =>
                   handleTextInputChange(e, activeTab, "subtitle")
                 }
-                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "Have a project in mind? Let's connect."
@@ -319,27 +319,27 @@ const ContactEditor = ({
         return (
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Section Title
               </label>
               <input
                 type="text"
                 value={localInputs.title || ""}
                 onChange={(e) => handleTextInputChange(e, activeTab, "title")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={activeTab === "en" ? "Find Us" : "Temukan Kami"}
               />
             </div>
 
             {/* Location Section */}
-            <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-              <h3 className="mb-3 font-medium text-gray-700 dark:text-gray-300">
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-4">
+              <h3 className="mb-3 font-medium text-gray-700">
                 Location Information
               </h3>
 
               <div className="space-y-3">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Location Title
                   </label>
                   <input
@@ -348,7 +348,7 @@ const ContactEditor = ({
                     onChange={(e) =>
                       handleNestedTextChange(e, activeTab, "location", "title")
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder={
                       activeTab === "en" ? "Our Location" : "Lokasi Kami"
                     }
@@ -356,7 +356,7 @@ const ContactEditor = ({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Address
                   </label>
                   <textarea
@@ -364,7 +364,7 @@ const ContactEditor = ({
                     onChange={(e) =>
                       handleNestedTextChange(e, activeTab, "location", "text")
                     }
-                    className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Jl. Wonocolo Utara V No.22, Surabaya"
                   />
                 </div>
@@ -372,14 +372,14 @@ const ContactEditor = ({
             </div>
 
             {/* Email Section */}
-            <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-              <h3 className="mb-3 font-medium text-gray-700 dark:text-gray-300">
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-4">
+              <h3 className="mb-3 font-medium text-gray-700">
                 Email Information
               </h3>
 
               <div className="space-y-3">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Email Title
                   </label>
                   <input
@@ -388,13 +388,13 @@ const ContactEditor = ({
                     onChange={(e) =>
                       handleNestedTextChange(e, activeTab, "email", "title")
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder={activeTab === "en" ? "Email us" : "Email kami"}
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Email Address
                   </label>
                   <input
@@ -403,7 +403,7 @@ const ContactEditor = ({
                     onChange={(e) =>
                       handleNestedTextChange(e, activeTab, "email", "text")
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="info@brilineska.com"
                   />
                 </div>
@@ -411,14 +411,14 @@ const ContactEditor = ({
             </div>
 
             {/* Phone Section */}
-            <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-              <h3 className="mb-3 font-medium text-gray-700 dark:text-gray-300">
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-4">
+              <h3 className="mb-3 font-medium text-gray-700">
                 Phone Information
               </h3>
 
               <div className="space-y-3">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Phone Title
                   </label>
                   <input
@@ -427,13 +427,13 @@ const ContactEditor = ({
                     onChange={(e) =>
                       handleNestedTextChange(e, activeTab, "phone", "title")
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder={activeTab === "en" ? "Phone" : "Telepon"}
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Phone Number
                   </label>
                   <input
@@ -442,7 +442,7 @@ const ContactEditor = ({
                     onChange={(e) =>
                       handleNestedTextChange(e, activeTab, "phone", "text")
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="+62 852-3160-0808"
                   />
                 </div>
@@ -455,28 +455,28 @@ const ContactEditor = ({
         return (
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Form Title
               </label>
               <input
                 type="text"
                 value={localInputs.title || ""}
                 onChange={(e) => handleTextInputChange(e, activeTab, "title")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en" ? "Send Message" : "Kirim Pesan"
                 }
               />
             </div>
 
-            <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-              <h3 className="mb-3 font-medium text-gray-700 dark:text-gray-300">
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-4">
+              <h3 className="mb-3 font-medium text-gray-700">
                 Form Fields
               </h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Name Field Placeholder
                   </label>
                   <input
@@ -490,7 +490,7 @@ const ContactEditor = ({
                         "placeholder",
                       )
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholder={
                       activeTab === "en" ? "Full Name" : "Nama Lengkap"
                     }
@@ -498,7 +498,7 @@ const ContactEditor = ({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Email Field Placeholder
                   </label>
                   <input
@@ -512,7 +512,7 @@ const ContactEditor = ({
                         "placeholder",
                       )
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholder={
                       activeTab === "en" ? "Email address" : "Alamat Email"
                     }
@@ -520,7 +520,7 @@ const ContactEditor = ({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Subject Field Placeholder
                   </label>
                   <input
@@ -534,13 +534,13 @@ const ContactEditor = ({
                         "placeholder",
                       )
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholder={activeTab === "en" ? "Subject" : "Subjek"}
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Phone Field Placeholder
                   </label>
                   <input
@@ -554,7 +554,7 @@ const ContactEditor = ({
                         "placeholder",
                       )
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholder={
                       activeTab === "en" ? "Phone number" : "Nomor Telepon"
                     }
@@ -562,7 +562,7 @@ const ContactEditor = ({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Message Field Placeholder
                   </label>
                   <input
@@ -576,7 +576,7 @@ const ContactEditor = ({
                         "placeholder",
                       )
                     }
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholder={activeTab === "en" ? "Message" : "Pesan"}
                   />
                 </div>
@@ -584,7 +584,7 @@ const ContactEditor = ({
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Consent Text
               </label>
               <textarea
@@ -592,7 +592,7 @@ const ContactEditor = ({
                 onChange={(e) =>
                   handleTextInputChange(e, activeTab, "consent_text")
                 }
-                className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? 'By clicking Checkbox, you agree to use our "Form" terms And consent cookie usage in browser.'
@@ -602,7 +602,7 @@ const ContactEditor = ({
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Submit Button Text
               </label>
               <input
@@ -611,7 +611,7 @@ const ContactEditor = ({
                 onChange={(e) =>
                   handleTextInputChange(e, activeTab, "submit_button")
                 }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en" ? "Send Message" : "Kirim Pesan"
                 }
@@ -652,12 +652,12 @@ const ContactEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -665,7 +665,7 @@ const ContactEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -676,7 +676,7 @@ const ContactEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -690,7 +690,7 @@ const ContactEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

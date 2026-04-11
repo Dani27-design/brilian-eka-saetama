@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { useLanguage } from "@/app/context/LanguageContext";
-import AdminPageHeader from "@/components/Admin/AdminPageHeader";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 import Link from "next/link";
 import { firestore } from "@/db/firebase/firebaseConfig";
 
@@ -12,6 +12,53 @@ interface Document {
   id: string;
   data: any;
 }
+
+const collectionLabels: Record<string, { en: { title: string; description: string }; id: { title: string; description: string } }> = {
+  header: {
+    en: { title: "Header Section", description: "Manage the header area of your website" },
+    id: { title: "Manajemen Website Bagian Header", description: "Kelola area header website Anda" },
+  },
+  hero: {
+    en: { title: "Hero Section", description: "Manage the hero banner of your website" },
+    id: { title: "Manajemen Website Bagian Hero", description: "Kelola banner utama website Anda" },
+  },
+  services: {
+    en: { title: "Services Section", description: "Manage the services displayed on your website" },
+    id: { title: "Manajemen Website Bagian Layanan", description: "Kelola layanan yang ditampilkan di website Anda" },
+  },
+  about: {
+    en: { title: "About Section", description: "Manage the about section of your website" },
+    id: { title: "Manajemen Website Bagian Tentang Kami", description: "Kelola bagian tentang di website Anda" },
+  },
+  clients: {
+    en: { title: "Clients Section", description: "Manage client logos and information" },
+    id: { title: "Manajemen Website Bagian Klien", description: "Kelola logo dan informasi klien" },
+  },
+  clientsInfo: {
+    en: { title: "Client Satisfaction Section", description: "Manage client satisfaction statistics" },
+    id: { title: "Manajemen Website Bagian Kepuasan Klien", description: "Kelola statistik kepuasan klien" },
+  },
+  faq: {
+    en: { title: "FAQ Section", description: "Manage frequently asked questions" },
+    id: { title: "Manajemen Website Bagian FAQ", description: "Kelola pertanyaan yang sering diajukan" },
+  },
+  testimonial: {
+    en: { title: "Testimonial Section", description: "Manage client testimonials" },
+    id: { title: "Manajemen Website Bagian Testimoni", description: "Kelola testimoni klien" },
+  },
+  contact: {
+    en: { title: "Contact Section", description: "Manage contact information and form settings" },
+    id: { title: "Manajemen Website Bagian Kontak", description: "Kelola informasi kontak dan pengaturan formulir" },
+  },
+  blog: {
+    en: { title: "Blog Section", description: "Manage the blog section layout on your website" },
+    id: { title: "Manajemen Website Bagian Blog", description: "Kelola tata letak bagian blog di website Anda" },
+  },
+  footer: {
+    en: { title: "Footer Section", description: "Manage the footer area of your website" },
+    id: { title: "Manajemen Website Bagian Footer", description: "Kelola area footer website Anda" },
+  },
+};
 
 export default function CollectionPage({
   params,
@@ -25,6 +72,14 @@ export default function CollectionPage({
   const { language } = useLanguage();
   const router = useRouter();
   const { collection: collectionName } = params;
+
+  const lang = (language as "en" | "id") || "en";
+  const labels = collectionLabels[collectionName]?.[lang] || {
+    title: `${collectionName} Collection`,
+    description: `Manage all ${collectionName} content`,
+  };
+
+  usePageHeader(labels.title, labels.description);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -78,18 +133,14 @@ export default function CollectionPage({
 
   return (
     <div className="container mx-auto">
-      <AdminPageHeader
-        title={`${collectionName} Collection`}
-        description={`Manage all ${collectionName} content`}
-        actions={
-          <Link
-            href={`/admin/collections/${collectionName}/create`}
-            className="rounded-lg bg-primary px-4 py-2 text-white transition hover:bg-opacity-90"
-          >
-            Add New
-          </Link>
-        }
-      />
+      <div className="mb-6 flex items-center justify-end">
+        <Link
+          href={`/admin/collections/${collectionName}/create`}
+          className="rounded-lg bg-primary px-4 py-2 text-white transition hover:bg-opacity-90"
+        >
+          Add New
+        </Link>
+      </div>
 
       <div className="mb-8">
         <div className="mt-4 flex items-center space-x-3 sm:mt-0">
@@ -97,7 +148,7 @@ export default function CollectionPage({
             <input
               type="text"
               placeholder="Search documents..."
-              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 pl-10 text-sm focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black"
+              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 pl-10 text-sm focus:border-primary focus:outline-none"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -123,15 +174,15 @@ export default function CollectionPage({
           {Array.from({ length: 5 }).map((_, index) => (
             <div
               key={index}
-              className="h-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"
+              className="h-24 animate-pulse rounded-lg bg-gray-200"
             ></div>
           ))}
         </div>
       ) : (
         <>
           {filteredDocs.length === 0 ? (
-            <div className="rounded-lg border border-stroke bg-white p-8 text-center dark:border-strokedark dark:bg-black">
-              <p className="text-gray-500 dark:text-gray-400">
+            <div className="rounded-lg border border-stroke bg-white p-8 text-center">
+              <p className="text-gray-500">
                 {searchTerm
                   ? "No documents match your search criteria."
                   : "No documents found in this collection."}
@@ -148,18 +199,18 @@ export default function CollectionPage({
               {filteredDocs.map((doc) => (
                 <div
                   key={doc.id}
-                  className="overflow-hidden rounded-lg border border-stroke bg-white shadow-sm dark:border-strokedark dark:bg-black"
+                  className="overflow-hidden rounded-lg border border-stroke bg-white shadow-sm"
                 >
-                  <div className="border-b border-stroke bg-gray-50 px-6 py-4 dark:border-strokedark dark:bg-gray-800">
+                  <div className="border-b border-stroke bg-gray-50 px-6 py-4">
                     <h3
-                      className="truncate font-medium text-black dark:text-white"
+                      className="truncate font-medium text-black"
                       title={doc.id}
                     >
                       {doc.id}
                     </h3>
                   </div>
                   <div className="px-6 py-4">
-                    <div className="mb-4 h-16 overflow-hidden text-sm text-gray-600 dark:text-gray-300">
+                    <div className="mb-4 h-16 overflow-hidden text-sm text-gray-600">
                       {getDocumentPreview(doc)}
                     </div>
                     <div className="flex items-center justify-between">

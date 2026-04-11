@@ -127,7 +127,7 @@ export default function EditBlogPage({ params }) {
 
   if (isLoading) {
     return (
-      <div className="shadow-default dark:bg-boxdark flex h-64 items-center justify-center rounded-sm border border-stroke bg-white dark:border-strokedark">
+      <div className="shadow-default flex h-64 items-center justify-center rounded-sm border border-stroke bg-white">
         <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
       </div>
     );
@@ -135,8 +135,8 @@ export default function EditBlogPage({ params }) {
 
   if (error || !blog) {
     return (
-      <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-4 dark:border-strokedark md:p-6 xl:p-7.5">
-        <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/30">
+      <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
+        <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="shrink-0">
               <svg
@@ -152,15 +152,15 @@ export default function EditBlogPage({ params }) {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+              <h3 className="text-sm font-medium text-red-800">
                 Error
               </h3>
-              <p className="mt-2 text-sm text-red-700 dark:text-red-300">
+              <p className="mt-2 text-sm text-red-700">
                 {error || "Blog not found"}
               </p>
               <button
                 onClick={() => router.push("/admin/blogs")}
-                className="mt-2 rounded-md bg-red-100 px-3 py-1 text-sm text-red-800 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-100 dark:hover:bg-red-900/70"
+                className="mt-2 rounded-md bg-red-100 px-3 py-1 text-sm text-red-800 hover:bg-red-200"
               >
                 Return to Blogs
               </button>
@@ -172,18 +172,18 @@ export default function EditBlogPage({ params }) {
   }
 
   return (
-    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-4 dark:border-strokedark md:p-6 xl:p-7.5">
+    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-black dark:text-white">
+        <h2 className="text-xl font-semibold text-black">
           Edit Blog Post
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-500">
           Update your blog post content.
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
+        <div className="mb-4 rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="shrink-0">
               <svg
@@ -199,10 +199,10 @@ export default function EditBlogPage({ params }) {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+              <h3 className="text-sm font-medium text-red-800">
                 Error
               </h3>
-              <p className="mt-2 text-sm text-red-700 dark:text-red-300">
+              <p className="mt-2 text-sm text-red-700">
                 {error}
               </p>
             </div>
@@ -226,7 +226,7 @@ export default function EditBlogPage({ params }) {
           <button
             type="button"
             onClick={() => router.push("/admin/blogs")}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
           >
             Cancel
           </button>

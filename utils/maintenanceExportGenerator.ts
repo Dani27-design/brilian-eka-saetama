@@ -34,6 +34,7 @@ export const DEFAULT_MAINTENANCE_EXPORT_CONFIG: MaintenanceExportConfig = {
 const STATUS_DISPLAY_NAMES: Record<MaintenanceStatus, string> = {
   scheduled: "Dijadwalkan",
   pending: "Tertunda",
+  in_progress: "Sedang Dikerjakan",
   waiting_approval: "Menunggu Disetujui",
   approved: "Disetujui",
   rejected: "Ditolak"

@@ -112,7 +112,7 @@ export default function CreateProductPage() {
         return (
           <>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tinggi (cm)
               </label>
               <input
@@ -122,11 +122,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).height || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Lebar (cm)
               </label>
               <input
@@ -136,11 +136,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).width || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tekanan (bar)
               </label>
               <input
@@ -150,11 +150,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).pressure || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Kapasitas (kg)
               </label>
               <input
@@ -164,22 +164,22 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).capacity || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Jenis Media
               </label>
               <input
                 name="agentType"
                 value={(specs as any).agentType || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Berat Total (kg)
               </label>
               <input
@@ -189,7 +189,7 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).weight || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             {/* BaseSpecs */}
@@ -203,7 +203,7 @@ export default function CreateProductPage() {
         return (
           <>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tinggi (cm)
               </label>
               <input
@@ -213,11 +213,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).height || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Lebar (cm)
               </label>
               <input
@@ -227,11 +227,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).width || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Debit Air (L/min)
               </label>
               <input
@@ -241,11 +241,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).flowRate || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tekanan (bar)
               </label>
               <input
@@ -255,22 +255,22 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).pressure || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tipe Valve
               </label>
               <input
                 name="valveType"
                 value={(specs as any).valveType || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Panjang Selang (m)
               </label>
               <input
@@ -280,18 +280,18 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).hoseLength || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Material Body
               </label>
               <input
                 name="material"
                 value={(specs as any).material || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             {BaseSpecsFields({
@@ -304,31 +304,31 @@ export default function CreateProductPage() {
         return (
           <>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Resolusi
               </label>
               <input
                 name="resolution"
                 value={(specs as any).resolution || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Lensa
               </label>
               <input
                 name="lens"
                 value={(specs as any).lens || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
               <label
                 htmlFor="nightVision"
-                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="mb-1 block text-sm font-medium text-gray-700"
               >
                 Night Vision
               </label>
@@ -344,29 +344,29 @@ export default function CreateProductPage() {
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Daya
               </label>
               <input
                 name="power"
                 value={(specs as any).power || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Konektivitas
               </label>
               <input
                 name="connectivity"
                 value={(specs as any).connectivity || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Pan
               </label>
               <input
@@ -378,7 +378,7 @@ export default function CreateProductPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tilt
               </label>
               <input
@@ -390,14 +390,14 @@ export default function CreateProductPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Kapasitas Penyimpanan
               </label>
               <input
                 name="storageCapacity"
                 value={(specs as any).storageCapacity || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             {BaseSpecsFields({
@@ -410,29 +410,29 @@ export default function CreateProductPage() {
         return (
           <>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tipe Sensor
               </label>
               <input
                 name="sensorType"
                 value={(specs as any).sensorType || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Daya
               </label>
               <input
                 name="power"
                 value={(specs as any).power || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Area Cakupan (m²)
               </label>
               <input
@@ -442,11 +442,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).coverageArea || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tingkat Suara (dB)
               </label>
               <input
@@ -456,11 +456,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).soundLevel || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Cadangan Baterai
               </label>
               <input
@@ -481,29 +481,29 @@ export default function CreateProductPage() {
         return (
           <>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Material
               </label>
               <input
                 name="material"
                 value={(specs as any).material || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tipe Kunci
               </label>
               <input
                 name="lockType"
                 value={(specs as any).lockType || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Lebar (cm)
               </label>
               <input
@@ -513,11 +513,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).width || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tinggi (cm)
               </label>
               <input
@@ -527,11 +527,11 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).height || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Kecepatan Buka (cm/s)
               </label>
               <input
@@ -541,7 +541,7 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).openingSpeed || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             {BaseSpecsFields({
@@ -554,40 +554,40 @@ export default function CreateProductPage() {
         return (
           <>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tipe Perangkat
               </label>
               <input
                 name="deviceType"
                 value={(specs as any).deviceType || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Baterai
               </label>
               <input
                 name="batteryLife"
                 value={(specs as any).batteryLife || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Konektivitas
               </label>
               <input
                 name="connectivity"
                 value={(specs as any).connectivity || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Interval Patroli (menit)
               </label>
               <input
@@ -597,18 +597,18 @@ export default function CreateProductPage() {
                 step="any"
                 value={(specs as any).patrolInterval || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Versi Firmware
               </label>
               <input
                 name="firmwareVersion"
                 value={(specs as any).firmwareVersion || ""}
                 onChange={handleSpecsChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
             {BaseSpecsFields({
@@ -634,7 +634,7 @@ export default function CreateProductPage() {
     return (
       <>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
             Serial Number
           </label>
           <input
@@ -642,11 +642,11 @@ export default function CreateProductPage() {
             value={specs.serialNumber ?? ""}
             onChange={onChange}
             autoComplete="off"
-            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
             Tanggal Produksi
           </label>
           <input
@@ -654,11 +654,11 @@ export default function CreateProductPage() {
             type="date"
             value={specs.manufactureDate ?? ""}
             onChange={onChange}
-            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
             Tanggal Instalasi
           </label>
           <input
@@ -666,11 +666,11 @@ export default function CreateProductPage() {
             type="date"
             value={specs.installationDate ?? ""}
             onChange={onChange}
-            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
             Tanggal Kadaluarsa
           </label>
           <input
@@ -678,7 +678,7 @@ export default function CreateProductPage() {
             type="date"
             value={specs.expirationDate ?? ""}
             onChange={onChange}
-            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
           />
         </div>
       </>
@@ -807,12 +807,12 @@ export default function CreateProductPage() {
       )}
 
       {/* Product Form Container */}
-      <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-4 dark:border-strokedark md:p-6">
+      <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6">
 
       <form onSubmit={handleSubmit}>
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               No. Produk<span className="text-red-500">*</span>
             </label>
             <input
@@ -823,7 +823,7 @@ export default function CreateProductPage() {
               onChange={handleChange}
               className={`w-full rounded-lg border ${
                 productNumberError ? "border-red-500" : "border-stroke"
-              } bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white`}
+              } bg-transparent px-4 py-2 outline-none focus:border-primary`}
               required
             />
             {productNumberError && (
@@ -831,14 +831,14 @@ export default function CreateProductPage() {
             )}
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Tipe Produk<span className="text-red-500">*</span>
             </label>
             <select
               name="productType"
               value={form.productType}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             >
               <option value="">Pilih tipe produk</option>
@@ -851,7 +851,7 @@ export default function CreateProductPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Nama Produk<span className="text-red-500">*</span>
             </label>
             <input
@@ -859,12 +859,12 @@ export default function CreateProductPage() {
               placeholder="Nama Produk"
               value={form.name}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Merk<span className="text-red-500">*</span>
             </label>
             <input
@@ -872,12 +872,12 @@ export default function CreateProductPage() {
               placeholder="Brand"
               value={specs.brand || ""}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Jenis<span className="text-red-500">*</span>
             </label>
             <input
@@ -885,12 +885,12 @@ export default function CreateProductPage() {
               placeholder="Jenis"
               value={specs.brandType || ""}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Sumber Produk<span className="text-red-500">*</span>
             </label>
             <input
@@ -898,12 +898,12 @@ export default function CreateProductPage() {
               placeholder="Sumber produk (misal: VENDOR ABC, INTERNAL)"
               value={form.source}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Interval Maintenance (hari)
             </label>
             <input
@@ -913,13 +913,13 @@ export default function CreateProductPage() {
               placeholder="Interval maintenance (hari)"
               value={form.maintenanceInterval}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
             />
           </div>
           {/* Render dynamic specs fields */}
           {renderSpecsFields()}
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Gambar Produk
             </label>
             <ImageUploader
@@ -934,7 +934,7 @@ export default function CreateProductPage() {
         <div className="flex justify-end space-x-4">
           <Link
             href="/admin/products"
-            className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
+            className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
           >
             Batal
           </Link>

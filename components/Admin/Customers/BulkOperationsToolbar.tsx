@@ -29,7 +29,7 @@ export default function BulkOperationsToolbar({
   return (
     <div className="mb-6 space-y-3">
       {/* Always Visible Primary Actions */}
-      <div className="flex flex-col gap-3 rounded-lg border border-stroke bg-white p-3 shadow-sm sm:p-4 sm:flex-row sm:items-center sm:justify-between dark:border-strokedark dark:bg-boxdark">
+      <div className="flex flex-col gap-3 rounded-lg border border-stroke bg-white p-3 shadow-sm sm:p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2 md:grid-cols-3">
           <Link
             href="/admin/customers/import"
@@ -64,7 +64,7 @@ export default function BulkOperationsToolbar({
 
         <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">          
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300">Mode Massal:</span>
+            <span className="text-xs font-medium text-gray-700 sm:text-sm">Mode Massal:</span>
             <button
               onClick={onToggleBulkMode}
               className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
@@ -79,7 +79,7 @@ export default function BulkOperationsToolbar({
                 }`}
               />
             </button>
-            <span className={`text-sm font-medium ${bulkMode ? 'text-primary' : 'text-gray-500 dark:text-gray-400'}`}>
+            <span className={`text-sm font-medium ${bulkMode ? 'text-primary' : 'text-gray-500'}`}>
               {bulkMode ? 'AKTIF' : 'NONAKTIF'}
             </span>
           </div>
@@ -88,21 +88,21 @@ export default function BulkOperationsToolbar({
 
       {/* Contextual Bulk Actions - Only shown when items are selected */}
       {bulkMode && selectedCount > 0 && (
-        <div className="rounded-lg border-2 border-primary bg-primary/5 p-3 sm:p-4 dark:bg-primary/10">
+        <div className="rounded-lg border-2 border-primary bg-primary/5 p-3 sm:p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               <div className="flex items-center gap-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white sm:h-8 sm:w-8">
                   <span className="text-xs font-bold sm:text-sm">{selectedCount}</span>
                 </div>
-                <span className="text-xs font-medium text-gray-800 sm:text-sm dark:text-gray-200">
+                <span className="text-xs font-medium text-gray-800 sm:text-sm">
                   {selectedCount === 1 ? 'pelanggan terpilih' : 'pelanggan terpilih'}
                 </span>
               </div>
               
               <button
                 onClick={onClearSelection}
-                className="text-xs text-gray-600 hover:text-gray-800 underline focus:outline-none sm:text-sm dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-xs text-gray-600 hover:text-gray-800 underline focus:outline-none sm:text-sm"
               >
                 Hapus pilihan
               </button>
@@ -135,8 +135,8 @@ export default function BulkOperationsToolbar({
 
       {/* Help text when bulk mode is on but no items selected */}
       {bulkMode && selectedCount === 0 && (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <p className="text-sm text-gray-600">
             💡 Pilih pelanggan menggunakan checkbox untuk melakukan operasi massal
           </p>
         </div>

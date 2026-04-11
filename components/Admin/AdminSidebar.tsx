@@ -9,12 +9,12 @@ import { useLanguage } from "@/app/context/LanguageContext"; // Import language 
 // Define translations
 const translations = {
   id: {
-    dashboard: "Dasbor",
+    dashboard: "Statistik Kinerja Website",
     websiteManagement: "Manajemen Website",
     headerSection: "Bagian Header",
     heroSection: "Bagian Hero",
     serviceSection: "Bagian Layanan",
-    aboutSection: "Bagian Tentang",
+    aboutSection: "Bagian Tentang Kami",
     clientSatisfactionSection: "Bagian Kepuasan Klien",
     clientListSection: "Bagian Daftar Klien",
     faqSection: "Bagian FAQ",
@@ -31,7 +31,7 @@ const translations = {
     inspectionManagement: "Manajemen Inspeksi", // Tambahkan ini
   },
   en: {
-    dashboard: "Dashboard",
+    dashboard: "Website Performance Statistics",
     websiteManagement: "Website Management",
     headerSection: "Header Section",
     heroSection: "Hero Section",
@@ -104,10 +104,10 @@ export default function AdminSidebar({
                 isOpen ? "translate-x-0" : "-translate-x-full"
               } lg:hidden`
             : "fixed left-0 top-0 z-40 hidden h-screen transition-all duration-300 ease-in-out lg:block"
-        } overflow-y-scroll border-r border-stroke bg-white pb-5 dark:border-strokedark dark:bg-black`}
+        } overflow-y-scroll border-r border-stroke bg-white pb-5`}
       >
         {/* Header dengan foto profil */}
-        <div className="flex flex-col items-center border-b border-stroke px-4 py-4 dark:border-strokedark">
+        <div className="flex flex-col items-center border-b border-stroke px-4 py-4">
           {/* User profile photo */}
           <div className="mb-2 flex items-center justify-center">
             <div
@@ -147,10 +147,10 @@ export default function AdminSidebar({
           {/* User name */}
           {isOpen && (
             <div className="text-center">
-              <h2 className="text-lg font-semibold text-black dark:text-white">
+              <h2 className="text-lg font-semibold text-black">
                 {userData?.name || "Admin"}
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500">
                 {userData?.role || ""}
               </p>
             </div>
@@ -160,11 +160,11 @@ export default function AdminSidebar({
           {!isMobile && (
             <button
               onClick={toggleSidebar}
-              className="mt-4 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-900"
+              className="mt-4 rounded-full p-1 hover:bg-gray-100"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-black dark:text-white"
+                className="h-6 w-6 text-black"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -189,11 +189,11 @@ export default function AdminSidebar({
           <div className="flex justify-end p-2">
             <button
               onClick={onClose}
-              className="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-900 lg:hidden"
+              className="rounded-full p-1 hover:bg-gray-100 lg:hidden"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-black dark:text-white"
+                className="h-6 w-6 text-black"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -219,7 +219,7 @@ export default function AdminSidebar({
                 className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                   pathname === "/admin/dashboard"
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -252,7 +252,7 @@ export default function AdminSidebar({
                   pathname === "/admin/users" ||
                   (pathname && pathname.startsWith("/admin/users/"))
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -285,7 +285,7 @@ export default function AdminSidebar({
                   pathname === "/admin/products" ||
                   (pathname && pathname.startsWith("/admin/products/"))
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -318,7 +318,7 @@ export default function AdminSidebar({
                   pathname === "/admin/customers" ||
                   (pathname && pathname.startsWith("/admin/customers/"))
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -351,7 +351,7 @@ export default function AdminSidebar({
                   pathname === "/admin/contracts" ||
                   (pathname && pathname.startsWith("/admin/contracts/"))
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -384,7 +384,7 @@ export default function AdminSidebar({
                   pathname === "/admin/maintenances" ||
                   (pathname && pathname.startsWith("/admin/maintenances/"))
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -444,7 +444,7 @@ export default function AdminSidebar({
                   pathname === "/admin/inspections" ||
                   (pathname && pathname.startsWith("/admin/inspections/"))
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -532,7 +532,7 @@ export default function AdminSidebar({
                         (pathname &&
                           pathname.includes("/admin/collections/header/edit/"))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -570,7 +570,7 @@ export default function AdminSidebar({
                         (pathname &&
                           pathname.includes("/admin/collections/hero/edit/"))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -610,7 +610,7 @@ export default function AdminSidebar({
                             "/admin/collections/services/edit/",
                           ))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -648,7 +648,7 @@ export default function AdminSidebar({
                         (pathname &&
                           pathname.includes("/admin/collections/about/edit/"))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -686,7 +686,7 @@ export default function AdminSidebar({
                         (pathname &&
                           pathname.includes("/admin/collections/clients/edit/"))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -728,7 +728,7 @@ export default function AdminSidebar({
                             "/admin/collections/clientsInfo/edit/",
                           ))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -766,7 +766,7 @@ export default function AdminSidebar({
                         (pathname &&
                           pathname.includes("/admin/collections/faq/edit/"))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -806,7 +806,7 @@ export default function AdminSidebar({
                             "/admin/collections/testimonial/edit/",
                           ))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -844,7 +844,7 @@ export default function AdminSidebar({
                         (pathname &&
                           pathname.includes("/admin/collections/contact/edit/"))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -882,7 +882,7 @@ export default function AdminSidebar({
                         (pathname &&
                           pathname.includes("/admin/collections/blog/edit/"))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -920,7 +920,7 @@ export default function AdminSidebar({
                         (pathname &&
                           pathname.includes("/admin/collections/footer/edit/"))
                           ? "bg-primary text-white"
-                          : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                          : "text-black hover:bg-gray-100"
                       }`}
                     >
                       <div
@@ -960,7 +960,7 @@ export default function AdminSidebar({
                   pathname === "/admin/blogs" ||
                   (pathname && pathname.startsWith("/admin/blogs/"))
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -992,7 +992,7 @@ export default function AdminSidebar({
                 className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                   pathname === "/admin/media"
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -1025,7 +1025,7 @@ export default function AdminSidebar({
                   pathname === "/admin/checksheet-apar" ||
                   (pathname && pathname.startsWith("/admin/checksheet-apar/"))
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>
@@ -1057,7 +1057,7 @@ export default function AdminSidebar({
                 className={`flex items-center rounded-lg px-0 py-2 text-base font-medium transition-colors ${
                   pathname === "/admin/settings"
                     ? "bg-primary text-white"
-                    : "text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
+                    : "text-black hover:bg-gray-100"
                 }`}
               >
                 <div className={isOpen ? "px-3" : "flex w-full justify-center"}>

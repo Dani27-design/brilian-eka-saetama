@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import Link from "next/link";
 import { collection, getDocs, updateDoc, doc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { Maintenance, MaintenanceStatus } from "@/types/maintenances";
 import { ProductType } from "@/types/product";
 import { useAdmin } from "@/app/context/AdminContext";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 import toast from "react-hot-toast";
 
 // Import our new optimized components and utilities
@@ -26,7 +28,8 @@ import { id as idLocale } from "date-fns/locale";
 
 const statusColor: Record<MaintenanceStatus, string> = {
   scheduled: "bg-blue-100 text-blue-700",
-  pending: "bg-gray-100 text-gray-700", 
+  pending: "bg-gray-100 text-gray-700",
+  in_progress: "bg-purple-100 text-purple-700",
   waiting_approval: "bg-yellow-100 text-yellow-700",
   approved: "bg-green-100 text-green-700",
   rejected: "bg-red-100 text-red-700",
@@ -35,14 +38,16 @@ const statusColor: Record<MaintenanceStatus, string> = {
 const statusDisplay: Record<MaintenanceStatus, string> = {
   scheduled: "Dijadwalkan",
   pending: "Tertunda",
-  waiting_approval: "Menunggu Disetujui", 
+  in_progress: "Sedang Dikerjakan",
+  waiting_approval: "Menunggu Disetujui",
   approved: "Disetujui",
   rejected: "Ditolak",
 };
 
 export default function MaintenancesPage() {
   const { user } = useAdmin();
-  
+  usePageHeader("Manajemen Pemeliharaan", "Kelola jadwal pemeliharaan dengan sistem yang dioptimalkan");
+
   // Core data state
   const [allMaintenances, setAllMaintenances] = useState<MaintenanceTableRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -408,17 +413,8 @@ export default function MaintenancesPage() {
 
   return (
     <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Manajemen Pemeliharaan</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Kelola jadwal pemeliharaan dengan sistem yang dioptimalkan
-          </p>
-        </div>
-      </div>
-
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 text-red-800">
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           <p>{error}</p>
           <button
             className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
@@ -455,21 +451,29 @@ export default function MaintenancesPage() {
       {/* Main Table Section */}
       <div className="rounded-lg border border-stroke bg-white p-4">
         {loading ? (
-          <div className="py-8 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
-            <p className="mt-2">Memuat maintenance...</p>
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <svg className="mx-auto h-8 w-8 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <p className="mt-2 text-gray-500">Memuat maintenance...</p>
+            </div>
           </div>
         ) : filteredMaintenances.length === 0 ? (
-          <div className="py-8 text-center">
-            <p>Tidak ada maintenance yang ditemukan.</p>
+          <div className="py-12 text-center">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">Tidak ada maintenance yang ditemukan</h3>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full table-auto">
                 <thead>
-                  <tr className="border-b bg-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-black">
-                    <th className="px-2 py-3 w-12">
+                  <tr className="border-b border-stroke bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+                    <th className="px-4 py-3 w-12">
                       <input
                         type="checkbox"
                         checked={selectedMaintenances.size === paginatedMaintenances.length && paginatedMaintenances.length > 0}
@@ -483,8 +487,8 @@ export default function MaintenancesPage() {
                         className="rounded border-gray-300"
                       />
                     </th>
-                    <th className="px-2 py-3">Kontrak</th>
-                    <th className="px-2 py-3">Produk</th>
+                    <th className="px-4 py-3">Kontrak</th>
+                    <th className="px-4 py-3">Produk</th>
                     <SortableMaintenanceHeader
                       sortKey="startDate"
                       currentSort={filters.sortBy}
@@ -493,8 +497,8 @@ export default function MaintenancesPage() {
                     >
                       Periode
                     </SortableMaintenanceHeader>
-                    <th className="px-2 py-3">Teknisi</th>
-                    <th className="px-2 py-3">Inspeksi</th>
+                    <th className="px-4 py-3">Teknisi</th>
+                    <th className="px-4 py-3">Inspeksi</th>
                     <SortableMaintenanceHeader
                       sortKey="status"
                       currentSort={filters.sortBy}
@@ -503,10 +507,10 @@ export default function MaintenancesPage() {
                     >
                       Status
                     </SortableMaintenanceHeader>
-                    <th className="px-2 py-3">Aksi</th>
+                    <th className="px-4 py-3">Aksi</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-stroke">
                   {paginatedMaintenances.map((maintenance) => (
                     <tr 
                       key={maintenance.id} 
@@ -514,7 +518,7 @@ export default function MaintenancesPage() {
                         selectedMaintenances.has(maintenance.id) ? 'bg-blue-50' : ''
                       }`}
                     >
-                      <td className="px-2 py-3">
+                      <td className="px-4 py-3">
                         <input
                           type="checkbox"
                           checked={selectedMaintenances.has(maintenance.id)}
@@ -522,13 +526,13 @@ export default function MaintenancesPage() {
                           className="rounded border-gray-300"
                         />
                       </td>
-                      <td className="px-2 py-3">
+                      <td className="px-4 py-3">
                         <div className="flex flex-col">
                           <span className="font-medium">{maintenance.contractNumber}</span>
                           <span className="text-xs text-gray-500">{maintenance.contractName}</span>
                         </div>
                       </td>
-                      <td className="px-2 py-3">
+                      <td className="px-4 py-3">
                         <div className="flex flex-col">
                           <div className="flex items-center">
                             <span className="font-medium">{maintenance.productNumber}</span>
@@ -539,7 +543,7 @@ export default function MaintenancesPage() {
                           <span className="text-xs text-gray-500">{maintenance.productName}</span>
                         </div>
                       </td>
-                      <td className="px-2 py-3">
+                      <td className="px-4 py-3">
                         <div className="flex flex-col">
                           <span>
                             {maintenance.startDate
@@ -554,7 +558,7 @@ export default function MaintenancesPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-2 py-3">
+                      <td className="px-4 py-3">
                         <div className="flex flex-col">
                           {maintenance.engineers.length > 0 && (
                             <div className="mb-1 flex flex-wrap gap-1">
@@ -573,7 +577,7 @@ export default function MaintenancesPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-2 py-3">
+                      <td className="px-4 py-3">
                         {maintenance.hasInspection ? (
                           <span className="inline-block rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
                             Sudah diinspeksi
@@ -584,9 +588,9 @@ export default function MaintenancesPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-2 py-3">
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <span className={`inline-block rounded px-2 py-1 text-xs font-semibold ${statusColor[maintenance.status]}`}>
+                          <span className={`${statusColor[maintenance.status]} inline-flex rounded-full px-2 py-1 text-xs font-medium`}>
                             {statusDisplay[maintenance.status]}
                           </span>
                           
@@ -610,13 +614,28 @@ export default function MaintenancesPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-2 py-3">
-                        <a
-                          href={`/admin/maintenances/edit/${maintenance.id}`}
-                          className="text-blue-600 hover:text-blue-800 text-xs"
-                        >
-                          Edit
-                        </a>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/admin/maintenances/edit/${maintenance.id}`}
+                            className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
+                          >
+                            <svg
+                              className="mr-1 h-3 w-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            Edit
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -658,7 +677,20 @@ export default function MaintenancesPage() {
                       : "border-stroke bg-white hover:bg-gray-100"
                   }`}
                 >
-                  &lt;
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
                 </button>
                 <span className="text-sm text-gray-600">
                   Halaman <span className="font-medium">{currentPage}</span> dari {totalPages}
@@ -672,7 +704,20 @@ export default function MaintenancesPage() {
                       : "border-stroke bg-white hover:bg-gray-100"
                   }`}
                 >
-                  &gt;
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
                 </button>
               </div>
             </div>

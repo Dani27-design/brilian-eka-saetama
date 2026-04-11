@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/server";
-import { getData } from "@/actions/read/hero";
+import { getData } from "@/utils/firestoreReader";
 import type { Blog } from "@/types/blog";
 
 // Route segment config

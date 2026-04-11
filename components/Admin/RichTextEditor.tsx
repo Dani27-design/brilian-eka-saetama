@@ -105,7 +105,7 @@ const RichTextEditor = ({
 
   if (loading || !Editor) {
     return (
-      <div className="flex h-[250px] items-center justify-center bg-gray-50 dark:bg-gray-800">
+      <div className="flex h-[250px] items-center justify-center bg-gray-50">
         <p className="text-gray-500">Loading editor...</p>
       </div>
     );
@@ -117,7 +117,7 @@ const RichTextEditor = ({
         editorState={editorState}
         onEditorStateChange={handleEditorStateChange}
         wrapperClassName="rich-editor-wrapper"
-        editorClassName="rich-editor px-3 py-2 min-h-[250px] dark:bg-gray-800 dark:text-white"
+        editorClassName="rich-editor px-3 py-2 min-h-[250px]"
         placeholder={placeholder}
         toolbar={{
           options: [

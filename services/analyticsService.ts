@@ -1,6 +1,7 @@
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 import { adminFirestore } from "@/db/firebase/firebaseAdmin";
 import { google } from "googleapis";
+import { intervalToDuration } from "date-fns";
 
 // Get this from your Google Analytics 4 property settings
 const PROPERTY_ID = process.env.GOOGLE_ANALYTICS_PROPERTY_ID;
@@ -30,7 +31,7 @@ async function getAnalyticsClient() {
 }
 
 // Get overview analytics data
-export async function getOverviewData(startDate: string, endDate: string) {
+export async function getOverviewData(startDate: string, endDate: string, lang: string = "en") {
   const client = await getAnalyticsClient();
   if (!client) return null;
 
@@ -79,10 +80,10 @@ export async function getOverviewData(startDate: string, endDate: string) {
     });
 
     // Hitung rata-rata waktu per sesi (dalam detik)
-    let avgTimeOnSite = "0:00";
+    let avgTimeOnSite = lang === "id" ? "0 Detik" : "0 Seconds";
     if (sessions > 0) {
       const avgSeconds = totalEngagement / sessions;
-      avgTimeOnSite = formatTime(avgSeconds);
+      avgTimeOnSite = formatDuration(avgSeconds, lang);
     }
 
     // Hitung bounce rate rata-rata
@@ -211,7 +212,7 @@ export async function getDevicesData(startDate: string, endDate: string) {
 }
 
 // Get traffic sources
-export async function getSourcesData(startDate: string, endDate: string) {
+export async function getSourcesData(startDate: string, endDate: string, lang: string = "en") {
   const client = await getAnalyticsClient();
   if (!client) return [];
 
@@ -239,8 +240,59 @@ export async function getSourcesData(startDate: string, endDate: string) {
       total += sessions;
     });
 
+    const sourceLabelMap: Record<string, Record<string, string>> = {
+      "(direct)": {
+        en: "Direct Access URL",
+        id: "Akses URL",
+      },
+      "(not set)": {
+        en: "Unknown Source",
+        id: "Sumber Tidak Diketahui",
+      },
+      "google": {
+        en: "Google Search",
+        id: "Pencarian Google",
+      },
+      "bing": {
+        en: "Bing Search",
+        id: "Pencarian Bing",
+      },
+      "yahoo": {
+        en: "Yahoo Search",
+        id: "Pencarian Yahoo",
+      },
+      "facebook": {
+        en: "Facebook",
+        id: "Facebook",
+      },
+      "instagram": {
+        en: "Instagram",
+        id: "Instagram",
+      },
+      "twitter": {
+        en: "Twitter / X",
+        id: "Twitter / X",
+      },
+      "linkedin": {
+        en: "LinkedIn",
+        id: "LinkedIn",
+      },
+      "youtube": {
+        en: "YouTube",
+        id: "YouTube",
+      },
+      "tiktok": {
+        en: "TikTok",
+        id: "TikTok",
+      },
+      "whatsapp": {
+        en: "WhatsApp",
+        id: "WhatsApp",
+      },
+    };
+
     return Object.entries(sourceMap).map(([name, value]) => ({
-      name,
+      name: sourceLabelMap[name.toLowerCase()]?.[lang] || sourceLabelMap[name.toLowerCase()]?.["en"] || name,
       value: total > 0 ? Math.round((value / total) * 100) : 0,
     }));
   } catch (error) {
@@ -249,9 +301,28 @@ export async function getSourcesData(startDate: string, endDate: string) {
   }
 }
 
-// Helper to format time in MM:SS format
-function formatTime(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+/// Helper to format seconds into human-readable duration
+function formatDuration(totalSeconds: number, lang: string): string {
+  const duration = intervalToDuration({ start: 0, end: Math.floor(totalSeconds) * 1000 });
+
+  const labels = lang === "id"
+    ? { hours: "Jam", minutes: "Menit", seconds: "Detik" }
+    : { hours: "Hours", minutes: "Minutes", seconds: "Seconds" };
+
+  const parts: string[] = [];
+  if (duration.hours && duration.hours > 0) {
+    parts.push(`${duration.hours} ${labels.hours}`);
+  }
+  if (duration.minutes && duration.minutes > 0) {
+    parts.push(`${duration.minutes} ${labels.minutes}`);
+  }
+  if (duration.seconds && duration.seconds > 0) {
+    parts.push(`${duration.seconds} ${labels.seconds}`);
+  }
+
+  if (parts.length === 0) {
+    return `0 ${labels.seconds}`;
+  }
+
+  return parts.join(" ");
 }

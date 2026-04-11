@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 type FaqData = {
   activeFaq: number;
   id: number;
@@ -60,4 +62,4 @@ const FAQItem = ({ faqData }: { faqData: FaqData }) => {
   );
 };
 
-export default FAQItem;
+export default memo(FAQItem);

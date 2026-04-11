@@ -1,5 +1,5 @@
 import { getServerSideSitemap } from "next-sitemap";
-import { getData } from "@/actions/read/hero";
+import { getData } from "@/utils/firestoreReader";
 import type { Blog } from "@/types/blog";
 import { NextResponse } from 'next/server';
 

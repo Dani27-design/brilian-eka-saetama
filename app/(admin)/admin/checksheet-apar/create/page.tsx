@@ -1,12 +1,11 @@
-import { Metadata } from "next";
-import ChecksheetAparForm from "@/components/Admin/ChecksheetAparForm";
-import AdminPageHeader from "@/components/Admin/AdminPageHeader";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Create APAR Checksheet",
-};
+import ChecksheetAparForm from "@/components/Admin/ChecksheetAparForm";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 export default function CreateChecksheetAparPage() {
+  usePageHeader("Create APAR Checksheet", "Create a new APAR inspection checksheet");
+
   return (
     <div className="container mx-auto">
       <ChecksheetAparForm isEditing={false} />

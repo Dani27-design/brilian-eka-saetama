@@ -179,7 +179,7 @@ const HeroEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Hero Title
               </label>
               <p className="mb-2 text-sm text-gray-500">
@@ -201,7 +201,7 @@ const HeroEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Hero Subtitle
               </label>
               <textarea
@@ -218,7 +218,7 @@ const HeroEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Hero Slogan
               </label>
               <input
@@ -236,7 +236,7 @@ const HeroEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Email Input Placeholder
               </label>
               <input
@@ -254,7 +254,7 @@ const HeroEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Button Text
               </label>
               <input
@@ -305,12 +305,12 @@ const HeroEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -318,7 +318,7 @@ const HeroEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -329,7 +329,7 @@ const HeroEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -343,7 +343,7 @@ const HeroEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

@@ -35,6 +35,7 @@ interface MaintenanceFiltersProps {
 const statusDisplayNames: Record<MaintenanceStatus, string> = {
   scheduled: "Dijadwalkan",
   pending: "Tertunda",
+  in_progress: "Sedang Dikerjakan",
   waiting_approval: "Menunggu Disetujui",
   approved: "Disetujui",
   rejected: "Ditolak",
@@ -131,7 +132,7 @@ export default function MaintenanceFiltersComponent({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
           {/* Search */}
           <div className="flex-1 sm:flex-[2]">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Cari Maintenance
             </label>
             <div className="relative">
@@ -140,7 +141,7 @@ export default function MaintenanceFiltersComponent({
                 placeholder="Kontrak, produk, teknisi..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange("search", e.target.value)}
-                className="dark:bg-boxdark h-10 w-full rounded-lg border border-stroke bg-white px-4 pl-10 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className=" h-10 w-full rounded-lg border border-stroke bg-white px-4 pl-10 outline-none focus:border-primary"
               />
               <svg
                 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
@@ -160,7 +161,7 @@ export default function MaintenanceFiltersComponent({
 
           {/* Month Filter - Prominent Position */}
           <div className="w-full sm:w-auto sm:min-w-[240px]">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Bulan
             </label>
             <div className="flex items-center">
@@ -170,7 +171,7 @@ export default function MaintenanceFiltersComponent({
                   const newMonth = currentMonth === 1 ? 12 : currentMonth - 1;
                   handleFilterChange("month", newMonth);
                 }}
-                className="dark:bg-boxdark flex h-10 w-10 items-center justify-center rounded-l-lg border border-r-0 border-stroke bg-white text-gray-600 hover:bg-gray-50 dark:border-strokedark dark:text-gray-300 dark:hover:bg-gray-800"
+                className=" flex h-10 w-10 items-center justify-center rounded-l-lg border border-r-0 border-stroke bg-white text-gray-600 hover:bg-gray-50"
                 title="Bulan Sebelumnya"
               >
                 <svg
@@ -192,9 +193,9 @@ export default function MaintenanceFiltersComponent({
                 onChange={(e) =>
                   handleFilterChange("month", Number(e.target.value))
                 }
-                className={`dark:bg-boxdark h-10 w-full border border-stroke bg-white px-4 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white ${
+                className={` h-10 w-full border border-stroke bg-white px-4 text-sm outline-none focus:border-primary ${
                   filters.month > 0
-                    ? "font-medium text-primary dark:text-primary"
+                    ? "font-medium text-primary"
                     : ""
                 }`}
               >
@@ -211,7 +212,7 @@ export default function MaintenanceFiltersComponent({
                   const newMonth = currentMonth === 12 ? 1 : currentMonth + 1;
                   handleFilterChange("month", newMonth);
                 }}
-                className="dark:bg-boxdark flex h-10 w-10 items-center justify-center rounded-r-lg border border-l-0 border-stroke bg-white text-gray-600 hover:bg-gray-50 dark:border-strokedark dark:text-gray-300 dark:hover:bg-gray-800"
+                className=" flex h-10 w-10 items-center justify-center rounded-r-lg border border-l-0 border-stroke bg-white text-gray-600 hover:bg-gray-50"
                 title="Bulan Berikutnya"
               >
                 <svg
@@ -230,7 +231,7 @@ export default function MaintenanceFiltersComponent({
               </button>
             </div>
             {filters.month > 0 && (
-              <div className="mt-1 text-xs text-primary dark:text-primary">
+              <div className="mt-1 text-xs text-primary">
                 Menampilkan: {monthNames[filters.month - 1]}
               </div>
             )}
@@ -250,8 +251,8 @@ export default function MaintenanceFiltersComponent({
               }
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 filters.status === "pending"
-                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               Tertunda
@@ -265,8 +266,8 @@ export default function MaintenanceFiltersComponent({
               }
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 filters.status === "scheduled"
-                  ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+                  ? "bg-blue-100 text-blue-800"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               Dijadwalkan
@@ -282,24 +283,24 @@ export default function MaintenanceFiltersComponent({
               }
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 filters.status === "waiting_approval"
-                  ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+                  ? "bg-orange-100 text-orange-800"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               Menunggu Approval
             </button>
           </div>
 
-          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+          <div className="h-6 w-px bg-gray-300"></div>
 
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-gray-600">
             <span className="font-medium">{filteredCount}</span> dari{" "}
             <span className="font-medium">{maintenanceCount}</span> maintenance
           </div>
 
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="dark:bg-boxdark flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-strokedark dark:text-gray-300 dark:hover:bg-gray-800"
+            className=" flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <svg
               className={`h-4 w-4 transition-transform ${
@@ -318,14 +319,14 @@ export default function MaintenanceFiltersComponent({
             </svg>
             Filter Lanjutan
             {hasActiveFilters && (
-              <span className="flex h-2 w-2 rounded-full bg-primary"></span>
+              <span className="flex h-2 w-2 rounded-full bg-orange-400"></span>
             )}
           </button>
 
           {hasActiveFilters && (
             <button
               onClick={onClearFilters}
-              className="text-sm text-red-600 hover:text-red-700 dark:text-red-400"
+              className="text-sm text-red-600 hover:text-red-700"
             >
               Clear Filters
             </button>
@@ -335,19 +336,19 @@ export default function MaintenanceFiltersComponent({
 
       {/* Advanced Filters */}
       {isExpanded && (
-        <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-900/20">
+        <div className="rounded-lg border border-stroke bg-gray-50 p-4">
           <div className="space-y-4">
             {/* First Row: Status and Type Filters */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Status Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Status
                 </label>
                 <select
                   value={filters.status}
                   onChange={(e) => handleFilterChange("status", e.target.value)}
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
                 >
                   <option value="">Semua Status</option>
                   {Object.entries(statusDisplayNames).map(([value, label]) => (
@@ -360,7 +361,7 @@ export default function MaintenanceFiltersComponent({
 
               {/* Product Type Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Tipe Produk
                 </label>
                 <select
@@ -368,7 +369,7 @@ export default function MaintenanceFiltersComponent({
                   onChange={(e) =>
                     handleFilterChange("productType", e.target.value)
                   }
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
                 >
                   <option value="">Semua Tipe</option>
                   {availableProductTypes.map((type) => (
@@ -381,7 +382,7 @@ export default function MaintenanceFiltersComponent({
 
               {/* Inspection Status Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Status Inspeksi
                 </label>
                 <select
@@ -389,7 +390,7 @@ export default function MaintenanceFiltersComponent({
                   onChange={(e) =>
                     handleFilterChange("hasInspection", e.target.value)
                   }
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
                 >
                   <option value="">Semua</option>
                   <option value="yes">Sudah Diinspeksi</option>
@@ -399,7 +400,7 @@ export default function MaintenanceFiltersComponent({
 
               {/* Engineer Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Teknisi
                 </label>
                 <select
@@ -407,7 +408,7 @@ export default function MaintenanceFiltersComponent({
                   onChange={(e) =>
                     handleFilterChange("engineerId", e.target.value)
                   }
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
                 >
                   <option value="">Semua Teknisi</option>
                   {availableEngineers.map((engineer) => (
@@ -423,7 +424,7 @@ export default function MaintenanceFiltersComponent({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {/* Year Filter */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Tahun
                 </label>
                 <select
@@ -431,7 +432,7 @@ export default function MaintenanceFiltersComponent({
                   onChange={(e) =>
                     handleFilterChange("year", Number(e.target.value))
                   }
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
                 >
                   <option value={0}>Semua Tahun</option>
                   {getYearRange().map((year) => (
@@ -444,7 +445,7 @@ export default function MaintenanceFiltersComponent({
 
               {/* Date Range Start */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Tanggal Mulai
                 </label>
                 <input
@@ -453,20 +454,20 @@ export default function MaintenanceFiltersComponent({
                   onChange={(e) =>
                     handleDateRangeChange("start", e.target.value)
                   }
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none [color-scheme:light] focus:border-primary dark:border-strokedark dark:text-white dark:[color-scheme:dark]"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none [color-scheme:light] focus:border-primary"
                 />
               </div>
 
               {/* Date Range End */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Tanggal Selesai
                 </label>
                 <input
                   type="date"
                   value={formatDateForInput(filters.dateRange.end)}
                   onChange={(e) => handleDateRangeChange("end", e.target.value)}
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none [color-scheme:light] focus:border-primary dark:border-strokedark dark:text-white dark:[color-scheme:dark]"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none [color-scheme:light] focus:border-primary"
                 />
               </div>
             </div>
@@ -474,13 +475,13 @@ export default function MaintenanceFiltersComponent({
             {/* Third Row: Sorting */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Urutkan Berdasarkan
                 </label>
                 <select
                   value={filters.sortBy}
                   onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
                 >
                   <option value="startDate">Tanggal Mulai</option>
                   <option value="endDate">Tanggal Selesai</option>
@@ -491,7 +492,7 @@ export default function MaintenanceFiltersComponent({
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Urutan
                 </label>
                 <select
@@ -499,7 +500,7 @@ export default function MaintenanceFiltersComponent({
                   onChange={(e) =>
                     handleFilterChange("sortOrder", e.target.value)
                   }
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
                 >
                   <option value="asc">Terlama ke Terbaru</option>
                   <option value="desc">Terbaru ke Terlama</option>
@@ -510,7 +511,7 @@ export default function MaintenanceFiltersComponent({
             {/* Contract Number Search */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Nomor Kontrak
                 </label>
                 <input
@@ -520,7 +521,7 @@ export default function MaintenanceFiltersComponent({
                   onChange={(e) =>
                     handleFilterChange("contractNumber", e.target.value)
                   }
-                  className="dark:bg-boxdark w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className=" w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
                 />
               </div>
             </div>

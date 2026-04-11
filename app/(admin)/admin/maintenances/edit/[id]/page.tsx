@@ -432,16 +432,16 @@ export default function EditMaintenancePage() {
   if (loading || !form) return <div className="p-8 text-center">Memuat...</div>;
 
   return (
-    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-2 dark:border-strokedark md:p-6 xl:p-7.5">
+    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 md:p-6 xl:p-7.5">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-black dark:text-white">
+        <h2 className="text-xl font-semibold text-black">
           Edit Maintenance
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-500">
           Ubah data jadwal maintenance sesuai kebutuhan.
         </p>
         {metaInfo && (
-          <div className="mt-3 rounded bg-blue-50 px-4 py-2 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+          <div className="mt-3 rounded bg-blue-50 px-4 py-2 text-xs text-gray-700">
             {metaInfo.label}{" "}
             {metaInfo.user?.name && (
               <span>
@@ -455,7 +455,7 @@ export default function EditMaintenancePage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
+        <div className="mb-4 rounded-md bg-red-50 p-4">
           <div className="ml-3">{error}</div>
         </div>
       )}
@@ -463,40 +463,40 @@ export default function EditMaintenancePage() {
       <form onSubmit={handleSubmit}>
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Kontrak
             </label>
             <input
               value={`${contractDetails.number} - ${contractDetails.name}`}
               disabled
-              className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500 dark:border-strokedark dark:bg-gray-800 dark:text-gray-400"
+              className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Produk
             </label>
             <input
               value={`${productDetails.number} - ${productDetails.name}`}
               disabled
-              className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500 dark:border-strokedark dark:bg-gray-800 dark:text-gray-400"
+              className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Tipe Produk
             </label>
             <input
               value={form.productType}
               disabled
-              className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500 dark:border-strokedark dark:bg-gray-800 dark:text-gray-400"
+              className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Status
             </label>
             <select
@@ -506,8 +506,8 @@ export default function EditMaintenancePage() {
               disabled={form.inspection ? false : true}
               className={
                 form.inspection
-                  ? "w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-                  : "w-full rounded-lg border border-stroke bg-gray-200 px-4 py-2 text-gray-700 dark:border-strokedark dark:bg-gray-800 dark:text-gray-400"
+                  ? "w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                  : "w-full rounded-lg border border-stroke bg-gray-200 px-4 py-2 text-gray-700"
               }
               required
             >
@@ -520,7 +520,7 @@ export default function EditMaintenancePage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Tanggal Mulai
             </label>
             <input
@@ -528,13 +528,13 @@ export default function EditMaintenancePage() {
               name="startDate"
               value={form.startDate}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Tanggal Selesai
             </label>
             <input
@@ -551,7 +551,7 @@ export default function EditMaintenancePage() {
               disabled={!form.startDate}
               onChange={handleChange}
               className={
-                "w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white" +
+                "w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary" +
                 (!form.startDate ? " opacity-50" : "")
               }
               required
@@ -561,7 +561,7 @@ export default function EditMaintenancePage() {
           <div className="md:col-span-2">
             {!form.inspection && (
               <>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Teknisi
                 </label>
                 <div className="mb-2">
@@ -582,16 +582,16 @@ export default function EditMaintenancePage() {
                         }
                       }}
                       disabled={!!form.inspection}
-                      className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-strokedark dark:text-white dark:disabled:bg-gray-700"
+                      className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary disabled:cursor-not-allowed disabled:bg-gray-100"
                     />
                     {showEngineerDropdown &&
                       filteredEngineers.length > 0 &&
                       !form.inspection && (
-                        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg">
                           {filteredEngineers.map((engineer) => (
                             <div
                               key={engineer.id}
-                              className="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
                               onClick={() => addEngineer(engineer.id)}
                             >
                               {engineer.name}
@@ -610,21 +610,21 @@ export default function EditMaintenancePage() {
             {/* Selected engineers */}
             {selectedEngineers.length > 0 && (
               <div className="mt-3 space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-gray-700">
                   Teknisi yang dipilih:
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {selectedEngineers.map((engineer) => (
                     <span
                       key={engineer.id}
-                      className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                      className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
                     >
                       {engineer.name}
                       {!form.inspection && (
                         <button
                           type="button"
                           onClick={() => removeEngineer(engineer.id)}
-                          className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 dark:bg-blue-800 dark:text-blue-200 dark:hover:bg-blue-700"
+                          className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300"
                         >
                           <svg
                             className="h-3 w-3"
@@ -651,14 +651,14 @@ export default function EditMaintenancePage() {
 
         {form.inspection && (
           <div className="mb-6">
-            <h3 className="mb-3 text-xl font-semibold text-black dark:text-white">
+            <h3 className="mb-3 text-xl font-semibold text-black">
               Data Inspeksi
             </h3>
-            <div className="dark:bg-boxdark rounded-lg border border-stroke bg-white p-4 dark:border-strokedark">
+            <div className=" rounded-lg border border-stroke bg-white p-4">
               {inspectorInfo?.map((info, index) => (
                 <div
                   key={index}
-                  className="mb-2 mt-0 rounded bg-blue-50 px-4 py-2 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                  className="mb-2 mt-0 rounded bg-blue-50 px-4 py-2 text-xs text-gray-700"
                 >
                   {info.label}{" "}
                   {info.user?.name && (
@@ -673,7 +673,7 @@ export default function EditMaintenancePage() {
 
               {/* Photos Section (Read-only) */}
               <div className="mb-4">
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Foto Inspeksi:
                 </label>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -701,10 +701,10 @@ export default function EditMaintenancePage() {
               {/* Checklist Section (Editable) */}
               <div className="mb-6">
                 <div className="mb-3 flex items-center justify-between">
-                  <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
+                  <h4 className="text-lg font-semibold text-gray-800">
                     Checklist Inspeksi
                   </h4>
-                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
                     {form.inspection.checklist?.length || 0} Item
                   </span>
                 </div>
@@ -716,12 +716,12 @@ export default function EditMaintenancePage() {
                         key={idx}
                         className={`rounded-lg border ${
                           item.status
-                            ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
-                            : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20"
+                            ? "border-green-200 bg-green-50"
+                            : "border-red-200 bg-red-50"
                         } p-4 shadow-sm`}
                       >
                         <div className="mb-3 flex items-center justify-between">
-                          <h5 className="font-medium text-gray-800 dark:text-white">
+                          <h5 className="font-medium text-gray-800">
                             {item.item}
                           </h5>
                           <div className="flex items-center gap-2">
@@ -738,12 +738,12 @@ export default function EditMaintenancePage() {
                                 }
                                 className="peer sr-only"
                               />
-                              <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary dark:border-gray-600 dark:bg-gray-700"></div>
+                              <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary"></div>
                               <span
                                 className={`ml-2 text-sm font-medium ${
                                   item.status
-                                    ? "text-green-700 dark:text-green-300"
-                                    : "text-red-700 dark:text-red-300"
+                                    ? "text-green-700"
+                                    : "text-red-700"
                                 }`}
                               >
                                 {item.status ? "Baik" : "Tidak Baik"}
@@ -756,8 +756,8 @@ export default function EditMaintenancePage() {
                           <label
                             className={`mb-1 block text-sm font-medium ${
                               item.status
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
+                                ? "text-green-600"
+                                : "text-red-600"
                             }`}
                           >
                             Catatan
@@ -779,15 +779,15 @@ export default function EditMaintenancePage() {
                             rows={2}
                             className={`block w-full rounded-lg border ${
                               item.status
-                                ? "border-green-200 focus:border-green-500 focus:ring-green-500 dark:border-green-800"
-                                : "border-red-200 focus:border-red-500 focus:ring-red-500 dark:border-red-800"
-                            } bg-white p-3 text-sm text-gray-900 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400`}
+                                ? "border-green-200 focus:border-green-500 focus:ring-green-500"
+                                : "border-red-200 focus:border-red-500 focus:ring-red-500"
+                            } bg-white p-3 text-sm text-gray-900`}
                           />
                           <div
                             className={`mt-1 text-xs ${
                               item.status
-                                ? "text-green-500 dark:text-green-400"
-                                : "text-red-500 dark:text-red-400"
+                                ? "text-green-500"
+                                : "text-red-500"
                             }`}
                           >
                             {item.status
@@ -799,7 +799,7 @@ export default function EditMaintenancePage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="rounded-lg border border-stroke bg-gray-50 p-6 text-center dark:border-strokedark dark:bg-gray-700">
+                  <div className="rounded-lg border border-stroke bg-gray-50 p-6 text-center">
                     <svg
                       className="mx-auto h-12 w-12 text-gray-400"
                       fill="none"
@@ -813,7 +813,7 @@ export default function EditMaintenancePage() {
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
-                    <h5 className="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <h5 className="mt-2 text-sm font-medium text-gray-500">
                       Tidak ada item checklist
                     </h5>
                   </div>
@@ -827,7 +827,7 @@ export default function EditMaintenancePage() {
           <button
             type="button"
             onClick={() => router.push("/admin/maintenances")}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
           >
             Batal
           </button>

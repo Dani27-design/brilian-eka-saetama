@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Services } from "@/types/services";
 import Image from "next/image";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -37,4 +37,4 @@ const SingleServices = ({ feature }: { feature: Services }) => {
   );
 };
 
-export default SingleServices;
+export default memo(SingleServices);

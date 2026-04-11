@@ -103,7 +103,7 @@ const ContactPreview = ({
   const renderContactContent = () => (
     <div className="mx-auto w-full py-5">
       <div className="relative mx-auto w-full p-4 text-sm">
-        <div className="absolute left-0 top-0 -z-1 h-2/3 w-full rounded-lg bg-gradient-to-t from-transparent to-[#dee7ff47] dark:bg-gradient-to-t dark:to-[#252A42]"></div>
+        <div className="absolute left-0 top-0 -z-1 h-2/3 w-full rounded-lg bg-gradient-to-t from-transparent to-[#dee7ff47]"></div>
         {/* Contact Form and Info Container */}
         <div
           className={`flex flex-wrap ${
@@ -114,7 +114,7 @@ const ContactPreview = ({
         >
           {/* Contact Form */}
           <div
-            className={`relative w-full cursor-pointer rounded-lg bg-white p-4 shadow-solid-8 dark:border dark:border-strokedark dark:bg-black ${
+            className={`relative w-full cursor-pointer rounded-lg bg-white p-4 shadow-solid-8 ${
               currentPreviewMode === "mobile" ? "w-full" : "lg:w-3/4"
             }`}
             onClick={(e) => {
@@ -126,7 +126,7 @@ const ContactPreview = ({
             onMouseEnter={() => setHoveredSection("send_message")}
             onMouseLeave={() => setHoveredSection(null)}
           >
-            <h2 className="mb-6 text-xl font-semibold text-black dark:text-white">
+            <h2 className="mb-6 text-xl font-semibold text-black">
               {messageForm.title}
             </h2>
 
@@ -147,7 +147,7 @@ const ContactPreview = ({
                     type="text"
                     name="name"
                     placeholder={messageForm.form.name.placeholder}
-                    className="w-full border-b border-stroke bg-transparent py-2 focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none dark:border-strokedark dark:focus:border-manatee dark:focus:placeholder:text-white"
+                    className="w-full border-b border-stroke bg-transparent py-2 focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none"
                   />
                 </div>
 
@@ -159,7 +159,7 @@ const ContactPreview = ({
                     type="email"
                     name="email"
                     placeholder={messageForm.form.email.placeholder}
-                    className="w-full border-b border-stroke bg-transparent py-2 focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none dark:border-strokedark dark:focus:border-manatee dark:focus:placeholder:text-white"
+                    className="w-full border-b border-stroke bg-transparent py-2 focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none"
                   />
                 </div>
               </div>
@@ -179,7 +179,7 @@ const ContactPreview = ({
                     type="text"
                     name="subject"
                     placeholder={messageForm.form.subject.placeholder}
-                    className="w-full border-b border-stroke bg-transparent py-2 focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none dark:border-strokedark dark:focus:border-manatee dark:focus:placeholder:text-white"
+                    className="w-full border-b border-stroke bg-transparent py-2 focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none"
                   />
                 </div>
 
@@ -191,7 +191,7 @@ const ContactPreview = ({
                     type="text"
                     name="phone"
                     placeholder={messageForm.form.phone.placeholder}
-                    className="w-full border-b border-stroke bg-transparent py-2 focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none dark:border-strokedark dark:focus:border-manatee dark:focus:placeholder:text-white"
+                    className="w-full border-b border-stroke bg-transparent py-2 focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none"
                   />
                 </div>
               </div>
@@ -204,7 +204,7 @@ const ContactPreview = ({
                   name="message"
                   rows={4}
                   placeholder={messageForm.form.message.placeholder}
-                  className="w-full border-b border-stroke bg-transparent focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none dark:border-strokedark dark:focus:border-manatee dark:focus:placeholder:text-white"
+                  className="w-full border-b border-stroke bg-transparent focus:border-waterloo focus:placeholder:text-black focus-visible:outline-none"
                 ></textarea>
               </div>
 
@@ -222,7 +222,7 @@ const ContactPreview = ({
                       onClick={() => setConsent(!consent)}
                       className={`group mt-2 flex h-5 min-w-[20px] cursor-pointer items-center justify-center rounded border border-gray-300 bg-gray-100 text-blue-600 ${
                         consent ? "bg-primary" : ""
-                      } dark:border-gray-600 dark:bg-gray-700`}
+                      }`}
                     >
                       <svg
                         className={`${
@@ -255,7 +255,7 @@ const ContactPreview = ({
                   type="button"
                   disabled={!consent}
                   aria-label="send message"
-                  className={`inline-flex items-center gap-2.5 rounded-full bg-black px-6 py-3 font-medium text-white duration-300 ease-in-out hover:bg-blackho dark:bg-btndark ${
+                  className={`inline-flex items-center gap-2.5 rounded-full bg-black px-6 py-3 font-medium text-white duration-300 ease-in-out hover:bg-blackho ${
                     !consent ? "cursor-not-allowed opacity-70" : ""
                   }`}
                 >
@@ -302,23 +302,23 @@ const ContactPreview = ({
             onMouseEnter={() => setHoveredSection("find_us")}
             onMouseLeave={() => setHoveredSection(null)}
           >
-            <h2 className="mb-8 text-lg font-semibold text-black dark:text-white">
+            <h2 className="mb-8 text-lg font-semibold text-black">
               {contactInfo.title}
             </h2>
 
             {/* Location section */}
             <div className="mb-6">
-              <h3 className="text-md mb-3 font-medium text-black hover:text-primary dark:text-white dark:hover:text-primary">
+              <h3 className="text-md mb-3 font-medium text-black hover:text-primary">
                 {contactInfo.location.title}
               </h3>
-              <p className="cursor-pointer text-xs hover:text-primary dark:hover:text-primary">
+              <p className="cursor-pointer text-xs hover:text-primary">
                 {contactInfo.location.text}
               </p>
             </div>
 
             {/* Email section */}
             <div className="mb-6">
-              <h3 className="text-md mb-3 font-medium text-black dark:text-white">
+              <h3 className="text-md mb-3 font-medium text-black">
                 {contactInfo.email.title}
               </h3>
               <p className="text-xs">{contactInfo.email.text}</p>
@@ -326,10 +326,10 @@ const ContactPreview = ({
 
             {/* Phone section */}
             <div>
-              <h4 className="text-md mb-3 font-medium text-black dark:text-white">
+              <h4 className="text-md mb-3 font-medium text-black">
                 {contactInfo.phone.title}
               </h4>
-              <p className="cursor-pointer text-xs hover:text-primary dark:hover:text-primary">
+              <p className="cursor-pointer text-xs hover:text-primary">
                 {contactInfo.phone.text}
               </p>
             </div>
@@ -349,7 +349,7 @@ const ContactPreview = ({
   );
 
   return (
-    <div className="rounded-lg border bg-white p-6 dark:bg-black">
+    <div className="rounded-lg border bg-white p-6">
       {/* Active section indicator */}
       {activeSection && (
         <div className="mb-3 rounded-md bg-primary/10 p-2 text-center shadow-sm">
@@ -365,7 +365,7 @@ const ContactPreview = ({
               )}
             </span>
           </div>
-          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-xs text-gray-600">
             Click on other sections to edit them
           </p>
         </div>
@@ -373,7 +373,7 @@ const ContactPreview = ({
 
       {/* Preview mode toggle buttons */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-black dark:text-white">
+        <h2 className="text-xl font-bold text-black">
           Contact Section
         </h2>
         <div className="flex space-x-2">
@@ -383,7 +383,7 @@ const ContactPreview = ({
             className={`rounded-md px-3 py-1 text-sm ${
               currentPreviewMode === "desktop"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-800"
+                : "bg-gray-100"
             }`}
           >
             Desktop
@@ -394,7 +394,7 @@ const ContactPreview = ({
             className={`rounded-md px-3 py-1 text-sm ${
               currentPreviewMode === "mobile"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-800"
+                : "bg-gray-100"
             }`}
           >
             Mobile
@@ -412,9 +412,9 @@ const ContactPreview = ({
               <div className="absolute left-1/2 top-0 z-10 h-6 w-40 -translate-x-1/2 rounded-b-lg bg-gray-900"></div>
 
               {/* Phone screen frame */}
-              <div className="relative h-[650px] w-full overflow-hidden bg-white dark:bg-black">
+              <div className="relative h-[650px] w-full overflow-hidden bg-white">
                 {/* Status bar */}
-                <div className="sticky top-0 z-10 flex h-6 w-full items-center justify-between bg-gray-100 px-4 dark:bg-gray-800">
+                <div className="sticky top-0 z-10 flex h-6 w-full items-center justify-between bg-gray-100 px-4">
                   <div className="text-[10px] font-medium">9:41</div>
                   <div className="flex items-center space-x-1">
                     <div className="h-2 w-3 rounded-sm bg-gray-400"></div>
@@ -424,7 +424,7 @@ const ContactPreview = ({
                 </div>
 
                 {/* Scrollable content area */}
-                <div className="h-[644px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
+                <div className="h-[644px] overflow-y-auto overflow-x-hidden bg-white">
                   <div className="origin-top scale-[0.9] pb-12 pt-0">
                     {renderContactContent()}
                   </div>
@@ -444,7 +444,7 @@ const ContactPreview = ({
           <div className="mx-auto max-w-[900px]">
             <div className="overflow-hidden rounded-lg border border-gray-300 shadow-lg">
               {/* Browser toolbar */}
-              <div className="flex h-10 items-center space-x-1.5 bg-gray-200 px-3 dark:bg-gray-800">
+              <div className="flex h-10 items-center space-x-1.5 bg-gray-200 px-3">
                 {/* Window controls */}
                 <div className="flex space-x-1.5">
                   <div className="h-3 w-3 rounded-full bg-red-500"></div>
@@ -453,7 +453,7 @@ const ContactPreview = ({
                 </div>
 
                 {/* URL bar */}
-                <div className="ml-4 flex h-6 flex-1 items-center rounded-md bg-white px-3 dark:bg-gray-700">
+                <div className="ml-4 flex h-6 flex-1 items-center rounded-md bg-white px-3">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="mr-2 h-4 w-4 text-gray-500"
@@ -468,7 +468,7 @@ const ContactPreview = ({
                       d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"
                     />
                   </svg>
-                  <span className="text-xs text-gray-600 dark:text-gray-300">
+                  <span className="text-xs text-gray-600">
                     brilian-eka-saetama.com/#contact
                   </span>
                 </div>
@@ -481,7 +481,7 @@ const ContactPreview = ({
               </div>
 
               {/* Browser content */}
-              <div className="h-fit max-h-[600px] min-h-[250px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
+              <div className="h-fit max-h-[600px] min-h-[250px] overflow-y-auto overflow-x-hidden bg-white">
                 <div className="origin-top scale-[0.85] pb-5">
                   {renderContactContent()}
                 </div>

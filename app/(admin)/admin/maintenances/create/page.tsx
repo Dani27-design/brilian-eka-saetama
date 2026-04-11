@@ -317,19 +317,19 @@ export default function CreateMaintenancePage() {
   };
 
   return (
-    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-2 dark:border-strokedark md:p-6 xl:p-7.5">
+    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 md:p-6 xl:p-7.5">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-black dark:text-white">
+        <h2 className="text-xl font-semibold text-black">
           Tambah Jadwal Maintenance
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-500">
           Pilih kontrak dan tanggal untuk membuat jadwal maintenance. Satu
           maintenance akan dibuat untuk setiap produk pada kontrak.
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
+        <div className="mb-4 rounded-md bg-red-50 p-4">
           <div className="ml-3">{error}</div>
         </div>
       )}
@@ -337,14 +337,14 @@ export default function CreateMaintenancePage() {
       <form onSubmit={handleSubmit}>
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Kontrak
             </label>
             <select
               name="contract"
               value={form.contract}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             >
               <option value="">Pilih kontrak</option>
@@ -357,10 +357,10 @@ export default function CreateMaintenancePage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Produk yang akan dijadwalkan
             </label>
-            <div className="rounded-lg border border-stroke bg-gray-50 p-3 dark:border-strokedark dark:bg-gray-800">
+            <div className="rounded-lg border border-stroke bg-gray-50 p-3">
               {selectedProducts.length === 0 ? (
                 <p className="text-sm text-gray-500">
                   Pilih kontrak terlebih dahulu untuk melihat produk
@@ -381,7 +381,7 @@ export default function CreateMaintenancePage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Tanggal Mulai
             </label>
             <input
@@ -389,13 +389,13 @@ export default function CreateMaintenancePage() {
               name="startDate"
               value={form.startDate}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Tanggal Selesai
             </label>
             <input
@@ -412,7 +412,7 @@ export default function CreateMaintenancePage() {
               disabled={!form.startDate}
               onChange={handleChange}
               className={
-                "w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white" +
+                "w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary" +
                 (!form.startDate ? " opacity-50" : "")
               }
               required
@@ -420,7 +420,7 @@ export default function CreateMaintenancePage() {
           </div>
 
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Teknisi
             </label>
             <div className="mb-2">
@@ -434,14 +434,14 @@ export default function CreateMaintenancePage() {
                     setShowEngineerDropdown(true);
                   }}
                   onFocus={() => setShowEngineerDropdown(true)}
-                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
                 />
                 {showEngineerDropdown && filteredEngineers.length > 0 && (
-                  <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                  <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg">
                     {filteredEngineers.map((engineer) => (
                       <div
                         key={engineer.id}
-                        className="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="cursor-pointer px-4 py-2 hover:bg-gray-100"
                         onClick={() => addEngineer(engineer.id)}
                       >
                         {engineer.name}
@@ -458,20 +458,20 @@ export default function CreateMaintenancePage() {
             {/* Selected engineers */}
             {displaySelectedEngineers.length > 0 && (
               <div className="mt-3 space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-gray-700">
                   Teknisi yang dipilih:
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {displaySelectedEngineers.map((engineer) => (
                     <span
                       key={engineer.id}
-                      className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                      className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
                     >
                       {engineer.name}
                       <button
                         type="button"
                         onClick={() => removeEngineer(engineer.id)}
-                        className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 dark:bg-blue-800 dark:text-blue-200 dark:hover:bg-blue-700"
+                        className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300"
                       >
                         <svg
                           className="h-3 w-3"
@@ -499,7 +499,7 @@ export default function CreateMaintenancePage() {
           <button
             type="button"
             onClick={() => router.push("/admin/maintenances")}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
           >
             Batal
           </button>

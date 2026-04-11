@@ -19,6 +19,7 @@ import AdminSidebar from "@/components/Admin/AdminSidebar";
 import AdminHeader from "@/components/Admin/AdminHeader";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/app/context/LanguageContext";
+import { PageHeaderProvider } from "@/app/context/PageHeaderContext";
 import "../../app/globals.css";
 export default function AdminLayout({
   children,
@@ -194,7 +195,7 @@ export default function AdminLayout({
   // Special case for login page - render without admin components
   if (isLoginPage) {
     return (
-      <ThemeProvider attribute="class">
+      <ThemeProvider attribute="class" forcedTheme="light">
         <LanguageProvider>{children}</LanguageProvider>
       </ThemeProvider>
     );
@@ -218,8 +219,10 @@ export default function AdminLayout({
   return (
     <>
       {isAuthenticated && (
-        <LanguageProvider>
-          <div className="flex h-screen bg-gray-50 dark:bg-blacksection">
+        <ThemeProvider attribute="class" forcedTheme="light">
+          <LanguageProvider>
+            <PageHeaderProvider>
+            <div className="flex h-screen bg-gray-50">
             <AdminSidebar
               onToggle={handleSidebarToggle}
               isOpen={isMobile ? mobileSidebarOpen : sidebarOpen}
@@ -240,13 +243,15 @@ export default function AdminLayout({
                     : !isMobile
                     ? "lg:ml-20"
                     : ""
-                } flex-1 overflow-y-auto p-2 transition-all duration-300 md:p-4 lg:p-6 xl:p-8`}
+                } flex flex-1 flex-col overflow-hidden bg-blue-50 p-4 transition-all duration-300 lg:p-6`}
               >
                 {children}
               </main>
             </div>
           </div>
+        </PageHeaderProvider>
         </LanguageProvider>
+      </ThemeProvider>
       )}
     </>
   );

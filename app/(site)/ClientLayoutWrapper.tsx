@@ -3,7 +3,7 @@
 import { ReactNode, useEffect } from "react";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "../context/LanguageContext";
-import ToasterContext from "../context/ToastContext";
+import { Toaster } from "react-hot-toast";
 import { Providers } from "../providers";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
@@ -64,7 +64,7 @@ export function ClientLayoutWrapper({
               "/images/logo/logo-dark.png",
             ]}
           />
-          <ToasterContext />
+          <Toaster position="top-center" reverseOrder={false} />
           <PerformanceOptimizer />
           <Analytics />
           {children}

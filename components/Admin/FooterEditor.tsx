@@ -397,11 +397,11 @@ const FooterEditor = ({
     return (
       <div className="space-y-6">
         {/* Logo Section */}
-        <div className="rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-black">
+        <div className="rounded-lg border border-stroke bg-white p-4">
           <h3 className="mb-4 text-lg font-semibold">Logo Section</h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Description
               </label>
               <textarea
@@ -414,12 +414,12 @@ const FooterEditor = ({
                     e.target.value,
                   )
                 }
-                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Enter footer logo description"
               />
             </div>
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Contact Label
               </label>
               <input
@@ -433,12 +433,12 @@ const FooterEditor = ({
                     e.target.value,
                   )
                 }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Contact"
               />
             </div>
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Contact Email
               </label>
               <input
@@ -452,7 +452,7 @@ const FooterEditor = ({
                     e.target.value,
                   )
                 }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="email@example.com"
               />
             </div>
@@ -460,11 +460,11 @@ const FooterEditor = ({
         </div>
 
         {/* Quick Links Section */}
-        <div className="rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-black">
+        <div className="rounded-lg border border-stroke bg-white p-4">
           <h3 className="mb-4 text-lg font-semibold">Quick Links</h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Section Title
               </label>
               <input
@@ -478,14 +478,14 @@ const FooterEditor = ({
                     e.target.value,
                   )
                 }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Quick Links"
               />
             </div>
 
             {/* Quick Links */}
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Links
               </label>
               {(sectionData.quick_links?.links || []).map((link, index) => (
@@ -508,7 +508,7 @@ const FooterEditor = ({
                         e.target.value,
                       )
                     }
-                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Link Name"
                   />
                   <input
@@ -526,7 +526,7 @@ const FooterEditor = ({
                         e.target.value,
                       )
                     }
-                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Link URL"
                   />
                   <button
@@ -541,7 +541,7 @@ const FooterEditor = ({
               {/* <button
                 type="button"
                 onClick={() => handleAddLink("quick_links")}
-                className="mt-2 rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                className="mt-2 rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200"
               >
                 + Add Link
               </button> */}
@@ -550,11 +550,11 @@ const FooterEditor = ({
         </div>
 
         {/* Support Section */}
-        <div className="rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-black">
+        <div className="rounded-lg border border-stroke bg-white p-4">
           <h3 className="mb-4 text-lg font-semibold">Support</h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Section Title
               </label>
               <input
@@ -563,14 +563,14 @@ const FooterEditor = ({
                 onChange={(e) =>
                   handleNestedFormChange("support", "title", "", e.target.value)
                 }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Support"
               />
             </div>
 
             {/* Support Links */}
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Links
               </label>
               {(sectionData.support?.links || []).map((link, index) => (
@@ -588,7 +588,7 @@ const FooterEditor = ({
                     onChange={(e) =>
                       handleLinkChange("support", index, "name", e.target.value)
                     }
-                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Link Name"
                   />
                   <input
@@ -601,7 +601,7 @@ const FooterEditor = ({
                     onChange={(e) =>
                       handleLinkChange("support", index, "url", e.target.value)
                     }
-                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Link URL"
                   />
                   <button
@@ -616,7 +616,7 @@ const FooterEditor = ({
               <button
                 type="button"
                 onClick={() => handleAddLink("support")}
-                className="mt-2 rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                className="mt-2 rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200"
               >
                 + Add Link
               </button>
@@ -625,11 +625,11 @@ const FooterEditor = ({
         </div>
 
         {/* Newsletter Section */}
-        <div className="rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-black">
+        <div className="rounded-lg border border-stroke bg-white p-4">
           <h3 className="mb-4 text-lg font-semibold">Newsletter</h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Section Title
               </label>
               <input
@@ -643,12 +643,12 @@ const FooterEditor = ({
                     e.target.value,
                   )
                 }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Newsletter"
               />
             </div>
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Description
               </label>
               <textarea
@@ -661,12 +661,12 @@ const FooterEditor = ({
                     e.target.value,
                   )
                 }
-                className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Subscribe to receive future updates"
               />
             </div>
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Placeholder Text
               </label>
               <input
@@ -680,7 +680,7 @@ const FooterEditor = ({
                     e.target.value,
                   )
                 }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Email address"
               />
             </div>
@@ -688,11 +688,11 @@ const FooterEditor = ({
         </div>
 
         {/* Bottom Section */}
-        <div className="rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-black">
+        <div className="rounded-lg border border-stroke bg-white p-4">
           <h3 className="mb-4 text-lg font-semibold">Bottom Section</h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Language Selector Text
               </label>
               <input
@@ -706,14 +706,14 @@ const FooterEditor = ({
                     e.target.value,
                   )
                 }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="English/Indonesia"
               />
             </div>
 
             {/* Bottom Links */}
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Bottom Links
               </label>
               {(sectionData.bottom?.links || []).map((link, index) => (
@@ -731,7 +731,7 @@ const FooterEditor = ({
                     onChange={(e) =>
                       handleBottomLinkChange(index, "name", e.target.value)
                     }
-                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Link Name"
                   />
                   <input
@@ -742,7 +742,7 @@ const FooterEditor = ({
                     onChange={(e) =>
                       handleBottomLinkChange(index, "url", e.target.value)
                     }
-                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Link URL"
                   />
                   <button
@@ -757,14 +757,14 @@ const FooterEditor = ({
               <button
                 type="button"
                 onClick={() => handleAddLink("bottom")}
-                className="mt-2 rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                className="mt-2 rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200"
               >
                 + Add Link
               </button>
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Copyright Text
               </label>
               <input
@@ -778,14 +778,14 @@ const FooterEditor = ({
                     e.target.value,
                   )
                 }
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={`© ${new Date().getFullYear()} Your Company. All rights reserved`}
               />
             </div>
 
             {/* Social Media Links */}
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Social Media
               </label>
               {(sectionData.bottom?.social_media || []).map((social, index) => (
@@ -803,7 +803,7 @@ const FooterEditor = ({
                     onChange={(e) =>
                       handleSocialMediaChange(index, "name", e.target.value)
                     }
-                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Platform Name"
                   />
                   <input
@@ -816,7 +816,7 @@ const FooterEditor = ({
                     onChange={(e) =>
                       handleSocialMediaChange(index, "url", e.target.value)
                     }
-                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-1/2 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="URL"
                   />
                   <button
@@ -831,7 +831,7 @@ const FooterEditor = ({
               {/* <button
                 type="button"
                 onClick={handleAddSocialMedia}
-                className="mt-2 rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                className="mt-2 rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200"
               >
                 + Add Social Media
               </button> */}
@@ -860,12 +860,12 @@ const FooterEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -873,7 +873,7 @@ const FooterEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -884,7 +884,7 @@ const FooterEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -898,7 +898,7 @@ const FooterEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import { Blog } from "@/types/blog";
 import ScrollReveal from "@/components/ScrollReveal";
 import Image from "next/image";
@@ -49,4 +50,4 @@ const BlogItem = ({ blog }: { blog: Blog }) => {
   );
 };
 
-export default BlogItem;
+export default memo(BlogItem);

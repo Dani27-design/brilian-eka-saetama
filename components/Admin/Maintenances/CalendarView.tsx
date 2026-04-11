@@ -12,11 +12,11 @@ interface CalendarViewProps {
 }
 
 const statusColors = {
-  scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200", 
-  waiting_approval: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  approved: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+  scheduled: "bg-blue-100 text-blue-800",
+  pending: "bg-yellow-100 text-yellow-800", 
+  waiting_approval: "bg-orange-100 text-orange-800",
+  approved: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-800"
 };
 
 export function CalendarView({ maintenances, selectedDate, onDateSelect }: CalendarViewProps) {
@@ -71,14 +71,14 @@ export function CalendarView({ maintenances, selectedDate, onDateSelect }: Calen
       {/* Calendar Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-gray-900">
             {format(currentMonth, "MMMM yyyy", { locale: idLocale })}
           </h2>
           
           <div className="flex gap-1">
             <button
               onClick={() => navigateMonth("prev")}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-stroke hover:bg-gray-50 dark:border-strokedark dark:hover:bg-gray-800"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-stroke hover:bg-gray-50"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -87,7 +87,7 @@ export function CalendarView({ maintenances, selectedDate, onDateSelect }: Calen
             
             <button
               onClick={() => navigateMonth("next")}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-stroke hover:bg-gray-50 dark:border-strokedark dark:hover:bg-gray-800"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-stroke hover:bg-gray-50"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -110,7 +110,7 @@ export function CalendarView({ maintenances, selectedDate, onDateSelect }: Calen
         {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map(day => (
           <div
             key={day}
-            className="flex h-10 items-center justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
+            className="flex h-10 items-center justify-center text-sm font-medium text-gray-500"
           >
             {day}
           </div>
@@ -127,9 +127,9 @@ export function CalendarView({ maintenances, selectedDate, onDateSelect }: Calen
           return (
             <div
               key={day.toString()}
-              className={`min-h-24 cursor-pointer border border-stroke p-1 hover:bg-gray-50 dark:border-strokedark dark:hover:bg-gray-800 ${
-                isSelected ? "bg-primary/10 dark:bg-primary/20" : ""
-              } ${!isCurrentMonth ? "bg-gray-50 dark:bg-gray-900/50" : ""}`}
+              className={`min-h-24 cursor-pointer border border-stroke p-1 hover:bg-gray-50 ${
+                isSelected ? "bg-primary/10" : ""
+              } ${!isCurrentMonth ? "bg-gray-50" : ""}`}
               onClick={() => onDateSelect(day)}
             >
               <div className="flex flex-col">
@@ -138,7 +138,7 @@ export function CalendarView({ maintenances, selectedDate, onDateSelect }: Calen
                     isToday
                       ? "bg-primary text-white"
                       : isCurrentMonth
-                      ? "text-gray-900 dark:text-white"
+                      ? "text-gray-900"
                       : "text-gray-400"
                   }`}
                 >
@@ -160,7 +160,7 @@ export function CalendarView({ maintenances, selectedDate, onDateSelect }: Calen
                   ))}
                   
                   {dayMaintenances.length > 2 && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <div className="text-xs text-gray-500">
                       +{dayMaintenances.length - 2} lainnya
                     </div>
                   )}
@@ -173,8 +173,8 @@ export function CalendarView({ maintenances, selectedDate, onDateSelect }: Calen
 
       {/* Selected Date Details */}
       {maintenancesByDate[format(selectedDate, "yyyy-MM-dd")]?.length > 0 && (
-        <div className="mt-6 rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-900/20">
-          <h3 className="mb-3 font-medium text-gray-900 dark:text-white">
+        <div className="mt-6 rounded-lg border border-stroke bg-gray-50 p-4">
+          <h3 className="mb-3 font-medium text-gray-900">
             Maintenance pada {format(selectedDate, "dd MMMM yyyy", { locale: idLocale })}
           </h3>
           
@@ -182,13 +182,13 @@ export function CalendarView({ maintenances, selectedDate, onDateSelect }: Calen
             {maintenancesByDate[format(selectedDate, "yyyy-MM-dd")].map(maintenance => (
               <div
                 key={maintenance.id}
-                className="flex items-center justify-between rounded-lg border border-stroke bg-white p-3 dark:border-strokedark dark:bg-boxdark"
+                className="flex items-center justify-between rounded-lg border border-stroke bg-white p-3"
               >
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">
+                  <div className="font-medium text-gray-900">
                     {maintenance.contractNumber}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-gray-600">
                     {maintenance.productName}
                   </div>
                 </div>

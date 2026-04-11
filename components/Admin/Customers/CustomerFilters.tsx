@@ -34,7 +34,7 @@ export default function CustomerFiltersComponent({
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Check if any filters are active (excluding search and default sort)
-  const hasActiveFilters = 
+  const hasActiveFilters =
     filters.customerType ||
     filters.businessField ||
     filters.province ||
@@ -55,7 +55,7 @@ export default function CustomerFiltersComponent({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Search */}
         <div className="flex-1 max-w-md">
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-1 block text-sm font-medium text-gray-700">
             Cari Pelanggan
           </label>
           <div className="relative">
@@ -64,7 +64,7 @@ export default function CustomerFiltersComponent({
               placeholder="Nama, alamat, kontak..."
               value={filters.search}
               onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 pl-10 outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 pl-10 outline-none focus:border-primary"
             />
             <svg
               className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
@@ -79,14 +79,14 @@ export default function CustomerFiltersComponent({
 
         {/* Quick Filter Toggle and Results Count */}
         <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-gray-600">
             <span className="font-medium">{filteredCount}</span> dari{" "}
             <span className="font-medium">{customerCount}</span> pelanggan
           </div>
-          
+
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-gray-300 dark:hover:bg-gray-800"
+            className="flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <svg
               className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -98,14 +98,14 @@ export default function CustomerFiltersComponent({
             </svg>
             Filter Lanjutan
             {hasActiveFilters && (
-              <span className="flex h-2 w-2 rounded-full bg-primary"></span>
+              <span className="flex h-2 w-2 rounded-full bg-orange-400"></span>
             )}
           </button>
 
           {hasActiveFilters && (
             <button
               onClick={onClearFilters}
-              className="text-sm text-red-600 hover:text-red-700 dark:text-red-400"
+              className="text-sm text-red-600 hover:text-red-700"
             >
               Clear Filters
             </button>
@@ -115,17 +115,17 @@ export default function CustomerFiltersComponent({
 
       {/* Advanced Filters */}
       {isExpanded && (
-        <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-900/20">
+        <div className="rounded-lg border border-stroke bg-gray-50 p-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Customer Type Filter */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tipe Pelanggan
               </label>
               <select
                 value={filters.customerType}
                 onChange={(e) => handleFilterChange("customerType", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
               >
                 <option value="">Semua Tipe</option>
                 {customerTypeOptions.map((option) => (
@@ -138,13 +138,13 @@ export default function CustomerFiltersComponent({
 
             {/* Business Field Filter */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Bidang Usaha
               </label>
               <select
                 value={filters.businessField}
                 onChange={(e) => handleFilterChange("businessField", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
               >
                 <option value="">Semua Bidang</option>
                 {businessFields.map((field) => (
@@ -157,13 +157,13 @@ export default function CustomerFiltersComponent({
 
             {/* Province Filter */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Provinsi
               </label>
               <select
                 value={filters.province}
                 onChange={(e) => handleFilterChange("province", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
               >
                 <option value="">Semua Provinsi</option>
                 {provinces.map((province) => (
@@ -176,13 +176,13 @@ export default function CustomerFiltersComponent({
 
             {/* Contracts Filter */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Status Kontrak
               </label>
               <select
                 value={filters.hasContracts}
                 onChange={(e) => handleFilterChange("hasContracts", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
               >
                 <option value="">Semua Status</option>
                 <option value="yes">Ada Kontrak</option>
@@ -194,13 +194,13 @@ export default function CustomerFiltersComponent({
           {/* Sorting */}
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Urutkan Berdasarkan
               </label>
               <select
                 value={filters.sortBy}
                 onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
               >
                 <option value="name">Nama Pelanggan</option>
                 <option value="createdAt">Tanggal Dibuat</option>
@@ -209,13 +209,13 @@ export default function CustomerFiltersComponent({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Urutan
               </label>
               <select
                 value={filters.sortOrder}
                 onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
               >
                 <option value="asc">A-Z / Terlama</option>
                 <option value="desc">Z-A / Terbaru</option>

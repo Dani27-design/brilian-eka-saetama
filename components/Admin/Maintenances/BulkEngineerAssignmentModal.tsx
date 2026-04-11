@@ -139,16 +139,16 @@ export default function BulkEngineerAssignmentModal({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Validation Warning */}
         {validationResult.hasInvalidMaintenances && (
-          <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-900/20">
+          <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
             <div className="flex items-start">
               <svg className="mt-0.5 h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
               <div className="ml-3">
-                <h4 className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                <h4 className="text-sm font-medium text-orange-800">
                   Beberapa maintenance tidak dapat dimodifikasi
                 </h4>
-                <p className="mt-1 text-sm text-orange-700 dark:text-orange-300">
+                <p className="mt-1 text-sm text-orange-700">
                   {validationResult.cannotModify.length} maintenance sudah memiliki data inspeksi dan tidak dapat diubah assignmentnya.
                   Hanya {validationResult.canModify.length} maintenance yang akan diupdate.
                 </p>
@@ -158,16 +158,16 @@ export default function BulkEngineerAssignmentModal({
         )}
 
         {!validationResult.hasValidMaintenances && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
             <div className="flex items-start">
               <svg className="mt-0.5 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div className="ml-3">
-                <h4 className="text-sm font-medium text-red-800 dark:text-red-200">
+                <h4 className="text-sm font-medium text-red-800">
                   Tidak ada maintenance yang dapat dimodifikasi
                 </h4>
-                <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                <p className="mt-1 text-sm text-red-700">
                   Semua maintenance yang dipilih sudah memiliki data inspeksi dan tidak dapat diubah.
                 </p>
               </div>
@@ -177,7 +177,7 @@ export default function BulkEngineerAssignmentModal({
 
         {/* Assignment Mode Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
             Mode Assignment
           </label>
           <div className="space-y-3">
@@ -196,17 +196,17 @@ export default function BulkEngineerAssignmentModal({
                   className="mt-1 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  <div className="text-sm font-medium text-gray-900">
                     {mode.label}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="text-xs text-gray-500">
                     {mode.description}
                   </div>
                 </div>
               </label>
             ))}
           </div>
-          <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-xs text-gray-600">
             {getAssignmentModeDescription()}
           </p>
         </div>
@@ -214,7 +214,7 @@ export default function BulkEngineerAssignmentModal({
         {/* Engineer Selection */}
         {assignmentMode !== "remove" || selectedEngineers.length > 0 ? (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {assignmentMode === "remove" ? "Teknisi yang akan dihapus" : "Pilih Teknisi"}
             </label>
             
@@ -229,16 +229,16 @@ export default function BulkEngineerAssignmentModal({
                   setShowEngineerDropdown(true);
                 }}
                 onFocus={() => setShowEngineerDropdown(true)}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
               
               {/* Dropdown */}
               {showEngineerDropdown && filteredEngineers.length > 0 && (
-                <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg">
                   {filteredEngineers.map((engineer) => (
                     <div
                       key={engineer.id}
-                      className="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="cursor-pointer px-4 py-2 hover:bg-gray-100"
                       onClick={() => addEngineer(engineer.id)}
                     >
                       {engineer.name}
@@ -251,20 +251,20 @@ export default function BulkEngineerAssignmentModal({
             {/* Selected Engineers */}
             {displaySelectedEngineers.length > 0 && (
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-gray-700">
                   Teknisi yang dipilih:
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {displaySelectedEngineers.map((engineer) => (
                     <span
                       key={engineer.id}
-                      className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                      className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
                     >
                       {engineer.name}
                       <button
                         type="button"
                         onClick={() => removeEngineer(engineer.id)}
-                        className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300 dark:bg-blue-800 dark:text-blue-200 dark:hover:bg-blue-700"
+                        className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-200 text-blue-600 hover:bg-blue-300"
                       >
                         <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -279,11 +279,11 @@ export default function BulkEngineerAssignmentModal({
         ) : null}
 
         {/* Summary */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-800">
-          <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <h4 className="text-sm font-medium text-gray-900 mb-2">
             Ringkasan Perubahan
           </h4>
-          <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+          <div className="space-y-1 text-sm text-gray-600">
             <p>• Total maintenance dipilih: {selectedMaintenances.length}</p>
             <p>• Maintenance yang akan diupdate: {validationResult.canModify.length}</p>
             <p>• Maintenance yang tidak dapat diubah: {validationResult.cannotModify.length}</p>
@@ -300,7 +300,7 @@ export default function BulkEngineerAssignmentModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 disabled:opacity-50 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
           >
             Batal
           </button>

@@ -66,20 +66,20 @@ const Modal = ({ isOpen, onClose, children, title }: ModalProps) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div
         ref={modalRef}
-        className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-black"
+        className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
       >
         {title && (
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-black dark:text-white">
+            <h2 className="text-xl font-semibold text-black">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="rounded-full p-1 hover:bg-gray-100"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-500 dark:text-gray-400"
+                className="h-5 w-5 text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

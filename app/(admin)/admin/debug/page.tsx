@@ -101,13 +101,13 @@ export default function DebugPage() {
 
   const getErrorSeverityColor = (errorType: string) => {
     const colors = {
-      'error': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-red-200 dark:border-red-700',
-      'unhandledRejection': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-200 dark:border-orange-700',
-      'console.error': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-200 dark:border-yellow-700',
-      'network': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border-purple-200 dark:border-purple-700',
-      'authentication': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-700'
+      'error': 'bg-red-100 text-red-800 border-red-200',
+      'unhandledRejection': 'bg-orange-100 text-orange-800 border-orange-200',
+      'console.error': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'network': 'bg-purple-100 text-purple-800 border-purple-200',
+      'authentication': 'bg-blue-100 text-blue-800 border-blue-200'
     };
-    return colors[errorType as keyof typeof colors] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600';
+    return colors[errorType as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   if (isLoading) {
@@ -123,22 +123,22 @@ export default function DebugPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-0">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">
               Error Debug Console
             </h1>
             
             {/* Tab Navigation */}
-            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setActiveTab('logs')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'logs'
-                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 Error Logs ({logs.length})
@@ -147,8 +147,8 @@ export default function DebugPage() {
                 onClick={() => setActiveTab('testing')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'testing'
-                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 Error Testing
@@ -158,8 +158,8 @@ export default function DebugPage() {
 
           {/* Quick Stats */}
           {activeTab === 'logs' && Object.keys(errorStats).length > 0 && (
-            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
                 Error Statistics
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -180,30 +180,30 @@ export default function DebugPage() {
             <>
               {/* Device Info */}
               {deviceInfo && (
-                <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
+                <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+                  <h2 className="text-lg font-semibold mb-2 text-gray-800">
                     Device Information
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                     <div>
-                      <span className="font-medium text-gray-600 dark:text-gray-400">Platform:</span>{' '}
-                      <span className="text-gray-900 dark:text-white">{deviceInfo.platform}</span>
+                      <span className="font-medium text-gray-600">Platform:</span>{' '}
+                      <span className="text-gray-900">{deviceInfo.platform}</span>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-600 dark:text-gray-400">Screen:</span>{' '}
-                      <span className="text-gray-900 dark:text-white">{deviceInfo.screenResolution}</span>
+                      <span className="font-medium text-gray-600">Screen:</span>{' '}
+                      <span className="text-gray-900">{deviceInfo.screenResolution}</span>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-600 dark:text-gray-400">Viewport:</span>{' '}
-                      <span className="text-gray-900 dark:text-white">{deviceInfo.viewportSize}</span>
+                      <span className="font-medium text-gray-600">Viewport:</span>{' '}
+                      <span className="text-gray-900">{deviceInfo.viewportSize}</span>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-600 dark:text-gray-400">Online:</span>{' '}
-                      <span className="text-gray-900 dark:text-white">{deviceInfo.onLine ? 'Yes' : 'No'}</span>
+                      <span className="font-medium text-gray-600">Online:</span>{' '}
+                      <span className="text-gray-900">{deviceInfo.onLine ? 'Yes' : 'No'}</span>
                     </div>
                     <div className="col-span-2">
-                      <span className="font-medium text-gray-600 dark:text-gray-400">User Agent:</span>{' '}
-                      <span className="text-gray-900 dark:text-white text-xs break-all">
+                      <span className="font-medium text-gray-600">User Agent:</span>{' '}
+                      <span className="text-gray-900 text-xs break-all">
                         {deviceInfo.userAgent}
                       </span>
                     </div>
@@ -237,8 +237,8 @@ export default function DebugPage() {
 
               {/* Error Count */}
               <div className="mb-4">
-                <span className="text-gray-600 dark:text-gray-400">
-                  Total Errors: <span className="font-bold text-gray-900 dark:text-white">{logs.length}</span>
+                <span className="text-gray-600">
+                  Total Errors: <span className="font-bold text-gray-900">{logs.length}</span>
                   <span className="ml-4 text-xs">Auto-refreshes every 5 seconds</span>
                 </span>
               </div>
@@ -247,11 +247,11 @@ export default function DebugPage() {
           
           {activeTab === 'testing' && (
             <div className="space-y-6">
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-medium text-blue-900 mb-2">
                   Error Testing
                 </h3>
-                <p className="text-sm text-blue-800 dark:text-blue-200">
+                <p className="text-sm text-blue-800">
                   Error testing endpoints have been removed for production security. Use browser DevTools to simulate errors locally.
                 </p>
               </div>
@@ -263,11 +263,11 @@ export default function DebugPage() {
         {activeTab === 'logs' && (
           <div className="space-y-4">
             {logs.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center">
-                <p className="text-gray-600 dark:text-gray-400">
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <p className="text-gray-600">
                   No error logs found. Errors will appear here when they occur.
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                <p className="text-sm text-gray-500 mt-2">
                   Try the Error Testing tab to generate test errors.
                 </p>
               </div>
@@ -277,7 +277,7 @@ export default function DebugPage() {
                 .map((log) => (
                 <div
                   key={log.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border-l-4 border-gray-200 dark:border-gray-600 p-4"
+                  className="bg-white rounded-lg shadow-lg border-l-4 border-gray-200 p-4"
                   style={{
                     borderLeftColor: log.errorType === 'error' ? '#ef4444' : 
                                    log.errorType === 'unhandledRejection' ? '#f97316' :
@@ -291,11 +291,11 @@ export default function DebugPage() {
                       {log.errorType}
                     </span>
                     <div className="text-right">
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-gray-500">
                         {new Date(log.timestamp).toLocaleString()}
                       </div>
                       {log.additional?.errorId && (
-                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        <div className="text-xs text-gray-400 mt-1">
                           ID: {log.additional.errorId.slice(0, 8)}...
                         </div>
                       )}
@@ -303,12 +303,12 @@ export default function DebugPage() {
                   </div>
 
                   <div className="mb-3">
-                    <p className="font-medium text-gray-900 dark:text-white break-words">
+                    <p className="font-medium text-gray-900 break-words">
                       {log.message}
                     </p>
                   </div>
 
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-3 break-all">
+                  <div className="text-xs text-gray-600 mb-3 break-all">
                     <span className="font-medium">URL:</span> {log.url}
                   </div>
 
@@ -316,17 +316,17 @@ export default function DebugPage() {
                   {log.additional && (
                     <div className="flex flex-wrap gap-1 mb-3">
                       {log.additional.sanitized && (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 text-xs rounded">
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
                           Sanitized
                         </span>
                       )}
                       {log.additional.simulated && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 text-xs rounded">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
                           Test Error
                         </span>
                       )}
                       {log.additional.adminError && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200 text-xs rounded">
+                        <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">
                           Admin
                         </span>
                       )}
@@ -335,10 +335,10 @@ export default function DebugPage() {
 
                   {log.stack && (
                     <details className="mt-3">
-                      <summary className="cursor-pointer text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                      <summary className="cursor-pointer text-sm text-blue-600 hover:underline font-medium">
                         View Stack Trace
                       </summary>
-                      <pre className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-all border">
+                      <pre className="mt-3 p-3 bg-gray-50 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-all border">
                         {log.stack}
                       </pre>
                     </details>
@@ -346,10 +346,10 @@ export default function DebugPage() {
 
                   {log.additional && Object.keys(log.additional).length > 0 && (
                     <details className="mt-3">
-                      <summary className="cursor-pointer text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                      <summary className="cursor-pointer text-sm text-blue-600 hover:underline font-medium">
                         Additional Information
                       </summary>
-                      <pre className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-xs overflow-x-auto border">
+                      <pre className="mt-3 p-3 bg-gray-50 rounded-lg text-xs overflow-x-auto border">
                         {JSON.stringify(log.additional, null, 2)}
                       </pre>
                     </details>

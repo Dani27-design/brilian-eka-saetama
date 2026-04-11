@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
-import AdminPageHeader from "@/components/Admin/AdminPageHeader";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 import FooterEditor from "@/components/Admin/FooterEditor";
 
 type EditFooterPageProps = {
@@ -16,6 +16,7 @@ type EditFooterPageProps = {
 export default function EditFooterPage({ params }: EditFooterPageProps) {
   const router = useRouter();
   const { documentId } = params;
+  usePageHeader("Edit Footer", "Edit footer content and configuration");
   const [documentData, setDocumentData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -74,7 +75,7 @@ export default function EditFooterPage({ params }: EditFooterPageProps) {
   return (
     <div className="container mx-auto">
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400">
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
           {error}
         </div>
       )}

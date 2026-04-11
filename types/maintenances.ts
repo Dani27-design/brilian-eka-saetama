@@ -4,6 +4,7 @@ import { ProductType } from "./product";
 export type MaintenanceStatus =
   | "scheduled"
   | "pending"
+  | "in_progress"
   | "waiting_approval"
   | "approved"
   | "rejected";

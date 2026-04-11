@@ -26,67 +26,58 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { useLanguage } from "@/app/context/LanguageContext"; // Import language context
+import { useLanguage } from "@/app/context/LanguageContext";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 // Define translations
 const translations = {
   id: {
-    analyticsTitle: "Dasbor Analitik",
+    analyticsTitle: "Statistik Kinerja Website",
     analyticsSubtitle:
-      "Pantau kinerja website dan perilaku pengunjung (30 hari terakhir)",
-    logout: "Keluar",
-    errorTitle: "Kesalahan saat mengambil data analitik:",
-    errorRetry: "Silakan periksa API endpoint dan coba lagi.",
-    overview: "Ikhtisar",
-    pageViews: "Tampilan Halaman",
-    uniqueVisitors: "Pengunjung Unik",
-    avgTimeOnSite: "Rata-rata Waktu di Situs",
-    minutesSeconds: "Menit:Detik",
-    bounceRate: "Tingkat Pentalan",
-    siteAverage: "Rata-rata situs",
-    trafficTrends: "Tren Lalu Lintas (30 Hari Terakhir)",
-    topPages: "Halaman Teratas",
-    deviceDistribution: "Distribusi Perangkat",
-    trafficSources: "Sumber Lalu Lintas",
-    userBehaviorInsights: "Wawasan Perilaku Pengguna",
-    avgSessionDuration: "Durasi Sesi Rata-rata",
-    pagesPerSession: "Halaman per Sesi",
-    last30Days: "30 hari terakhir",
-    noDataAvailable: "Tidak ada data tersedia",
+      "Lihat berapa banyak orang yang mengunjungi website Anda, halaman apa yang mereka lihat, dan bagaimana mereka menemukan situs Anda",
+    errorTitle: "Gagal Memuat Data Statistik",
+    errorRetry: "Silakan periksa koneksi internet Anda atau coba muat ulang halaman.",
+    pageViews: "Halaman Dilihat",
+    uniqueVisitors: "Total Pengunjung",
+    avgTimeOnSite: "Waktu Kunjungan",
+    minutesSeconds: "Rata-rata waktu pengunjung di situs Anda",
+    bounceRate: "Pengunjung yang Langsung Pergi",
+    siteAverage: "Persentase kunjungan satu halaman",
+    trafficTrends: "Aktivitas Pengunjung dari Waktu ke Waktu",
+    topPages: "Halaman Paling Sering Dikunjungi",
+    deviceDistribution: "Perangkat yang Digunakan Pengunjung",
+    trafficSources: "Asal Pengunjung Menemukan Situs Anda",
+    last30Days: "Berdasarkan 30 hari terakhir",
+    noDataAvailable: "Belum ada data — periksa kembali setelah situs Anda mendapat pengunjung",
     date: "Tanggal",
     loading: "Memuat...",
     visitors: "Pengunjung",
     views: "Tampilan",
-    unknown: "Tidak diketahui",
+    unknown: "Tanggal tidak diketahui",
   },
   en: {
-    analyticsTitle: "Analytics Dashboard",
+    analyticsTitle: "Website Performance Dashboard",
     analyticsSubtitle:
-      "Monitor website performance and visitor behavior (last 30 days)",
-    logout: "Logout",
-    errorTitle: "Error fetching analytics data:",
-    errorRetry: "Please check your API endpoints and try again.",
-    overview: "Overview",
-    pageViews: "Page Views",
-    uniqueVisitors: "Unique Visitors",
-    avgTimeOnSite: "Avg. Time on Site",
-    minutesSeconds: "Minutes:Seconds",
-    bounceRate: "Bounce Rate",
-    siteAverage: "Site average",
-    trafficTrends: "Traffic Trends (Last 30 Days)",
-    topPages: "Top Pages",
-    deviceDistribution: "Device Distribution",
-    trafficSources: "Traffic Sources",
-    userBehaviorInsights: "User Behavior Insights",
-    avgSessionDuration: "Average Session Duration",
-    pagesPerSession: "Pages Per Session",
-    last30Days: "Last 30 days",
-    noDataAvailable: "No data available",
+      "See how many people visit your website, which pages they view, and how they found you",
+    errorTitle: "Unable to Load Statistics Data",
+    errorRetry: "Please check your internet connection or try refreshing the page.",
+    pageViews: "Pages Viewed",
+    uniqueVisitors: "Total Visitors",
+    avgTimeOnSite: "Time Spent on Site",
+    minutesSeconds: "How long visitors stay on average",
+    bounceRate: "Left Without Exploring",
+    siteAverage: "Percentage of single-page visits",
+    trafficTrends: "Visitor Activity Over Time",
+    topPages: "Most Visited Pages",
+    deviceDistribution: "Devices Used by Visitors",
+    trafficSources: "How Visitors Found Your Site",
+    last30Days: "Based on the last 30 days",
+    noDataAvailable: "No data available yet — check back once your site gets visitors",
     date: "Date",
     loading: "Loading...",
     visitors: "Visitors",
     views: "Views",
-    unknown: "Unknown",
+    unknown: "Unknown date",
   },
 };
 
@@ -97,6 +88,8 @@ export default function AdminDashboard() {
   const { language } = useLanguage(); // Get current language
   const t =
     translations[language as keyof typeof translations] || translations.en;
+
+  usePageHeader(t.analyticsTitle, t.analyticsSubtitle);
 
   // Analytics data states
   const [overviewData, setOverviewData] = useState({
@@ -335,18 +328,7 @@ export default function AdminDashboard() {
   const displayData = formatTrafficData();
 
   return (
-    <div className="container mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-black dark:text-white">
-            {t.analyticsTitle}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            {t.analyticsSubtitle}
-          </p>
-        </div>
-      </div>
-
+    <div>
       {/* Error display */}
       {error && (
         <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
@@ -357,54 +339,51 @@ export default function AdminDashboard() {
       )}
 
       {/* Overview Section */}
-      <div className="mb-8">
-        <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-          {t.overview}
-        </h2>
+      <div className="mb-4">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg border border-stroke bg-white p-5 shadow-sm dark:border-strokedark dark:bg-black">
+          <div className="rounded-lg border border-stroke bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-gray-500">
                 {t.pageViews}
               </span>
             </div>
-            <h3 className="mt-2 text-2xl font-bold text-black dark:text-white">
+            <h3 className="mt-2 text-2xl font-bold text-black">
               {isLoadingAnalytics ? t.loading : overviewData.pageViews}
             </h3>
             <p className="mt-1 text-xs text-gray-500">{t.last30Days}</p>
           </div>
 
-          <div className="rounded-lg border border-stroke bg-white p-5 shadow-sm dark:border-strokedark dark:bg-black">
+          <div className="rounded-lg border border-stroke bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-gray-500">
                 {t.uniqueVisitors}
               </span>
             </div>
-            <h3 className="mt-2 text-2xl font-bold text-black dark:text-white">
+            <h3 className="mt-2 text-2xl font-bold text-black">
               {isLoadingAnalytics ? t.loading : overviewData.visitors}
             </h3>
             <p className="mt-1 text-xs text-gray-500">{t.last30Days}</p>
           </div>
 
-          <div className="rounded-lg border border-stroke bg-white p-5 shadow-sm dark:border-strokedark dark:bg-black">
+          <div className="rounded-lg border border-stroke bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-gray-500">
                 {t.avgTimeOnSite}
               </span>
             </div>
-            <h3 className="mt-2 text-2xl font-bold text-black dark:text-white">
+            <h3 className="mt-2 text-2xl font-bold text-black">
               {isLoadingAnalytics ? t.loading : overviewData.avgTimeOnSite}
             </h3>
             <p className="mt-1 text-xs text-gray-500">{t.minutesSeconds}</p>
           </div>
 
-          <div className="rounded-lg border border-stroke bg-white p-5 shadow-sm dark:border-strokedark dark:bg-black">
+          <div className="rounded-lg border border-stroke bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-gray-500">
                 {t.bounceRate}
               </span>
             </div>
-            <h3 className="mt-2 text-2xl font-bold text-black dark:text-white">
+            <h3 className="mt-2 text-2xl font-bold text-black">
               {isLoadingAnalytics ? t.loading : overviewData.bounceRate}
             </h3>
             <p className="mt-1 text-xs text-gray-500">{t.siteAverage}</p>
@@ -413,8 +392,8 @@ export default function AdminDashboard() {
       </div>
 
       {/* Traffic Trends Chart */}
-      <div className="mb-8 rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
-        <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
+      <div className="mb-4 rounded-lg border border-stroke bg-white p-4 shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold text-black">
           {t.trafficTrends}
         </h2>
         <div className="h-80">
@@ -494,79 +473,78 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Two Column Analytics Section */}
-      <div className="mb-8 grid gap-6 md:grid-cols-2">
-        {/* Top Pages */}
-        <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
-          <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-            {t.topPages}
-          </h2>
-          <div className="h-80">
-            {isLoadingAnalytics ? (
-              <div className="flex h-full items-center justify-center">
-                <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-              </div>
-            ) : pageViewsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={pageViewsData}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 70, bottom: 5 }}
-                >
-                  <defs>
-                    <linearGradient id="colorBar" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#0088FE" stopOpacity={0.8} />
-                      <stop offset="100%" stopColor="#0088FE" stopOpacity={1} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    width={50} // Lebarkan agar label lebih muat
-                    interval={0} // Tampilkan semua label
-                    tick={({ x, y, payload }) => {
-                      // Batasi label maksimal 18 karakter, tambahkan ... jika lebih
-                      const maxLen = 18;
-                      let label = payload.value;
-                      if (label.length > maxLen) {
-                        label = label.slice(0, maxLen - 3) + "...";
-                      }
-                      return (
-                        <text
-                          x={x}
-                          y={y}
-                          dy={4}
-                          fontSize={12}
-                          textAnchor="end"
-                          className="text-gray-700 dark:text-gray-300"
-                        >
-                          {label}
-                        </text>
-                      );
-                    }}
-                  />
-                  <Tooltip />
-                  <Bar
-                    dataKey="views"
-                    name={t.views}
-                    fill="url(#colorBar)"
-                    radius={[0, 4, 4, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <p className="text-gray-500">{t.noDataAvailable}</p>
-              </div>
-            )}
-          </div>
+      {/* Top Pages */}
+      <div className="mb-4 rounded-lg border border-stroke bg-white p-4 shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold text-black">
+          {t.topPages}
+        </h2>
+        <div className="h-80">
+          {isLoadingAnalytics ? (
+            <div className="flex h-full items-center justify-center">
+              <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            </div>
+          ) : pageViewsData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={pageViewsData}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 70, bottom: 5 }}
+              >
+                <defs>
+                  <linearGradient id="colorBar" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#0088FE" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#0088FE" stopOpacity={1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  width={50}
+                  interval={0}
+                  tick={({ x, y, payload }) => {
+                    const maxLen = 18;
+                    let label = payload.value;
+                    if (label.length > maxLen) {
+                      label = label.slice(0, maxLen - 3) + "...";
+                    }
+                    return (
+                      <text
+                        x={x}
+                        y={y}
+                        dy={4}
+                        fontSize={12}
+                        textAnchor="end"
+                        className="text-gray-700"
+                      >
+                        {label}
+                      </text>
+                    );
+                  }}
+                />
+                <Tooltip />
+                <Bar
+                  dataKey="views"
+                  name={t.views}
+                  fill="url(#colorBar)"
+                  radius={[0, 4, 4, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <p className="text-gray-500">{t.noDataAvailable}</p>
+            </div>
+          )}
         </div>
+      </div>
 
+      {/* Two Column Analytics Section - Device Distribution & Traffic Sources */}
+      <div className="mb-4 grid gap-6 md:grid-cols-2">
         {/* Device Distribution */}
-        <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
-          <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
+        <div className="rounded-lg border border-stroke bg-white p-4 shadow-sm">
+          <h2 className="mb-4 text-xl font-semibold text-black">
             {t.deviceDistribution}
           </h2>
           <div className="h-80">
@@ -609,114 +587,55 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
-      </div>
 
-      {/* Traffic Sources */}
-      <div className="mb-8 rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
-        <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-          {t.trafficSources}
-        </h2>
-        <div className="h-80">
-          {isLoadingAnalytics ? (
-            <div className="flex h-full items-center justify-center">
-              <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-            </div>
-          ) : sourceData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={sourceData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  innerRadius={60}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(1)}%`
-                  }
-                  animationBegin={0}
-                  animationDuration={1500}
-                >
-                  {sourceData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-                <Legend
-                  layout="vertical"
-                  align="right"
-                  verticalAlign="middle"
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-gray-500">{t.noDataAvailable}</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* User Behavior Insights */}
-      <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
-        <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-          {t.userBehaviorInsights}
-        </h2>
-        <div className="mb-6 grid gap-6 md:grid-cols-3">
-          <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-800">
-            <h3 className="mb-2 text-lg font-medium text-black dark:text-white">
-              {t.avgSessionDuration}
-            </h3>
-            <p className="text-3xl font-bold text-primary">
-              {isLoadingAnalytics ? t.loading : overviewData.avgTimeOnSite}
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              {!isLoadingAnalytics && (
-                <span className="text-green-500">{t.last30Days}</span>
-              )}
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-800">
-            <h3 className="mb-2 text-lg font-medium text-black dark:text-white">
-              {t.pagesPerSession}
-            </h3>
-            <p className="text-3xl font-bold text-primary">
-              {isLoadingAnalytics
-                ? t.loading
-                : (() => {
-                    const visitors = Number(overviewData.visitors.replace(/,/g, ""));
-                    return visitors > 0
-                      ? (Number(overviewData.pageViews.replace(/,/g, "")) / visitors).toFixed(1)
-                      : "0";
-                  })()}
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              {!isLoadingAnalytics && (
-                <span className="text-green-500">{t.last30Days}</span>
-              )}
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-stroke bg-gray-50 p-4 dark:border-strokedark dark:bg-gray-800">
-            <h3 className="mb-2 text-lg font-medium text-black dark:text-white">
-              {t.bounceRate}
-            </h3>
-            <p className="text-3xl font-bold text-primary">
-              {isLoadingAnalytics ? t.loading : overviewData.bounceRate}
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              {!isLoadingAnalytics && (
-                <span className="text-blue-500">{t.last30Days}</span>
-              )}
-            </p>
+        {/* Traffic Sources */}
+        <div className="rounded-lg border border-stroke bg-white p-4 shadow-sm">
+          <h2 className="mb-4 text-xl font-semibold text-black">
+            {t.trafficSources}
+          </h2>
+          <div className="h-80">
+            {isLoadingAnalytics ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : sourceData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={sourceData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    innerRadius={50}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(1)}%`
+                    }
+                    animationBegin={0}
+                    animationDuration={1500}
+                  >
+                    {sourceData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `${value}%`} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-gray-500">{t.noDataAvailable}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      
     </div>
   );
 }

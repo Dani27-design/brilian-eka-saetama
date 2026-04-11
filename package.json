@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -65,7 +65,6 @@
     "react-hot-toast": "^2.5.2",
     "recharts": "^2.15.3",
     "swiper": "^9.3.2",
-    "swr": "^2.2.5",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.2.2",
     "xlsx": "^0.18.5"

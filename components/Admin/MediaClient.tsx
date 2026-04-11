@@ -20,7 +20,7 @@ import {
 } from "firebase/firestore";
 import { storage, firestore } from "@/db/firebase/firebaseConfig";
 import Image from "next/image";
-import AdminPageHeader from "./AdminPageHeader";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 interface MediaFile {
   id: string;
@@ -45,6 +45,8 @@ export default function MediaClient() {
   const [description, setDescription] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  usePageHeader("Media Library", "Upload and manage media files");
 
   // Fetch files from Firestore
   useEffect(() => {
@@ -294,47 +296,41 @@ export default function MediaClient() {
 
   return (
     <div className="container mx-auto">
-      <AdminPageHeader
-        title="Media Library"
-        description="Upload and manage media files"
-        actions={
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Search files..."
-              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 text-sm focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <label className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90">
-              Upload
-              <input
-                type="file"
-                className="hidden"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                disabled={isUploading}
-              />
-            </label>
-          </div>
-        }
-      />
+      <div className="mb-6 flex items-center gap-3">
+        <input
+          type="text"
+          placeholder="Search files..."
+          className="w-full rounded-lg border border-stroke bg-white px-4 py-2 text-sm focus:border-primary focus:outline-none"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <label className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90">
+          Upload
+          <input
+            type="file"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            disabled={isUploading}
+          />
+        </label>
+      </div>
 
       {/* Error message */}
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
           <p>{error}</p>
         </div>
       )}
 
       {/* Upload progress bar */}
       {isUploading && (
-        <div className="mb-6 rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-black">
+        <div className="mb-6 rounded-lg border border-stroke bg-white p-4">
           <div className="mb-2 flex justify-between">
             <span>Uploading file...</span>
             <span>{uploadProgress}%</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+          <div className="h-2 w-full rounded-full bg-gray-200">
             <div
               className="h-2 rounded-full bg-primary transition-all"
               style={{ width: `${uploadProgress}%` }}
@@ -354,8 +350,8 @@ export default function MediaClient() {
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, index) => (
                 <div key={index} className="space-y-2">
-                  <div className="aspect-square animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                  <div className="aspect-square animate-pulse rounded-lg bg-gray-200" />
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
                 </div>
               ))}
             </div>
@@ -364,7 +360,7 @@ export default function MediaClient() {
               {filteredFiles.map((file) => (
                 <div key={file.id} className="space-y-2">
                   <div
-                    className={`group relative aspect-square cursor-pointer overflow-hidden rounded-lg border border-stroke bg-white dark:border-strokedark dark:bg-black ${
+                    className={`group relative aspect-square cursor-pointer overflow-hidden rounded-lg border border-stroke bg-white ${
                       selectedFile?.id === file.id ? "ring-2 ring-primary" : ""
                     }`}
                     onClick={() => {
@@ -467,7 +463,7 @@ export default function MediaClient() {
 
                   {/* Show filename below the preview */}
                   <p
-                    className="truncate text-sm text-gray-700 dark:text-gray-300"
+                    className="truncate text-sm text-gray-700"
                     title={file.name}
                   >
                     {file.name}
@@ -476,7 +472,7 @@ export default function MediaClient() {
               ))}
             </div>
           ) : (
-            <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed border-stroke bg-white dark:border-strokedark dark:bg-black">
+            <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed border-stroke bg-white">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="mb-2 h-12 w-12 text-gray-400"
@@ -491,7 +487,7 @@ export default function MediaClient() {
                   d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500">
                 {searchTerm
                   ? "No files match your search."
                   : "No files uploaded yet."}
@@ -509,8 +505,8 @@ export default function MediaClient() {
         {/* File details sidebar */}
         {selectedFile && (
           <div className="md:col-span-4">
-            <div className="rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-black">
-              <h3 className="mb-4 text-lg font-semibold text-black dark:text-white">
+            <div className="rounded-lg border border-stroke bg-white p-4">
+              <h3 className="mb-4 text-lg font-semibold text-black">
                 File Details
               </h3>
 
@@ -542,7 +538,7 @@ export default function MediaClient() {
                     className="w-full"
                   ></audio>
                 ) : (
-                  <div className="flex aspect-video items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
+                  <div className="flex aspect-video items-center justify-center rounded-lg bg-gray-100">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-16 w-16 text-gray-400"
@@ -563,14 +559,14 @@ export default function MediaClient() {
 
               <div className="space-y-3">
                 <div>
-                  <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+                  <p className="mb-1 text-sm text-gray-500">
                     Name
                   </p>
                   <p className="break-all text-sm">{selectedFile.name}</p>
                 </div>
 
                 <div>
-                  <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+                  <p className="mb-1 text-sm text-gray-500">
                     Type
                   </p>
                   <p className="text-sm capitalize">{selectedFile.type}</p>
@@ -578,7 +574,7 @@ export default function MediaClient() {
 
                 {selectedFile.size && (
                   <div>
-                    <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+                    <p className="mb-1 text-sm text-gray-500">
                       Size
                     </p>
                     <p className="text-sm">
@@ -588,7 +584,7 @@ export default function MediaClient() {
                 )}
 
                 <div>
-                  <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+                  <p className="mb-1 text-sm text-gray-500">
                     Uploaded
                   </p>
                   <p className="text-sm">
@@ -598,7 +594,7 @@ export default function MediaClient() {
 
                 <div>
                   <div className="mb-1 flex items-center justify-between">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-500">
                       Description
                     </p>
                     {!isEditing && (
@@ -616,7 +612,7 @@ export default function MediaClient() {
                       <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full rounded border border-stroke bg-white px-3 py-2 text-xs focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black"
+                        className="w-full rounded border border-stroke bg-white px-3 py-2 text-xs focus:border-primary focus:outline-none"
                         rows={3}
                       ></textarea>
                       <div className="flex justify-end space-x-2">
@@ -625,7 +621,7 @@ export default function MediaClient() {
                             setDescription(selectedFile.description || "");
                             setIsEditing(false);
                           }}
-                          className="rounded border border-stroke px-2 py-1 text-xs hover:bg-gray-50 dark:border-strokedark dark:hover:bg-gray-800"
+                          className="rounded border border-stroke px-2 py-1 text-xs hover:bg-gray-50"
                         >
                           Cancel
                         </button>
@@ -645,7 +641,7 @@ export default function MediaClient() {
                 </div>
 
                 <div>
-                  <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+                  <p className="mb-1 text-sm text-gray-500">
                     URL
                   </p>
                   <div className="flex items-center">
@@ -653,11 +649,11 @@ export default function MediaClient() {
                       type="text"
                       readOnly
                       value={selectedFile.url}
-                      className="w-full truncate rounded-l-lg border border-stroke bg-gray-50 px-3 py-2 text-xs focus:outline-none dark:border-strokedark dark:bg-gray-800"
+                      className="w-full truncate rounded-l-lg border border-stroke bg-gray-50 px-3 py-2 text-xs focus:outline-none"
                     />
                     <button
                       onClick={() => handleCopyUrl(selectedFile.url)}
-                      className="rounded-r-lg border border-l-0 border-stroke bg-gray-100 px-3 py-2 text-xs hover:bg-gray-200 dark:border-strokedark dark:bg-gray-700 dark:hover:bg-gray-600"
+                      className="rounded-r-lg border border-l-0 border-stroke bg-gray-100 px-3 py-2 text-xs hover:bg-gray-200"
                     >
                       {urlCopied === selectedFile.url ? "Copied!" : "Copy"}
                     </button>
@@ -670,13 +666,13 @@ export default function MediaClient() {
                   href={selectedFile.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 rounded-lg border border-stroke px-3 py-2 text-center text-sm hover:bg-gray-50 dark:border-strokedark dark:hover:bg-gray-800"
+                  className="flex-1 rounded-lg border border-stroke px-3 py-2 text-center text-sm hover:bg-gray-50"
                 >
                   Open
                 </a>
                 <button
                   onClick={() => handleDeleteFile(selectedFile)}
-                  className="flex-1 rounded-lg border border-red-500 px-3 py-2 text-sm text-red-500 hover:bg-red-500 hover:text-white dark:hover:bg-red-600"
+                  className="flex-1 rounded-lg border border-red-500 px-3 py-2 text-sm text-red-500 hover:bg-red-500 hover:text-white"
                 >
                   Delete
                 </button>

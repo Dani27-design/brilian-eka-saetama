@@ -13,7 +13,8 @@ export async function GET(request: NextRequest) {
     const startDate = url.searchParams.get("startDate") || "30daysAgo";
     const endDate = url.searchParams.get("endDate") || "today";
 
-    const data = await getSourcesData(startDate, endDate);
+    const lang = url.searchParams.get("lang") || "en";
+    const data = await getSourcesData(startDate, endDate, lang);
 
     return NextResponse.json(data);
   } catch (error) {

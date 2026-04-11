@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   collection,
   query,
@@ -13,10 +14,13 @@ import {
 } from "firebase/firestore";
 import { firestore, auth } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 import Modal from "@/components/Admin/Modal";
 import PasswordInput from "@/components/Admin/PasswordInput";
+import UserActionsComponent, {
+  UserFilters,
+} from "@/components/Admin/Users/UserFilters";
 
-// Add to translations
 const translations = {
   id: {
     title: "Manajemen Pengguna",
@@ -36,7 +40,6 @@ const translations = {
     confirmDelete: "Yakin ingin menghapus pengguna ini?",
     noUsers: "Belum ada pengguna yang terdaftar.",
     loading: "Memuat data pengguna...",
-    searchPlaceholder: "Cari pengguna...",
     createUserTitle: "Buat Pengguna Baru",
     password: "Kata Sandi",
     confirmPassword: "Konfirmasi Kata Sandi",
@@ -60,21 +63,8 @@ const translations = {
     itemsPerPage: "Item per halaman",
     page: "Halaman",
     of: "dari",
-    previous: "Sebelumnya",
-    next: "Selanjutnya",
     showing: "Menampilkan",
-    entries: "entri",
-    filter: "Filter",
-    filterRole: "Filter Peran",
-    filterStatus: "Filter Status",
-    filterDate: "Filter Tanggal",
-    allRoles: "Semua Peran",
-    allStatuses: "Semua Status",
-    startDate: "Tanggal Mulai",
-    endDate: "Tanggal Akhir",
-    applyFilter: "Terapkan",
-    resetFilter: "Reset",
-    clearDates: "Hapus Tanggal",
+    entries: "pengguna",
   },
   en: {
     title: "User Management",
@@ -94,7 +84,6 @@ const translations = {
     confirmDelete: "Are you sure you want to delete this user?",
     noUsers: "No users registered yet.",
     loading: "Loading users...",
-    searchPlaceholder: "Search users...",
     createUserTitle: "Create New User",
     password: "Password",
     confirmPassword: "Confirm Password",
@@ -118,21 +107,8 @@ const translations = {
     itemsPerPage: "Items per page",
     page: "Page",
     of: "of",
-    previous: "Previous",
-    next: "Next",
     showing: "Showing",
-    entries: "entries",
-    filter: "Filter",
-    filterRole: "Filter Role",
-    filterStatus: "Filter Status",
-    filterDate: "Filter Date",
-    allRoles: "All Roles",
-    allStatuses: "All Statuses",
-    startDate: "Start Date",
-    endDate: "End Date",
-    applyFilter: "Apply",
-    resetFilter: "Reset",
-    clearDates: "Clear Dates",
+    entries: "users",
   },
 };
 
@@ -145,14 +121,25 @@ type User = {
   createdAt: Date;
 };
 
+const defaultFilters: UserFilters = {
+  search: "",
+  role: "",
+  status: "",
+  startDate: "",
+  endDate: "",
+  sortBy: "name",
+  sortOrder: "asc",
+};
+
 export default function UserManagementPage() {
   const { language } = useLanguage();
   const t =
     translations[language as keyof typeof translations] || translations.en;
+  usePageHeader(t.title, t.description);
 
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<UserFilters>(defaultFilters);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newUser, setNewUser] = useState({
     email: "",
@@ -165,10 +152,6 @@ export default function UserManagementPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [roleFilter, setRoleFilter] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<boolean | null>(null);
-  const [startDateFilter, setStartDateFilter] = useState<string>("");
-  const [endDateFilter, setEndDateFilter] = useState<string>("");
   const router = useRouter();
 
   // Fetch users from Firestore
@@ -186,7 +169,7 @@ export default function UserManagementPage() {
             email: data.email || "",
             name: data.name || "",
             role: data.role || "user",
-            isActive: data.isActive !== false, // Default to true if not specified
+            isActive: data.isActive !== false,
             createdAt: data.createdAt?.toDate() || new Date(),
           });
         });
@@ -202,41 +185,38 @@ export default function UserManagementPage() {
     fetchUsers();
   }, []);
 
-  // Reset to first page when search term changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
-
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, roleFilter, statusFilter, startDateFilter, endDateFilter]);
+  }, [filters]);
 
   // Apply all filters to the users
   const filteredUsers = users.filter((user) => {
     // Search term filter
     const matchesSearch =
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.name.toLowerCase().includes(searchTerm.toLowerCase());
+      user.email.toLowerCase().includes(filters.search.toLowerCase()) ||
+      user.name.toLowerCase().includes(filters.search.toLowerCase());
 
     // Role filter
-    const matchesRole = roleFilter === null || user.role === roleFilter;
+    const matchesRole = filters.role === "" || user.role === filters.role;
 
     // Status filter
     const matchesStatus =
-      statusFilter === null || user.isActive === statusFilter;
+      filters.status === "" ||
+      (filters.status === "active" && user.isActive) ||
+      (filters.status === "inactive" && !user.isActive);
 
     // Date range filter
     let matchesDateRange = true;
 
-    if (startDateFilter) {
-      const startDate = new Date(startDateFilter);
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate);
       startDate.setHours(0, 0, 0, 0);
       matchesDateRange = matchesDateRange && user.createdAt >= startDate;
     }
 
-    if (endDateFilter) {
-      const endDate = new Date(endDateFilter);
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
       endDate.setHours(23, 59, 59, 999);
       matchesDateRange = matchesDateRange && user.createdAt <= endDate;
     }
@@ -244,13 +224,23 @@ export default function UserManagementPage() {
     return matchesSearch && matchesRole && matchesStatus && matchesDateRange;
   });
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  // Sort filtered users
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    const order = filters.sortOrder === "asc" ? 1 : -1;
+    if (filters.sortBy === "name") {
+      return a.name.localeCompare(b.name) * order;
+    } else if (filters.sortBy === "email") {
+      return a.email.localeCompare(b.email) * order;
+    } else {
+      return (a.createdAt.getTime() - b.createdAt.getTime()) * order;
+    }
+  });
 
-  // Get current page items
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const currentUsers = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
 
   // Change page
   const paginate = (pageNumber: number) => {
@@ -264,7 +254,7 @@ export default function UserManagementPage() {
     e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   };
 
   // Handle user input for new user form
@@ -293,7 +283,6 @@ export default function UserManagementPage() {
       return setError(t.passwordMismatch);
 
     try {
-      // Call your API endpoint instead of using Firebase Auth directly
       const token = await auth.currentUser?.getIdToken();
       if (!token) {
         throw new Error("Authentication required. Please sign in again.");
@@ -303,7 +292,7 @@ export default function UserManagementPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           email: newUser.email,
@@ -319,7 +308,6 @@ export default function UserManagementPage() {
         throw new Error(data.error || t.userCreateError);
       }
 
-      // Add user to local state
       setUsers((prev) => [
         ...prev,
         {
@@ -359,7 +347,6 @@ export default function UserManagementPage() {
         isActive: !currentStatus,
       });
 
-      // Update local state
       setUsers((prev) =>
         prev.map((user) =>
           user.id === userId ? { ...user, isActive: !currentStatus } : user,
@@ -377,12 +364,8 @@ export default function UserManagementPage() {
   const deleteUser = async (userId: string) => {
     if (window.confirm(t.confirmDelete)) {
       try {
-        // Delete from Firestore
         await deleteDoc(doc(firestore, "users", userId));
-
-        // Update local state
         setUsers((prev) => prev.filter((user) => user.id !== userId));
-
         setSuccessMessage(t.userDeleted);
       } catch (error) {
         console.error("Error deleting user:", error);
@@ -391,183 +374,92 @@ export default function UserManagementPage() {
     }
   };
 
-  // Handle filter reset
-  const resetFilters = () => {
-    setRoleFilter(null);
-    setStatusFilter(null);
-    setStartDateFilter("");
-    setEndDateFilter("");
-    setSearchTerm("");
-  };
-
-  const clearDateFilters = () => {
-    setStartDateFilter("");
-    setEndDateFilter("");
+  // Handle filter clear (preserveSearch pattern)
+  const handleClearFilters = () => {
+    setFilters({
+      ...defaultFilters,
+      search: filters.search, // Preserve search text
+    });
   };
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-black dark:text-white">
-            {t.title}
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {t.description}
-          </p>
-        </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="mt-4 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 sm:mt-0"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="mr-2 h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          {t.addUser}
-        </button>
-      </div>
-
+    <div className="flex h-full flex-col">
       {error && (
-        <div className="mb-4 rounded-lg bg-red-100 p-4 text-red-700">
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           {error}
         </div>
       )}
 
       {successMessage && (
-        <div className="mb-4 rounded-lg bg-green-100 p-4 text-green-700">
+        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
           {successMessage}
         </div>
       )}
 
-      {/* Filter section */}
-      <div className="mb-6">
-        <div className="flex flex-wrap items-end gap-4">
-          {/* Search field */}
-          <div className="w-full sm:w-64">
-            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-              {t.searchPlaceholder}
-            </label>
-            <input
-              type="text"
-              placeholder={t.searchPlaceholder}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-            />
-          </div>
-
-          {/* Role filter */}
-          <div className="w-full sm:w-auto">
-            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-              {t.filterRole}
-            </label>
-            <select
-              value={roleFilter || ""}
-              onChange={(e) => setRoleFilter(e.target.value || null)}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-            >
-              <option value="">{t.allRoles}</option>
-              <option value="admin">{t.adminRole}</option>
-              <option value="engineer">{t.engineerRole}</option>
-              <option value="user">{t.userRole}</option>
-            </select>
-          </div>
-
-          {/* Status filter */}
-          <div className="w-full sm:w-auto">
-            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-              {t.filterStatus}
-            </label>
-            <select
-              value={
-                statusFilter === null
-                  ? ""
-                  : statusFilter
-                  ? "active"
-                  : "inactive"
-              }
-              onChange={(e) => {
-                if (e.target.value === "") setStatusFilter(null);
-                else setStatusFilter(e.target.value === "active");
-              }}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-            >
-              <option value="">{t.allStatuses}</option>
-              <option value="active">{t.active}</option>
-              <option value="inactive">{t.inactive}</option>
-            </select>
-          </div>
-
-          {/* Date range filter */}
-          <div className="flex w-full flex-wrap items-end gap-2 sm:w-auto">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                {t.startDate}
-              </label>
-              <input
-                type="date"
-                value={startDateFilter}
-                onChange={(e) => setStartDateFilter(e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                {t.endDate}
-              </label>
-              <input
-                type="date"
-                value={endDateFilter}
-                onChange={(e) => setEndDateFilter(e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
-              />
-            </div>
-
-            {(startDateFilter || endDateFilter) && (
-              <button
-                onClick={clearDateFilters}
-                className="mb-0.5 text-xs text-primary hover:underline"
-              >
-                {t.clearDates}
-              </button>
-            )}
-          </div>
-
-          {/* Filter actions */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={resetFilters}
-              className="rounded-lg border border-stroke px-4 py-2 text-xs font-medium hover:bg-gray-100 dark:border-strokedark dark:hover:bg-gray-800"
-            >
-              {t.resetFilter}
-            </button>
-          </div>
-        </div>
+      {/* Filter Component */}
+      <div className="mb-4">
+        <UserActionsComponent
+          filters={filters}
+          onFiltersChange={setFilters}
+          onClearFilters={handleClearFilters}
+          userCount={users.length}
+          filteredCount={sortedUsers.length}
+          onAddUser={() => setShowCreateModal(true)}
+          addUserLabel={t.addUser}
+        />
       </div>
 
-      <div className="rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-black">
+      <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm">
         {isLoading ? (
-          <div className="py-8 text-center">{t.loading}</div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="py-8 text-center">{t.noUsers}</div>
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <svg
+                className="mx-auto h-8 w-8 animate-spin text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <p className="mt-2 text-gray-500">{t.loading}</p>
+            </div>
+          </div>
+        ) : sortedUsers.length === 0 ? (
+          <div className="py-12 text-center">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">
+              {t.noUsers}
+            </h3>
+          </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="styled-scrollbar min-h-0 flex-1 overflow-auto">
               <table className="w-full table-auto">
-                <thead>
-                  <tr className="border-b border-stroke bg-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-black dark:border-strokedark dark:bg-gray-800 dark:text-white">
+                <thead className="sticky top-0 z-10 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
                     <th className="px-4 py-3">{t.name}</th>
                     <th className="px-4 py-3">{t.email}</th>
                     <th className="px-4 py-3">{t.role}</th>
@@ -576,11 +468,11 @@ export default function UserManagementPage() {
                     <th className="px-4 py-3">{t.actions}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stroke dark:divide-strokedark">
+                <tbody className="divide-y divide-stroke">
                   {currentUsers.map((user) => (
                     <tr
                       key={user.id}
-                      className="text-sm text-black dark:text-white"
+                      className="text-sm text-black hover:bg-blue-50/50"
                     >
                       <td className="px-4 py-3">{user.name}</td>
                       <td className="px-4 py-3">{user.email}</td>
@@ -606,10 +498,10 @@ export default function UserManagementPage() {
                         {user.createdAt.toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => router.push(`/admin/users/edit/${user.id}`)}
-                            className="flex w-16 items-center justify-center whitespace-nowrap rounded-lg bg-primary px-1.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-opacity-90"
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/admin/users/edit/${user.id}`}
+                            className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -626,16 +518,12 @@ export default function UserManagementPage() {
                               />
                             </svg>
                             {t.edit}
-                          </button>
+                          </Link>
                           <button
                             onClick={() =>
                               toggleUserStatus(user.id, user.isActive)
                             }
-                            className={`flex w-24 items-center justify-center whitespace-nowrap rounded-lg px-1.5 py-1.5 text-xs font-medium transition-colors ${
-                              user.isActive
-                                ? "bg-blue-200 text-gray-800 hover:bg-yellow-200"
-                                : "bg-blue-200 text-gray-800 hover:bg-green-200"
-                            }`}
+                            className="flex w-24 items-center justify-center whitespace-nowrap rounded-lg border border-gray-300 bg-white px-1.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
                           >
                             {user.isActive ? (
                               <>
@@ -677,7 +565,7 @@ export default function UserManagementPage() {
                           </button>
                           <button
                             onClick={() => deleteUser(user.id)}
-                            className="flex w-18 items-center justify-center whitespace-nowrap rounded-lg border border-red-300 bg-white px-1.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -704,21 +592,19 @@ export default function UserManagementPage() {
             </div>
 
             {/* Pagination Controls */}
-            <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t border-stroke pt-4 dark:border-strokedark sm:flex-row sm:space-y-0">
-              <div className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="my-0 flex flex-col items-center justify-between space-y-3 border-t border-stroke p-2 sm:flex-row sm:space-y-0">
+              <div className="text-xs text-gray-600">
                 {t.showing} {indexOfFirstItem + 1}-
-                {Math.min(indexOfLastItem, filteredUsers.length)} {t.of}{" "}
-                {filteredUsers.length} {t.entries}
+                {Math.min(indexOfLastItem, sortedUsers.length)} {t.of}{" "}
+                {sortedUsers.length} {t.entries}
               </div>
 
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {t.itemsPerPage}:
-                </span>
+                <span className="text-sm text-gray-600">{t.itemsPerPage}:</span>
                 <select
                   value={itemsPerPage}
                   onChange={handleItemsPerPageChange}
-                  className="rounded-md border border-stroke bg-transparent px-2 py-1 text-sm dark:border-strokedark dark:text-white"
+                  className="rounded-md border border-stroke bg-white px-2 py-1 text-sm outline-none focus:border-primary"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -734,8 +620,8 @@ export default function UserManagementPage() {
                   disabled={currentPage === 1}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === 1
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-gray-700 dark:bg-gray-800"
-                      : "border-stroke bg-white hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
                   <svg
@@ -754,7 +640,7 @@ export default function UserManagementPage() {
                   </svg>
                 </button>
 
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-600">
                   {t.page} <span className="font-medium">{currentPage}</span>{" "}
                   {t.of} {totalPages}
                 </span>
@@ -764,8 +650,8 @@ export default function UserManagementPage() {
                   disabled={currentPage === totalPages || totalPages === 0}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === totalPages || totalPages === 0
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-gray-700 dark:bg-gray-800"
-                      : "border-stroke bg-white hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
                   <svg
@@ -789,7 +675,7 @@ export default function UserManagementPage() {
         )}
       </div>
 
-      {/* Use the Modal component instead of inline JSX */}
+      {/* Create User Modal */}
       <Modal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -799,7 +685,7 @@ export default function UserManagementPage() {
           <div className="mb-4">
             <label
               htmlFor="email"
-              className="mb-2 block text-sm font-medium text-black dark:text-white"
+              className="mb-2 block text-sm font-medium text-black"
             >
               {t.email}
             </label>
@@ -809,14 +695,14 @@ export default function UserManagementPage() {
               name="email"
               value={newUser.email}
               onChange={handleInputChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           <div className="mb-4">
             <label
               htmlFor="name"
-              className="mb-2 block text-sm font-medium text-black dark:text-white"
+              className="mb-2 block text-sm font-medium text-black"
             >
               {t.name}
             </label>
@@ -826,14 +712,14 @@ export default function UserManagementPage() {
               name="name"
               value={newUser.name}
               onChange={handleInputChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           <div className="mb-4">
             <label
               htmlFor="role"
-              className="mb-2 block text-sm font-medium text-black dark:text-white"
+              className="mb-2 block text-sm font-medium text-black"
             >
               {t.role}
             </label>
@@ -842,7 +728,7 @@ export default function UserManagementPage() {
               name="role"
               value={newUser.role}
               onChange={handleInputChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 outline-none focus:border-primary"
             >
               <option value="admin">{t.adminRole}</option>
               <option value="engineer">{t.engineerRole}</option>
@@ -852,7 +738,7 @@ export default function UserManagementPage() {
           <div className="mb-4">
             <label
               htmlFor="password"
-              className="mb-2 block text-sm font-medium text-black dark:text-white"
+              className="mb-2 block text-sm font-medium text-black"
             >
               {t.password}
             </label>
@@ -861,7 +747,7 @@ export default function UserManagementPage() {
               name="password"
               value={newUser.password}
               onChange={handleInputChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 outline-none focus:border-primary"
               required
               minLength={6}
             />
@@ -869,7 +755,7 @@ export default function UserManagementPage() {
           <div className="mb-4">
             <label
               htmlFor="confirmPassword"
-              className="mb-2 block text-sm font-medium text-black dark:text-white"
+              className="mb-2 block text-sm font-medium text-black"
             >
               {t.confirmPassword}
             </label>
@@ -878,7 +764,7 @@ export default function UserManagementPage() {
               name="confirmPassword"
               value={newUser.confirmPassword}
               onChange={handleInputChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
@@ -886,7 +772,7 @@ export default function UserManagementPage() {
             <button
               type="button"
               onClick={() => setShowCreateModal(false)}
-              className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-100 dark:border-strokedark dark:text-white dark:hover:bg-gray-800"
+              className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-100"
             >
               {t.cancel}
             </button>

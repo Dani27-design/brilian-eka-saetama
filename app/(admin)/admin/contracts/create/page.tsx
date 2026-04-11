@@ -288,24 +288,24 @@ export default function CreateContractPage() {
   };
 
   return (
-    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-2 dark:border-strokedark md:p-6 xl:p-7.5">
+    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 md:p-6 xl:p-7.5">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-black dark:text-white">
+        <h2 className="text-xl font-semibold text-black">
           Tambah Kontrak Baru
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-500">
           Lengkapi data kontrak untuk menambah kontrak baru ke dalam sistem.
         </p>
       </div>
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
+        <div className="mb-4 rounded-md bg-red-50 p-4">
           <div className="ml-3">{error}</div>
         </div>
       )}
       <form onSubmit={handleSubmit}>
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               No. Kontrak
             </label>
             <input
@@ -315,7 +315,7 @@ export default function CreateContractPage() {
               onChange={handleChange}
               className={`w-full rounded-lg border ${
                 contractNumberError ? "border-red-500" : "border-stroke"
-              } bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white`}
+              } bg-transparent px-4 py-2 outline-none focus:border-primary`}
               required
             />
             {contractNumberError && (
@@ -323,14 +323,14 @@ export default function CreateContractPage() {
             )}
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Pelanggan
             </label>
             <select
               name="customer"
               value={form.customer}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             >
               <option value="">Pilih pelanggan</option>
@@ -342,7 +342,7 @@ export default function CreateContractPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Tanggal Mulai
             </label>
             <input
@@ -350,12 +350,12 @@ export default function CreateContractPage() {
               type="date"
               value={form.startDate}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Tanggal Selesai
             </label>
             <input
@@ -363,19 +363,19 @@ export default function CreateContractPage() {
               type="date"
               value={form.endDate ?? undefined}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Status
             </label>
             <select
               name="status"
               value={form.status}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             >
               <option value="active">Aktif</option>
@@ -384,7 +384,7 @@ export default function CreateContractPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Nama Kontrak
             </label>
             <input
@@ -392,19 +392,19 @@ export default function CreateContractPage() {
               placeholder="Nama Kontrak"
               value={form.contractName}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Tipe Kontrak
             </label>
             <select
               name="contractType"
               value={form.contractType}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             >
               <option>Pilih Tipe Kontrak</option>
@@ -416,27 +416,27 @@ export default function CreateContractPage() {
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Deskripsi Kontrak
             </label>
             <textarea
               name="contractDescription"
               value={form.contractDescription}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
           {/* Produk dynamic add/remove */}
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Produk (bisa pilih lebih dari satu)
             </label>
             <div className="flex flex-col gap-2">
               <div className="flex gap-2">
                 <select
                   onChange={handleAddProduct}
-                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
                   value=""
                 >
                   <option value="">Tambah produk...</option>
@@ -556,7 +556,7 @@ export default function CreateContractPage() {
           <button
             type="button"
             onClick={() => router.push("/admin/contracts")}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
           >
             Batal
           </button>

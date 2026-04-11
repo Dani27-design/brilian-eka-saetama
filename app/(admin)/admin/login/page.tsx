@@ -86,15 +86,15 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-blacksection">
-      <div className="w-full max-w-md rounded-lg border border-stroke bg-white p-8 shadow-md dark:border-strokedark dark:bg-black">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md rounded-lg border border-stroke bg-white p-8 shadow-md">
         <div className="mb-8 flex justify-center">
           <Image
             src="/images/logo/logo-light.png"
             alt="Logo"
             width={150}
             height={50}
-            className="dark:hidden"
+            className=""
             priority={true}
             quality={80}
             loading="eager"
@@ -104,18 +104,18 @@ export default function AdminLogin() {
             alt="Logo"
             width={150}
             height={50}
-            className="hidden dark:block"
+            className="hidden"
             priority={true}
             quality={80}
             loading="eager"
           />
         </div>
-        <h1 className="mb-6 text-center text-2xl font-bold text-black dark:text-white">
+        <h1 className="mb-6 text-center text-2xl font-bold text-black">
           {t.adminLogin}
         </h1>
 
         {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-500 dark:bg-red-900/30 dark:text-red-400">
+          <div className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-500">
             {error}
           </div>
         )}
@@ -123,7 +123,7 @@ export default function AdminLogin() {
         <form onSubmit={handleLogin}>
           <div className="mb-4">
             <label
-              className="mb-2.5 block font-medium text-black dark:text-white"
+              className="mb-2.5 block font-medium text-black"
               htmlFor="email"
             >
               {t.email}
@@ -134,13 +134,13 @@ export default function AdminLogin() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input w-full rounded-lg border border-stroke bg-transparent px-5 py-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default dark:focus:border-primary"
+              className="disabled:bg-whiter w-full rounded-lg border border-stroke bg-transparent px-5 py-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default"
             />
           </div>
 
           <div className="mb-6">
             <label
-              className="mb-2.5 block font-medium text-black dark:text-white"
+              className="mb-2.5 block font-medium text-black"
               htmlFor="password"
             >
               {t.password}
@@ -150,7 +150,7 @@ export default function AdminLogin() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input w-full rounded-lg border border-stroke bg-transparent px-5 py-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default dark:focus:border-primary"
+              className="disabled:bg-whiter w-full rounded-lg border border-stroke bg-transparent px-5 py-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default"
             />
           </div>
 

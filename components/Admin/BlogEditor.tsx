@@ -267,14 +267,14 @@ const BlogEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Blog Section Title
               </label>
               <input
                 type="text"
                 value={formData[activeTab] || ""}
                 onChange={(e) => handleFormChange(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en" ? "NEWS & BLOGS" : "BERITA & BLOG"
                 }
@@ -290,14 +290,14 @@ const BlogEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Blog Section Subtitle
               </label>
               <input
                 type="text"
                 value={formData[activeTab] || ""}
                 onChange={(e) => handleFormChange(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "Latest News & Blogs"
@@ -315,13 +315,13 @@ const BlogEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Blog Section Description
               </label>
               <textarea
                 value={formData[activeTab] || ""}
                 onChange={(e) => handleFormChange(e.target.value)}
-                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "Stay updated with the latest insights and developments in fire safety, industry trends, and our services."
@@ -339,7 +339,7 @@ const BlogEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Blog Posts
               </label>
               <p className="mb-4 text-sm text-gray-500">
@@ -347,7 +347,7 @@ const BlogEditor = ({
               </p>
 
               {blogItems.length === 0 && (
-                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500 dark:bg-gray-800">
+                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500">
                   No blog posts yet. Add one below.
                 </div>
               )}
@@ -367,7 +367,7 @@ const BlogEditor = ({
               <button
                 type="button"
                 onClick={addBlogItem}
-                className="mt-4 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5 dark:bg-transparent"
+                className="mt-4 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5"
               >
                 + Add Blog Post
               </button>
@@ -407,12 +407,12 @@ const BlogEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -420,7 +420,7 @@ const BlogEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -431,7 +431,7 @@ const BlogEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -445,7 +445,7 @@ const BlogEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

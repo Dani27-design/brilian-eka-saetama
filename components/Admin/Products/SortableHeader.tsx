@@ -27,9 +27,7 @@ export default function SortableHeader({
 
   return (
     <th 
-      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${className} ${
-        isActive ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-      }`}
+      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700 cursor-pointer transition-colors ${className}`}
       onClick={handleClick}
       title={`Sort by ${children}`}
     >
@@ -38,11 +36,11 @@ export default function SortableHeader({
         <div className="flex flex-col">
           {isActive ? (
             currentOrder === 'asc' ? (
-              <svg className="h-3 w-3 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-3 w-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
               </svg>
             ) : (
-              <svg className="h-3 w-3 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-3 w-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             )

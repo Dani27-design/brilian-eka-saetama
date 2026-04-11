@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[250px] items-center justify-center bg-gray-50 dark:bg-gray-800">
+    <div className="flex h-[250px] items-center justify-center bg-gray-50">
       <p className="text-gray-500">Loading editor...</p>
     </div>
   ),

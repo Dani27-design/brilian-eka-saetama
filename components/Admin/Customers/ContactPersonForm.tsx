@@ -143,7 +143,7 @@ export default function ContactPersonForm({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+        <h3 className="text-lg font-medium text-gray-900">
           Kontak Person
         </h3>
         <button
@@ -171,13 +171,13 @@ export default function ContactPersonForm({
               className={`rounded-lg border p-4 ${
                 primaryContactId === contact.id
                   ? "border-primary bg-primary/5"
-                  : "border-stroke bg-white dark:border-strokedark dark:bg-boxdark"
+                  : "border-stroke bg-white"
               }`}
             >
               {/* Contact Header */}
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-gray-900 dark:text-white">
+                  <h4 className="font-medium text-gray-900">
                     Kontak {index + 1}
                   </h4>
                   {primaryContactId === contact.id && (
@@ -240,7 +240,7 @@ export default function ContactPersonForm({
               {/* Contact Form */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Nama <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -248,10 +248,10 @@ export default function ContactPersonForm({
                     value={contact.name}
                     onChange={(e) => updateContact(contact.id, { name: e.target.value })}
                     disabled={disabled || editingContact !== contact.id}
-                    className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary dark:text-white ${
+                    className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary ${
                       contactErrors[contact.id]?.name
-                        ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                        : "border-stroke bg-transparent dark:border-strokedark"
+                        ? "border-red-500 bg-red-50"
+                        : "border-stroke bg-transparent"
                     }`}
                   />
                   {contactErrors[contact.id]?.name && (
@@ -260,7 +260,7 @@ export default function ContactPersonForm({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -268,10 +268,10 @@ export default function ContactPersonForm({
                     value={contact.email}
                     onChange={(e) => updateContact(contact.id, { email: e.target.value })}
                     disabled={disabled || editingContact !== contact.id}
-                    className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary dark:text-white ${
+                    className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary ${
                       contactErrors[contact.id]?.email
-                        ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                        : "border-stroke bg-transparent dark:border-strokedark"
+                        ? "border-red-500 bg-red-50"
+                        : "border-stroke bg-transparent"
                     }`}
                   />
                   {contactErrors[contact.id]?.email && (
@@ -280,7 +280,7 @@ export default function ContactPersonForm({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Telepon <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -288,10 +288,10 @@ export default function ContactPersonForm({
                     value={contact.phone}
                     onChange={(e) => updateContact(contact.id, { phone: e.target.value })}
                     disabled={disabled || editingContact !== contact.id}
-                    className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary dark:text-white ${
+                    className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary ${
                       contactErrors[contact.id]?.phone
-                        ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                        : "border-stroke bg-transparent dark:border-strokedark"
+                        ? "border-red-500 bg-red-50"
+                        : "border-stroke bg-transparent"
                     }`}
                   />
                   {contactErrors[contact.id]?.phone && (
@@ -300,7 +300,7 @@ export default function ContactPersonForm({
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Jabatan
                   </label>
                   <input
@@ -308,12 +308,12 @@ export default function ContactPersonForm({
                     value={contact.position || ""}
                     onChange={(e) => updateContact(contact.id, { position: e.target.value })}
                     disabled={disabled || editingContact !== contact.id}
-                    className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                    className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Departemen
                   </label>
                   <input
@@ -321,7 +321,7 @@ export default function ContactPersonForm({
                     value={contact.department || ""}
                     onChange={(e) => updateContact(contact.id, { department: e.target.value })}
                     disabled={disabled || editingContact !== contact.id}
-                    className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                    className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -332,7 +332,7 @@ export default function ContactPersonForm({
 
       {/* Global errors */}
       {errors.contacts && (
-        <div className="rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
+        <div className="rounded-lg bg-red-50 p-3">
           <p className="text-sm text-red-600">{errors.contacts}</p>
         </div>
       )}

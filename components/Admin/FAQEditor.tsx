@@ -330,14 +330,14 @@ const FAQEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 FAQ Section Title
               </label>
               <input
                 type="text"
                 value={localTextInputs.title || ""}
                 onChange={(e) => handleTextInputChange(e, "title")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en" ? "OUR FAQS" : "TANYA JAWAB KAMI"
                 }
@@ -353,14 +353,14 @@ const FAQEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 FAQ Section Subtitle
               </label>
               <input
                 type="text"
                 value={localTextInputs.subtitle || ""}
                 onChange={(e) => handleTextInputChange(e, "subtitle")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "Frequently Asked Questions"
@@ -378,7 +378,7 @@ const FAQEditor = ({
         return (
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 FAQ Items
               </label>
               <p className="mb-4 text-sm text-gray-500">
@@ -386,7 +386,7 @@ const FAQEditor = ({
               </p>
 
               {faqItems.length === 0 && (
-                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500 dark:bg-gray-800">
+                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500">
                   No FAQ items yet. Add your first question below.
                 </div>
               )}
@@ -394,10 +394,10 @@ const FAQEditor = ({
               {faqItems.map((item, index) => (
                 <div
                   key={item.id || index}
-                  className="mb-8 rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-700"
+                  className="mb-8 rounded-lg border border-gray-300 bg-white p-4"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="font-medium text-black dark:text-white">
+                    <span className="font-medium text-black">
                       FAQ Item {index + 1}
                     </span>
                     <div className="flex items-center gap-2">
@@ -405,7 +405,7 @@ const FAQEditor = ({
                         type="button"
                         onClick={() => moveFaqItemUp(index)}
                         disabled={index === 0}
-                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50"
                       >
                         ↑
                       </button>
@@ -413,14 +413,14 @@ const FAQEditor = ({
                         type="button"
                         onClick={() => moveFaqItemDown(index)}
                         disabled={index === faqItems.length - 1}
-                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50"
                       >
                         ↓
                       </button>
                       <button
                         type="button"
                         onClick={() => removeFaqItem(index)}
-                        className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+                        className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200"
                       >
                         Remove
                       </button>
@@ -428,7 +428,7 @@ const FAQEditor = ({
                   </div>
 
                   <div className="mb-3">
-                    <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <label className="mb-1 block text-xs font-medium text-gray-700">
                       Question
                     </label>
                     <input
@@ -442,13 +442,13 @@ const FAQEditor = ({
                       onChange={(e) =>
                         handleFaqItemChange(index, "question", e.target.value)
                       }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       placeholder="Enter a question"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <label className="mb-1 block text-xs font-medium text-gray-700">
                       Answer
                     </label>
                     <textarea
@@ -462,7 +462,7 @@ const FAQEditor = ({
                         handleFaqItemChange(index, "answer", e.target.value)
                       }
                       rows={4}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       placeholder="Enter an answer"
                     />
                   </div>
@@ -472,7 +472,7 @@ const FAQEditor = ({
               <button
                 type="button"
                 onClick={addFaqItem}
-                className="mt-4 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5 dark:bg-transparent"
+                className="mt-4 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5"
               >
                 + Add FAQ Item
               </button>
@@ -512,12 +512,12 @@ const FAQEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -525,7 +525,7 @@ const FAQEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -536,7 +536,7 @@ const FAQEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -550,7 +550,7 @@ const FAQEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

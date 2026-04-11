@@ -322,14 +322,14 @@ const ClientsEditor = ({
         return (
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Clients Section Title
               </label>
               <input
                 type="text"
                 value={localTextInputs.title}
                 onChange={(e) => handleTextInputChange(e, "title")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "Trusted by Global Companies"
@@ -339,13 +339,13 @@ const ClientsEditor = ({
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Clients Section Description
               </label>
               <textarea
                 value={localTextInputs.description}
                 onChange={(e) => handleTextInputChange(e, "description")}
-                className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "Our company has been delivering high-quality services to clients worldwide."
@@ -355,7 +355,7 @@ const ClientsEditor = ({
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Client Stats
               </label>
               <p className="mb-4 text-sm text-gray-500">
@@ -364,7 +364,7 @@ const ClientsEditor = ({
               </p>
 
               {clientsStats.length === 0 && (
-                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500 dark:bg-gray-800">
+                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500">
                   No stats yet. Add your first statistic below.
                 </div>
               )}
@@ -372,16 +372,16 @@ const ClientsEditor = ({
               {clientsStats.map((stat, index) => (
                 <div
                   key={stat.id || index}
-                  className="mb-4 rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-700"
+                  className="mb-4 rounded-lg border border-gray-300 bg-white p-4"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="font-medium text-black dark:text-white">
+                    <span className="font-medium text-black">
                       Stat {index + 1}
                     </span>
                     {/* <button
                       type="button"
                       onClick={() => removeStat(index)}
-                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200"
                     >
                       Remove
                     </button> */}
@@ -389,7 +389,7 @@ const ClientsEditor = ({
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <label className="mb-1 block text-xs font-medium text-gray-700">
                         Value (e.g. 100+, 24/7)
                       </label>
                       <input
@@ -403,12 +403,12 @@ const ClientsEditor = ({
                         onChange={(e) =>
                           handleStatChange(index, "value", e.target.value)
                         }
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <label className="mb-1 block text-xs font-medium text-gray-700">
                         Label
                       </label>
                       <input
@@ -422,7 +422,7 @@ const ClientsEditor = ({
                         onChange={(e) =>
                           handleStatChange(index, "label", e.target.value)
                         }
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
                   </div>
@@ -437,7 +437,7 @@ const ClientsEditor = ({
         return (
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Light Mode Background Image
               </label>
               <ImageUploader
@@ -452,7 +452,7 @@ const ClientsEditor = ({
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Dark Mode Background Image
               </label>
               <ImageUploader
@@ -500,12 +500,12 @@ const ClientsEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -513,7 +513,7 @@ const ClientsEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -524,7 +524,7 @@ const ClientsEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -538,7 +538,7 @@ const ClientsEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

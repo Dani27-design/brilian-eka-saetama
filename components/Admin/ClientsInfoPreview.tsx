@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useTheme } from "next-themes";
 import { useLanguage } from "@/app/context/LanguageContext";
 
 interface Brand {
@@ -32,7 +31,6 @@ const ClientsInfoPreview = ({
   previewMode = "desktop",
   onPreviewModeChange,
 }: ClientsInfoPreviewProps) => {
-  const { theme } = useTheme();
   const { language } = useLanguage();
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [internalPreviewMode, setInternalPreviewMode] = useState<
@@ -121,7 +119,7 @@ const ClientsInfoPreview = ({
   // Render clients info content for device frames
   const renderClientsInfoContent = () => (
     <div
-      className={`mx-auto w-full border border-x-0 border-y-stroke bg-alabaster py-10 dark:border-y-strokedark dark:bg-black`}
+      className={`mx-auto w-full border border-x-0 border-y-stroke bg-alabaster py-10`}
     >
       <div className="mx-auto px-2">
         <div
@@ -184,7 +182,7 @@ const ClientsInfoPreview = ({
   );
 
   return (
-    <div className="rounded-lg border bg-white p-6 dark:bg-black">
+    <div className="rounded-lg border bg-white p-6">
       {/* Active section indicator */}
       {activeSection && (
         <div className="mb-3 rounded-md bg-primary/10 p-2 text-center shadow-sm">
@@ -194,7 +192,7 @@ const ClientsInfoPreview = ({
               Editing Client Brands
             </span>
           </div>
-          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-xs text-gray-600">
             Click to edit client brands information
           </p>
         </div>
@@ -202,7 +200,7 @@ const ClientsInfoPreview = ({
 
       {/* Preview mode toggle buttons */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-black dark:text-white">
+        <h2 className="text-xl font-bold text-black">
           Client List Section
         </h2>
         <div className="flex space-x-2">
@@ -212,7 +210,7 @@ const ClientsInfoPreview = ({
             className={`rounded-md px-3 py-1 text-sm ${
               currentPreviewMode === "desktop"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-800"
+                : "bg-gray-100"
             }`}
           >
             Desktop
@@ -223,7 +221,7 @@ const ClientsInfoPreview = ({
             className={`rounded-md px-3 py-1 text-sm ${
               currentPreviewMode === "mobile"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-800"
+                : "bg-gray-100"
             }`}
           >
             Mobile
@@ -241,9 +239,9 @@ const ClientsInfoPreview = ({
               <div className="absolute left-1/2 top-0 z-10 h-6 w-40 -translate-x-1/2 rounded-b-lg bg-gray-900"></div>
 
               {/* Phone screen frame */}
-              <div className="relative h-[650px] w-full overflow-hidden bg-white dark:bg-black">
+              <div className="relative h-[650px] w-full overflow-hidden bg-white">
                 {/* Status bar */}
-                <div className="sticky top-0 z-10 flex h-6 w-full items-center justify-between bg-gray-100 px-4 dark:bg-gray-800">
+                <div className="sticky top-0 z-10 flex h-6 w-full items-center justify-between bg-gray-100 px-4">
                   <div className="text-[10px] font-medium">9:41</div>
                   <div className="flex items-center space-x-1">
                     <div className="h-2 w-3 rounded-sm bg-gray-400"></div>
@@ -253,7 +251,7 @@ const ClientsInfoPreview = ({
                 </div>
 
                 {/* Scrollable content area */}
-                <div className="h-[644px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
+                <div className="h-[644px] overflow-y-auto overflow-x-hidden bg-white">
                   <div className="origin-top scale-[0.9] pb-12 pt-0">
                     {renderClientsInfoContent()}
                   </div>
@@ -273,7 +271,7 @@ const ClientsInfoPreview = ({
           <div className="mx-auto max-w-[900px]">
             <div className="overflow-hidden rounded-lg border border-gray-300 shadow-lg">
               {/* Browser toolbar */}
-              <div className="flex h-10 items-center space-x-1.5 bg-gray-200 px-3 dark:bg-gray-800">
+              <div className="flex h-10 items-center space-x-1.5 bg-gray-200 px-3">
                 {/* Window controls */}
                 <div className="flex space-x-1.5">
                   <div className="h-3 w-3 rounded-full bg-red-500"></div>
@@ -282,7 +280,7 @@ const ClientsInfoPreview = ({
                 </div>
 
                 {/* URL bar */}
-                <div className="ml-4 flex h-6 flex-1 items-center rounded-md bg-white px-3 dark:bg-gray-700">
+                <div className="ml-4 flex h-6 flex-1 items-center rounded-md bg-white px-3">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="mr-2 h-4 w-4 text-gray-500"
@@ -297,7 +295,7 @@ const ClientsInfoPreview = ({
                       d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"
                     />
                   </svg>
-                  <span className="text-xs text-gray-600 dark:text-gray-300">
+                  <span className="text-xs text-gray-600">
                     brilian-eka-saetama.com/#clients-info
                   </span>
                 </div>
@@ -310,7 +308,7 @@ const ClientsInfoPreview = ({
               </div>
 
               {/* Browser content */}
-              <div className="h-fit max-h-[600px] min-h-[250px] overflow-y-auto overflow-x-hidden bg-white dark:bg-black">
+              <div className="h-fit max-h-[600px] min-h-[250px] overflow-y-auto overflow-x-hidden bg-white">
                 <div className="origin-top scale-[0.85] pb-5">
                   {renderClientsInfoContent()}
                 </div>

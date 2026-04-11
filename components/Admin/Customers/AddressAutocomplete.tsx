@@ -162,7 +162,7 @@ export default function AddressAutocomplete({
 
   return (
     <div className="relative">
-      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label className="mb-1 block text-sm font-medium text-gray-700">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       
@@ -179,11 +179,11 @@ export default function AddressAutocomplete({
             }
           }}
           disabled={disabled}
-          className={`w-full rounded-lg border px-4 py-2 pr-10 outline-none focus:border-primary dark:text-white ${
+          className={`w-full rounded-lg border px-4 py-2 pr-10 outline-none focus:border-primary ${
             error
-              ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-              : "border-stroke bg-transparent dark:border-strokedark"
-          } ${disabled ? "bg-gray-50 dark:bg-gray-800 text-gray-500" : ""}`}
+              ? "border-red-500 bg-red-50"
+              : "border-stroke bg-transparent"
+          } ${disabled ? "bg-gray-50 text-gray-500" : ""}`}
           placeholder={getPlaceholderText()}
           autoComplete="off"
         />
@@ -199,23 +199,23 @@ export default function AddressAutocomplete({
         {showSuggestions && suggestions.length > 0 && (
           <div
             ref={suggestionsRef}
-            className="absolute z-50 mt-1 w-full rounded-lg border border-stroke bg-white dark:border-strokedark dark:bg-boxdark shadow-lg max-h-60 overflow-y-auto"
+            className="absolute z-50 mt-1 w-full rounded-lg border border-stroke bg-white shadow-lg max-h-60 overflow-y-auto"
           >
             {suggestions.map((suggestion, index) => (
               <div
                 key={suggestion.id}
                 onClick={() => handleSuggestionClick(suggestion)}
-                className={`px-4 py-2 cursor-pointer border-b border-stroke dark:border-strokedark last:border-b-0 ${
+                className={`px-4 py-2 cursor-pointer border-b border-stroke last:border-b-0 ${
                   index === selectedIndex
-                    ? "bg-primary/10 dark:bg-primary/20"
-                    : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                    ? "bg-primary/10"
+                    : "hover:bg-gray-50"
                 }`}
               >
-                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                <div className="text-sm font-medium text-gray-900">
                   {suggestion.name}
                 </div>
                 {'type' in suggestion && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="text-xs text-gray-500">
                     {suggestion.type === 'desa' ? 'Desa' : 'Kelurahan'}
                   </div>
                 )}
@@ -224,7 +224,7 @@ export default function AddressAutocomplete({
             
             {/* Show "more results" hint if we hit the limit */}
             {suggestions.length === 10 && (
-              <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+              <div className="px-4 py-2 text-xs text-gray-500 bg-gray-50">
                 Ketik lebih spesifik untuk hasil yang lebih akurat
               </div>
             )}
@@ -233,8 +233,8 @@ export default function AddressAutocomplete({
         
         {/* No results message */}
         {showSuggestions && query.length >= 2 && suggestions.length === 0 && !isLoading && (
-          <div className="absolute z-50 mt-1 w-full rounded-lg border border-stroke bg-white dark:border-strokedark dark:bg-boxdark shadow-lg">
-            <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+          <div className="absolute z-50 mt-1 w-full rounded-lg border border-stroke bg-white shadow-lg">
+            <div className="px-4 py-3 text-sm text-gray-500">
               {type === 'district' ? 'Kecamatan tidak ditemukan' : 'Kelurahan/desa tidak ditemukan'}
               <div className="text-xs mt-1">
                 Anda dapat mengetik nama secara manual
@@ -251,7 +251,7 @@ export default function AddressAutocomplete({
       
       {/* Help text */}
       {!disabled && (
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-xs text-gray-500">
           {type === 'district' 
             ? "Ketik minimal 2 huruf untuk mencari kecamatan"
             : "Ketik minimal 2 huruf untuk mencari kelurahan/desa"

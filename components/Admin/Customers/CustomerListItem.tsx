@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { Customer, ContactPerson } from "@/types/customer";
 import { formatAddressSingleLine } from "@/utils/addressHelper";
@@ -12,12 +13,12 @@ interface CustomerListItemProps {
   onToggleSelection?: () => void;
 }
 
-export default function CustomerListItem({ 
-  customer, 
-  onDelete, 
+function CustomerListItem({
+  customer,
+  onDelete,
   bulkMode = false,
   isSelected = false,
-  onToggleSelection 
+  onToggleSelection
 }: CustomerListItemProps) {
   // Get primary contact or first contact
   const getPrimaryContact = (): ContactPerson | null => {
@@ -95,7 +96,7 @@ export default function CustomerListItem({
   const canDelete = contractCount === 0;
 
   return (
-    <tr className="border-b text-sm hover:bg-gray-50 dark:border-strokedark dark:hover:bg-gray-800">
+    <tr className="border-b text-sm hover:bg-gray-50">
       {/* Bulk Selection Checkbox */}
       {bulkMode && (
         <td className="px-4 py-3 text-center">
@@ -111,7 +112,7 @@ export default function CustomerListItem({
       {/* Customer Name & Type */}
       <td className="px-4 py-3">
         <div>
-          <div className="font-medium text-gray-900 dark:text-white">
+          <div className="font-medium text-gray-900">
             {customer.name}
           </div>
           <div className="text-xs text-gray-500">
@@ -122,7 +123,7 @@ export default function CustomerListItem({
 
       {/* Address */}
       <td className="px-4 py-3">
-        <div className="text-gray-700 dark:text-gray-300" title={displayAddress}>
+        <div className="text-gray-700" title={displayAddress}>
           {displayAddress}
         </div>
       </td>
@@ -131,7 +132,7 @@ export default function CustomerListItem({
       <td className="px-4 py-3">
         {displayContact ? (
           <div className="space-y-1">
-            <div className="font-medium text-gray-900 dark:text-white">
+            <div className="font-medium text-gray-900">
               {displayContact.name}
               {displayContact.position && (
                 <span className="ml-1 text-xs text-gray-500">
@@ -139,10 +140,10 @@ export default function CustomerListItem({
                 </span>
               )}
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-xs text-gray-600">
               {displayContact.phone}
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-xs text-gray-600">
               {displayContact.email}
             </div>
           </div>
@@ -154,7 +155,7 @@ export default function CustomerListItem({
       {/* Additional Contacts */}
       <td className="px-4 py-3 text-center">
         {customer.contacts && customer.contacts.length > 1 ? (
-          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
             +{customer.contacts.length - 1} lainnya
           </span>
         ) : (
@@ -165,7 +166,7 @@ export default function CustomerListItem({
       {/* Contracts */}
       <td className="px-4 py-3 text-center">
         {contractCount > 0 ? (
-          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
+          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
             {contractCount} kontrak
           </span>
         ) : (
@@ -179,7 +180,7 @@ export default function CustomerListItem({
           {/* View/Edit Button */}
           <Link
             href={`/admin/customers/edit/${customer.id}`}
-            className="inline-flex items-center rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800"
+            className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
             title="Edit pelanggan"
           >
             <svg className="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,10 +193,10 @@ export default function CustomerListItem({
           <button
             onClick={handleDelete}
             disabled={!canDelete}
-            className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium ${
+            className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
               canDelete
-                ? "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+                ? "border border-red-300 bg-white text-red-600 hover:bg-red-50"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
             }`}
             title={canDelete ? "Hapus pelanggan" : "Tidak dapat dihapus karena memiliki kontrak"}
           >
@@ -209,3 +210,5 @@ export default function CustomerListItem({
     </tr>
   );
 }
+
+export default memo(CustomerListItem);

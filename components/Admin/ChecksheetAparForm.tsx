@@ -125,8 +125,8 @@ export default function ChecksheetAparForm({
   }
 
   return (
-    <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
-      <h2 className="mb-6 text-2xl font-bold text-black dark:text-white">
+    <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm">
+      <h2 className="mb-6 text-2xl font-bold text-black">
         {isEditing ? "Edit" : "Create"} APAR Checksheet
       </h2>
 
@@ -142,7 +142,7 @@ export default function ChecksheetAparForm({
             className={`px-4 py-2 text-sm font-medium ${
               formMode === "simple"
                 ? "bg-primary text-white"
-                : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+                : "bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
             Form View
@@ -153,7 +153,7 @@ export default function ChecksheetAparForm({
             className={`px-4 py-2 text-sm font-medium ${
               formMode === "json"
                 ? "bg-primary text-white"
-                : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+                : "bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
             JSON View
@@ -169,7 +169,7 @@ export default function ChecksheetAparForm({
 
             {/* Name field */}
             <div>
-              <label className="mb-2 block font-medium text-black dark:text-white">
+              <label className="mb-2 block font-medium text-black">
                 Name/ID
               </label>
               <input
@@ -177,14 +177,14 @@ export default function ChecksheetAparForm({
                 name="name"
                 value={formData.name || ""}
                 onChange={handleInputChange}
-                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white"
+                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none"
                 required
               />
             </div>
 
             {/* Location field */}
             <div>
-              <label className="mb-2 block font-medium text-black dark:text-white">
+              <label className="mb-2 block font-medium text-black">
                 Location
               </label>
               <input
@@ -192,14 +192,14 @@ export default function ChecksheetAparForm({
                 name="location"
                 value={formData.location || ""}
                 onChange={handleInputChange}
-                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white"
+                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none"
                 required
               />
             </div>
 
             {/* Inspector field */}
             <div>
-              <label className="mb-2 block font-medium text-black dark:text-white">
+              <label className="mb-2 block font-medium text-black">
                 Inspector
               </label>
               <input
@@ -207,14 +207,14 @@ export default function ChecksheetAparForm({
                 name="inspector"
                 value={formData.inspector || ""}
                 onChange={handleInputChange}
-                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white"
+                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none"
                 required
               />
             </div>
 
             {/* Inspection Date field */}
             <div>
-              <label className="mb-2 block font-medium text-black dark:text-white">
+              <label className="mb-2 block font-medium text-black">
                 Inspection Date
               </label>
               <input
@@ -222,21 +222,21 @@ export default function ChecksheetAparForm({
                 name="inspection_date"
                 value={formData.inspection_date || ""}
                 onChange={handleInputChange}
-                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white"
+                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none"
                 required
               />
             </div>
 
             {/* Status field */}
             <div>
-              <label className="mb-2 block font-medium text-black dark:text-white">
+              <label className="mb-2 block font-medium text-black">
                 Status
               </label>
               <select
                 name="status"
                 value={formData.status || "passed"}
                 onChange={handleInputChange}
-                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white"
+                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none"
               >
                 <option value="passed">Passed</option>
                 <option value="failed">Failed</option>
@@ -246,7 +246,7 @@ export default function ChecksheetAparForm({
 
             {/* Notes field */}
             <div>
-              <label className="mb-2 block font-medium text-black dark:text-white">
+              <label className="mb-2 block font-medium text-black">
                 Notes
               </label>
               <textarea
@@ -254,13 +254,13 @@ export default function ChecksheetAparForm({
                 value={formData.notes || ""}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white"
+                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none"
               />
             </div>
           </div>
         ) : (
           <div className="min-h-80">
-            <label className="mb-2 block font-medium text-black dark:text-white">
+            <label className="mb-2 block font-medium text-black">
               JSON Content
             </label>
             <JsonEditor value={formData} onChange={handleJsonChange} />
@@ -271,7 +271,7 @@ export default function ChecksheetAparForm({
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded border border-stroke px-6 py-2 text-black hover:bg-gray-100 dark:border-strokedark dark:text-white dark:hover:bg-gray-800"
+            className="rounded border border-stroke px-6 py-2 text-black hover:bg-gray-100"
             disabled={isSaving}
           >
             Cancel

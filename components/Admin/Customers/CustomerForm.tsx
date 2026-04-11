@@ -171,19 +171,19 @@ export default function CustomerForm({
   };
 
   return (
-    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-4 dark:border-strokedark md:p-6">
+    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6">
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+          <h3 className="text-lg font-medium text-gray-900">
             Informasi Dasar
           </h3>
           
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* Customer Name */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Nama Pelanggan <span className="text-red-500">*</span>
               </label>
               <input
@@ -191,10 +191,10 @@ export default function CustomerForm({
                 value={formData.name}
                 onChange={(e) => handleBasicFieldChange("name", e.target.value)}
                 disabled={loading}
-                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
                   errors.name
-                    ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                    : "border-stroke bg-transparent dark:border-strokedark"
+                    ? "border-red-500 bg-red-50"
+                    : "border-stroke bg-transparent"
                 }`}
                 placeholder="Contoh: PT. ABC Indonesia"
               />
@@ -205,17 +205,17 @@ export default function CustomerForm({
 
             {/* Customer Type */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Tipe Pelanggan <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.customerType}
                 onChange={(e) => handleBasicFieldChange("customerType", e.target.value)}
                 disabled={loading}
-                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
                   errors.customerType
-                    ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                    : "border-stroke bg-transparent dark:border-strokedark"
+                    ? "border-red-500 bg-red-50"
+                    : "border-stroke bg-transparent"
                 }`}
               >
                 {customerTypeOptions.map((option) => (
@@ -231,17 +231,17 @@ export default function CustomerForm({
 
             {/* Business Field */}
             <div className="md:col-span-2">
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 Bidang Usaha
               </label>
               <select
                 value={formData.businessField}
                 onChange={(e) => handleBasicFieldChange("businessField", e.target.value)}
                 disabled={loading}
-                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
                   errors.businessField
-                    ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                    : "border-stroke bg-transparent dark:border-strokedark"
+                    ? "border-red-500 bg-red-50"
+                    : "border-stroke bg-transparent"
                 }`}
               >
                 <option value="">Pilih Bidang Usaha</option>
@@ -282,7 +282,7 @@ export default function CustomerForm({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded-lg border border-stroke bg-white px-6 py-2 text-gray-700 hover:bg-gray-100 disabled:opacity-50 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-6 py-2 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
           >
             Batal
           </button>

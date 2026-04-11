@@ -94,18 +94,18 @@ export default function CreateBlogPage() {
   };
 
   return (
-    <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-2 dark:border-strokedark md:p-6 xl:p-7.5">
+    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 md:p-6 xl:p-7.5">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-black dark:text-white">
+        <h2 className="text-xl font-semibold text-black">
           Create New Blog Post
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-500">
           Write and publish a new blog post on your website.
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/30">
+        <div className="mb-4 rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="shrink-0">
               <svg
@@ -121,10 +121,10 @@ export default function CreateBlogPage() {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+              <h3 className="text-sm font-medium text-red-800">
                 Error
               </h3>
-              <p className="mt-2 text-sm text-red-700 dark:text-red-300">
+              <p className="mt-2 text-sm text-red-700">
                 {error}
               </p>
             </div>
@@ -149,7 +149,7 @@ export default function CreateBlogPage() {
           <button
             type="button"
             onClick={() => router.push("/admin/blogs")}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
           >
             Cancel
           </button>

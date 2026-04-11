@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { firestore, auth } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 import ImageUploader from "@/components/Admin/ImageUploader";
 import { useRouter } from "next/navigation";
 
@@ -52,6 +53,7 @@ export default function SettingsPage() {
   const { language } = useLanguage();
   const t =
     translations[language as keyof typeof translations] || translations.en;
+  usePageHeader(t.title, t.description);
   const router = useRouter();
 
   const [user, setUser] = useState({
@@ -173,30 +175,21 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-black dark:text-white">
-          {t.title}
-        </h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {t.description}
-        </p>
-      </div>
-
       {error && (
-        <div className="mb-4 rounded-lg bg-red-100 p-4 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+        <div className="mb-4 rounded-lg bg-red-100 p-4 text-red-700">
           {error}
         </div>
       )}
 
       {message && (
-        <div className="mb-4 rounded-lg bg-green-100 p-4 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+        <div className="mb-4 rounded-lg bg-green-100 p-4 text-green-700">
           {message}
         </div>
       )}
 
-      <div className="rounded-lg border border-stroke bg-white p-6 dark:border-strokedark dark:bg-black">
+      <div className="rounded-lg border border-stroke bg-white p-6">
         <form onSubmit={handleSubmit}>
-          <h2 className="mb-4 text-lg font-medium text-black dark:text-white">
+          <h2 className="mb-4 text-lg font-medium text-black">
             {t.personalInfo}
           </h2>
 
@@ -204,7 +197,7 @@ export default function SettingsPage() {
           <div className="mb-4">
             <label
               htmlFor="name"
-              className="mb-2 block text-sm font-medium text-black dark:text-white"
+              className="mb-2 block text-sm font-medium text-black"
             >
               {t.name}
             </label>
@@ -214,7 +207,7 @@ export default function SettingsPage() {
               name="name"
               value={user.name}
               onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
             />
           </div>
@@ -223,7 +216,7 @@ export default function SettingsPage() {
           <div className="mb-4">
             <label
               htmlFor="email"
-              className="mb-2 block text-sm font-medium text-black dark:text-white"
+              className="mb-2 block text-sm font-medium text-black"
             >
               {t.email}
             </label>
@@ -233,7 +226,7 @@ export default function SettingsPage() {
               name="email"
               value={user.email}
               disabled
-              className="w-full cursor-not-allowed rounded-lg border border-stroke bg-gray-100 px-4 py-2 outline-none dark:border-strokedark dark:bg-gray-800 dark:text-gray-400"
+              className="w-full cursor-not-allowed rounded-lg border border-stroke bg-gray-100 px-4 py-2 outline-none"
               readOnly
             />
           </div>
@@ -243,7 +236,7 @@ export default function SettingsPage() {
             <div>
               <label
                 htmlFor="role"
-                className="mb-2 block text-sm font-medium text-black dark:text-white"
+                className="mb-2 block text-sm font-medium text-black"
               >
                 {t.role}
               </label>
@@ -252,7 +245,7 @@ export default function SettingsPage() {
                 id="role"
                 value={getReadableRole(user.role)}
                 disabled
-                className="w-full cursor-not-allowed rounded-lg border border-stroke bg-gray-100 px-4 py-2 outline-none dark:border-strokedark dark:bg-gray-800 dark:text-gray-400"
+                className="w-full cursor-not-allowed rounded-lg border border-stroke bg-gray-100 px-4 py-2 outline-none"
                 readOnly
               />
             </div>
@@ -261,16 +254,16 @@ export default function SettingsPage() {
             <div>
               <label
                 htmlFor="status"
-                className="mb-2 block text-sm font-medium text-black dark:text-white"
+                className="mb-2 block text-sm font-medium text-black"
               >
                 {t.status}
               </label>
-              <div className="flex h-[42px] w-full items-center rounded-lg border border-stroke bg-gray-100 px-4 dark:border-strokedark dark:bg-gray-800">
+              <div className="flex h-[42px] w-full items-center rounded-lg border border-stroke bg-gray-100 px-4">
                 <span
                   className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                     user.isActive
-                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                      : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
                   }`}
                 >
                   {user.isActive ? t.active : t.inactive}
@@ -281,7 +274,7 @@ export default function SettingsPage() {
 
           {/* Profile Picture */}
           <div className="mb-8">
-            <label className="mb-2 block text-sm font-medium text-black dark:text-white">
+            <label className="mb-2 block text-sm font-medium text-black">
               {t.profilePicture}
             </label>
             <ImageUploader

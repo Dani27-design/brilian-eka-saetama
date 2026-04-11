@@ -350,14 +350,14 @@ const TestimonialEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Testimonial Section Title
               </label>
               <input
                 type="text"
                 value={localTextInputs.title || ""}
                 onChange={(e) => handleTextInputChange(e, "title")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={activeTab === "en" ? "TESTIMONIALS" : "TESTIMONI"}
               />
               <p className="mt-1 text-sm text-gray-500">
@@ -372,14 +372,14 @@ const TestimonialEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Testimonial Section Subtitle
               </label>
               <input
                 type="text"
                 value={localTextInputs.subtitle || ""}
                 onChange={(e) => handleTextInputChange(e, "subtitle")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "Client's Testimonials"
@@ -397,14 +397,14 @@ const TestimonialEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Testimonial Section Description
               </label>
               <textarea
                 value={localTextInputs.description || ""}
                 onChange={(e) => handleTextInputChange(e, "description")}
                 rows={3}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "See what our clients say about our services and products."
@@ -422,7 +422,7 @@ const TestimonialEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Client Testimonials
               </label>
               <p className="mb-4 text-sm text-gray-500">
@@ -430,7 +430,7 @@ const TestimonialEditor = ({
               </p>
 
               {testimonialItems.length === 0 && (
-                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500 dark:bg-gray-800">
+                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500">
                   No testimonials yet. Add your first testimonial below.
                 </div>
               )}
@@ -438,10 +438,10 @@ const TestimonialEditor = ({
               {testimonialItems.map((testimonial, index) => (
                 <div
                   key={testimonial.id || index}
-                  className="mb-8 rounded-lg border border-gray-300 bg-white p-6 dark:border-gray-600 dark:bg-gray-700"
+                  className="mb-8 rounded-lg border border-gray-300 bg-white p-6"
                 >
                   <div className="mb-4 flex items-center justify-between">
-                    <h3 className="font-medium text-black dark:text-white">
+                    <h3 className="font-medium text-black">
                       #{index + 1}
                     </h3>
                     <div className="flex items-center gap-2">
@@ -449,7 +449,7 @@ const TestimonialEditor = ({
                         type="button"
                         onClick={() => moveTestimonialUp(index)}
                         disabled={index === 0}
-                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50"
                       >
                         ↑
                       </button>
@@ -457,14 +457,14 @@ const TestimonialEditor = ({
                         type="button"
                         onClick={() => moveTestimonialDown(index)}
                         disabled={index === testimonialItems.length - 1}
-                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 disabled:opacity-50"
                       >
                         ↓
                       </button>
                       <button
                         type="button"
                         onClick={() => removeTestimonial(index)}
-                        className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+                        className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200"
                       >
                         Remove
                       </button>
@@ -475,7 +475,7 @@ const TestimonialEditor = ({
                     <div className="space-y-4">
                       {/* Client Name */}
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                        <label className="mb-1 block text-xs font-medium text-gray-700">
                           Client Name
                         </label>
                         <input
@@ -493,13 +493,13 @@ const TestimonialEditor = ({
                               e.target.value,
                             )
                           }
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                       </div>
 
                       {/* Client designation */}
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                        <label className="mb-1 block text-xs font-medium text-gray-700">
                           Designation
                         </label>
                         <input
@@ -517,13 +517,13 @@ const TestimonialEditor = ({
                               e.target.value,
                             )
                           }
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                       </div>
 
                       {/* Client Photo */}
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                        <label className="mb-1 block text-xs font-medium text-gray-700">
                           Client Photo
                         </label>
                         <ImageUploader
@@ -539,7 +539,7 @@ const TestimonialEditor = ({
 
                     {/* Testimonial Content */}
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <label className="mb-1 block text-xs font-medium text-gray-700">
                         Testimonial Content
                       </label>
                       <textarea
@@ -557,7 +557,7 @@ const TestimonialEditor = ({
                           )
                         }
                         rows={12}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         placeholder="Write the client's testimonial here..."
                       />
                     </div>
@@ -568,7 +568,7 @@ const TestimonialEditor = ({
               <button
                 type="button"
                 onClick={addTestimonial}
-                className="mt-4 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5 dark:bg-transparent"
+                className="mt-4 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5"
               >
                 + Add Testimonial
               </button>
@@ -614,12 +614,12 @@ const TestimonialEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -627,7 +627,7 @@ const TestimonialEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -638,7 +638,7 @@ const TestimonialEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -652,7 +652,7 @@ const TestimonialEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

@@ -293,7 +293,7 @@ export default function EditUserPage() {
       <div className="flex h-64 items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{t.loading}</p>
+          <p className="mt-2 text-sm text-gray-600">{t.loading}</p>
         </div>
       </div>
     );
@@ -318,20 +318,20 @@ export default function EditUserPage() {
       {/* Header with Breadcrumb */}
       <div className="mb-8">
         <nav className="mb-4 flex items-center text-sm text-gray-500">
-          <Link href="/admin/users" className="hover:text-gray-700 dark:hover:text-gray-300">
+          <Link href="/admin/users" className="hover:text-gray-700">
             {t.backToUsers}
           </Link>
           <svg className="mx-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
           </svg>
-          <span className="text-gray-900 dark:text-gray-100">{t.title}</span>
+          <span className="text-gray-900">{t.title}</span>
         </nav>
         
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-gray-900">
             {t.title}
           </h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-600">
             {t.description}
           </p>
         </div>
@@ -351,23 +351,23 @@ export default function EditUserPage() {
       )}
 
       {/* Main Form Container */}
-      <div className="shadow-default dark:bg-boxdark rounded-sm border border-stroke bg-white p-4 dark:border-strokedark md:p-6">
+      <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6">
         {/* User Info Section */}
-        <div className="mb-6 border-b border-stroke pb-4 dark:border-strokedark">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="mb-6 border-b border-stroke pb-4">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {t.userInfo}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="font-medium text-gray-600 dark:text-gray-400">{t.createdAt}:</span>
-              <span className="ml-2 text-gray-900 dark:text-white">
+              <span className="font-medium text-gray-600">{t.createdAt}:</span>
+              <span className="ml-2 text-gray-900">
                 {userData.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}
               </span>
             </div>
             {userData.updatedAt && (
               <div>
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t.lastUpdated}:</span>
-                <span className="ml-2 text-gray-900 dark:text-white">
+                <span className="font-medium text-gray-600">{t.lastUpdated}:</span>
+                <span className="ml-2 text-gray-900">
                   {userData.updatedAt?.toDate?.()?.toLocaleDateString() || 'N/A'}
                 </span>
               </div>
@@ -379,7 +379,7 @@ export default function EditUserPage() {
           <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* Name Field */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {t.name}<span className="text-red-500">*</span>
               </label>
               <input
@@ -387,14 +387,14 @@ export default function EditUserPage() {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
                 required
               />
             </div>
 
             {/* Email Field */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {t.email}<span className="text-red-500">*</span>
               </label>
               <input
@@ -402,21 +402,21 @@ export default function EditUserPage() {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
                 required
               />
             </div>
 
             {/* Role Field */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {t.role}<span className="text-red-500">*</span>
               </label>
               <select
                 name="role"
                 value={form.role}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
                 required
               >
                 <option value="admin">{t.adminRole}</option>
@@ -427,7 +427,7 @@ export default function EditUserPage() {
 
             {/* Status Field */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {t.status}
               </label>
               <div className="flex items-center pt-2">
@@ -438,7 +438,7 @@ export default function EditUserPage() {
                   onChange={handleChange}
                   className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
-                <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                <label className="ml-2 text-sm text-gray-700">
                   {form.isActive ? t.active : t.inactive}
                 </label>
               </div>
@@ -446,39 +446,39 @@ export default function EditUserPage() {
           </div>
 
           {/* Password Section */}
-          <div className="mb-6 border-t border-stroke pt-6 dark:border-strokedark">
-            <h3 className="mb-4 text-base font-medium text-gray-900 dark:text-white">
+          <div className="mb-6 border-t border-stroke pt-6">
+            <h3 className="mb-4 text-base font-medium text-gray-900">
               {t.password}
             </h3>
-            <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mb-4 text-xs text-gray-500">
               {t.passwordHint}
             </p>
             
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* New Password */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   {t.password}
                 </label>
                 <PasswordInput
                   name="password"
                   value={form.password}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
                   minLength={6}
                 />
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   {t.confirmPassword}
                 </label>
                 <PasswordInput
                   name="confirmPassword"
                   value={form.confirmPassword}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
                   minLength={6}
                 />
               </div>
@@ -489,7 +489,7 @@ export default function EditUserPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <Link
               href="/admin/users"
-              className="flex w-full justify-center rounded-lg border border-stroke bg-gray-100 px-6 py-2 text-center font-medium text-black hover:bg-opacity-90 dark:border-strokedark dark:bg-gray-800 dark:text-white sm:w-auto"
+              className="flex w-full justify-center rounded-lg border border-stroke bg-gray-100 px-6 py-2 text-center font-medium text-black hover:bg-opacity-90 sm:w-auto"
             >
               {t.cancel}
             </Link>

@@ -54,6 +54,7 @@ Each product type has its own specific checklist items. Templates managed via ad
 - View/edit inspection results
 - Create/edit checksheet templates per product type
 - Approve/reject inspections
+- Filter by search text, product type, status, date range
 
 ## Mobile App Features
 - QR code scanner for product identification
@@ -61,6 +62,51 @@ Each product type has its own specific checklist items. Templates managed via ad
 - Photo capture with watermark (location, timestamp)
 - Offline data save and sync
 - View submission history
+
+## Filtering and Search (UI-120)
+
+### Filter Fields Available
+| Field | Type | Options | Description |
+|-------|------|---------|-------------|
+| Search Text | text input | n/a | Searches contractNumber, productNumber, productName |
+| Product Type | dropdown | "Semua Jenis", "APAR", "HYDRANT", "CCTV", "FIRE_ALARM", "ACCESS_DOOR", "PATROL_GUARD" | Filters by productType field |
+| Status | dropdown | "Semua Status", "Tertunda" (pending), "Dijadwalkan" (scheduled), "Menunggu Disetujui" (waiting_approval), "Disetujui" (approved), "Ditolak" (rejected) | Filters by maintenance status |
+| Date From | date input | n/a | Filters inspections with inspection date >= this date (time set to 00:00:00) |
+| Date To | date input | n/a | Filters inspections with inspection date <= this date (time set to 23:59:59) |
+
+### Filter Layout and Behavior (Updated for UI-120)
+- Filter section layout: `flex flex-wrap items-end gap-4`
+- Filter section container: `rounded-lg border border-stroke bg-white p-4`
+- Grid layout within container removed — replaced with flex layout for better wrapping
+- All filter fields aligned to bottom (items-end) so labels and inputs align consistently
+- Each filter field has a label above it (`text-xs font-medium text-gray-600 mb-1 block`)
+- When no filter is selected (dropdown value is "" or date input is empty), show all inspections (no filtering applied for that field)
+
+### Reset Filter Button
+**Acceptance Criteria:**
+- Given the inspections page is loaded
+- When the user clicks the "Reset Filter" button
+- Then all filter dropdowns (product type, status) are reset to their default values:
+  - Product Type: "" (empty — shows "Semua Jenis" in UI)
+  - Status: "" (empty — shows "Semua Status" in UI)
+- And both date inputs (date from, date to) are cleared (set to "")
+- And the search text input is NOT cleared (preserveSearch = true)
+- And the filtered table reflects the reset state (no filters applied except search text if present)
+
+**Button Styling:**
+- Classes: `rounded-lg border border-stroke px-4 py-2 text-xs font-medium hover:bg-gray-100`
+- Label: "Reset Filter" (exact text, not "Reset" or "Clear Filters")
+- Position: within the filter section, aligned with filter inputs (items-end)
+
+### Existing Search Behavior (Unchanged)
+- Search text filters contractNumber, productNumber, and productName fields
+- Case-insensitive match using `.toLowerCase().includes(searchTerm.toLowerCase())`
+- Search text is independent from other filters
+
+### Existing Filtering Logic (Unchanged)
+- All filters are applied client-side via `applyFilters()` function
+- Filters combine with AND logic (all active filters must match)
+- Date filters compare inspection.inspectionDate (parsed as Date object) against filterDateFrom and filterDateTo
 
 ## Open Questions
 - Can checksheet templates be versioned? What happens to old inspections when template changes?

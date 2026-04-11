@@ -287,7 +287,7 @@ const ImageUploader = ({
       <div className="flex flex-col gap-4 sm:flex-row">
         {/* Left side: Image preview */}
         {value ? (
-          <div className="w-full rounded-lg border border-gray-200 dark:border-gray-700 sm:w-1/2">
+          <div className="w-full rounded-lg border border-gray-200 sm:w-1/2">
             <div className="relative overflow-hidden rounded-md">
               <div
                 className={`relative w-full ${getAspectRatioClass()} overflow-hidden`}
@@ -363,7 +363,7 @@ const ImageUploader = ({
             </div>
           </div>
         ) : (
-          <div className="flex h-[120px] w-full items-center justify-center rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 sm:w-1/2">
+          <div className="flex h-[120px] w-full items-center justify-center rounded-lg border border-gray-200 bg-gray-50 sm:w-1/2">
             <p className="text-sm text-gray-400">No image selected</p>
           </div>
         )}
@@ -382,7 +382,7 @@ const ImageUploader = ({
             />
             <label
               htmlFor="image-upload"
-              className="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              className="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
             >
               {isUploading ? (
                 <span className="flex items-center justify-center">
@@ -434,7 +434,7 @@ const ImageUploader = ({
           <button
             type="button"
             onClick={toggleGallery}
-            className="flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            className="flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
           >
             <svg
               className="mr-2 h-4 w-4"
@@ -460,15 +460,15 @@ const ImageUploader = ({
 
       {/* Gallery modal */}
       {showGallery && (
-        <div className="mt-3 max-h-80 overflow-y-auto rounded-md border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
+        <div className="mt-3 max-h-80 overflow-y-auto rounded-md border border-gray-200 bg-white p-3">
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <h4 className="text-sm font-medium text-gray-700">
               Select from media library
             </h4>
             <button
               type="button"
               onClick={() => loadGalleryImages()}
-              className="rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              className="rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -8,7 +8,7 @@ import { Blog } from "@/types/blog";
 const SimpleBlogEditor = dynamic(() => import("./SimpleBlogEditor"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[250px] items-center justify-center bg-gray-50 dark:bg-gray-800">
+    <div className="flex h-[250px] items-center justify-center bg-gray-50">
       <p className="text-gray-500">Loading editor...</p>
     </div>
   ),
@@ -81,16 +81,16 @@ const BlogItemEditor = memo(
     };
 
     return (
-      <div className="mb-8 rounded-lg border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 lg:p-6">
+      <div className="mb-8 rounded-lg border border-gray-300 bg-white p-2 lg:p-6">
         {!disableRemove && (
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-medium text-black dark:text-white">
+            <h3 className="font-medium text-black">
               #{index + 1}
             </h3>
             <button
               type="button"
               onClick={() => onRemove(index)}
-              className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+              className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200"
             >
               Remove Post
             </button>
@@ -100,27 +100,27 @@ const BlogItemEditor = memo(
         <div className="grid grid-cols-1 gap-4">
           {/* Blog Title */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Blog Title
             </label>
             <input
               type="text"
               value={localFields.title}
               onChange={(e) => handleLocalTextChange("title", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
           {/* Blog Slug */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Blog Slug (URL)
             </label>
             <input
               type="text"
               value={localFields.slug}
               onChange={(e) => handleLocalTextChange("slug", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="my-blog-post"
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -130,7 +130,7 @@ const BlogItemEditor = memo(
 
           {/* Blog Description */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Blog Description
             </label>
             <textarea
@@ -138,13 +138,13 @@ const BlogItemEditor = memo(
               onChange={(e) =>
                 handleLocalTextChange("metadata", e.target.value)
               }
-              className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
           {/* Blog Image */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Blog Image
             </label>
             <ImageUploader
@@ -157,7 +157,7 @@ const BlogItemEditor = memo(
 
           {/* Blog Content Editor */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Blog Content
             </label>
             <SimpleBlogEditor
@@ -172,14 +172,14 @@ const BlogItemEditor = memo(
 
           {/* Blog Author */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Blog Author
             </label>
             <input
               type="text"
               value={localFields.author}
               onChange={(e) => handleLocalTextChange("author", e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Author Name"
             />
             <p className="mt-1 text-xs text-gray-500">

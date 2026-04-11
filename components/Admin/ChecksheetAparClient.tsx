@@ -12,6 +12,7 @@ import {
   doc,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 interface ChecksheetData {
   id: string;
@@ -26,6 +27,8 @@ export default function ChecksheetAparClient() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const router = useRouter();
+
+  usePageHeader("APAR Checksheets", "Manage all APAR inspection checksheets");
 
   useEffect(() => {
     const fetchChecksheets = async () => {
@@ -113,15 +116,7 @@ export default function ChecksheetAparClient() {
 
   return (
     <div className="container mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-black dark:text-white">
-            APAR Checksheets
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Manage all APAR inspection checksheets
-          </p>
-        </div>
+      <div className="mb-8 flex items-center justify-end">
         <Link
           href="/admin/checksheet-apar/create"
           className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90"
@@ -131,30 +126,30 @@ export default function ChecksheetAparClient() {
       </div>
 
       {isLoading ? (
-        <div className="h-60 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        <div className="h-60 w-full animate-pulse rounded-lg bg-gray-200"></div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-stroke bg-white shadow-sm dark:border-strokedark dark:bg-black">
-            <table className="min-w-full divide-y divide-stroke dark:divide-strokedark">
-              <thead className="bg-gray-50 dark:bg-gray-800">
+          <div className="overflow-x-auto rounded-lg border border-stroke bg-white shadow-sm">
+            <table className="min-w-full divide-y divide-stroke">
+              <thead className="bg-gray-50">
                 <tr>
                   {tableHeaders.map((header) => (
                     <th
                       key={header}
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                     >
                       {header === "id" ? "ID" : header.replace(/_/g, " ")}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stroke bg-white dark:divide-strokedark dark:bg-black">
+              <tbody className="divide-y divide-stroke bg-white">
                 {checksheets.length === 0 ? (
                   <tr>
                     <td
                       colSpan={tableHeaders.length}
-                      className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                      className="px-6 py-4 text-center text-sm text-gray-500"
                     >
                       No checksheets found
                     </td>
@@ -172,13 +167,13 @@ export default function ChecksheetAparClient() {
                               <div className="flex space-x-2">
                                 <Link
                                   href={`/admin/checksheet-apar/edit/${checksheet.id}`}
-                                  className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                  className="text-blue-600 hover:text-blue-900"
                                 >
                                   Edit
                                 </Link>
                                 <button
                                   onClick={() => handleDelete(checksheet.id)}
-                                  className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                  className="text-red-600 hover:text-red-900"
                                 >
                                   Delete
                                 </button>
@@ -190,7 +185,7 @@ export default function ChecksheetAparClient() {
                         return (
                           <td
                             key={`${checksheet.id}-${header}`}
-                            className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white"
+                            className="whitespace-nowrap px-6 py-4 text-sm text-gray-900"
                           >
                             {formatCellData(checksheet[header])}
                           </td>
@@ -206,18 +201,18 @@ export default function ChecksheetAparClient() {
           {/* Delete confirmation modal */}
           {showDeleteModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-                <h3 className="mb-4 text-lg font-medium text-black dark:text-white">
+              <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                <h3 className="mb-4 text-lg font-medium text-black">
                   Confirm Delete
                 </h3>
-                <p className="mb-6 text-gray-600 dark:text-gray-300">
+                <p className="mb-6 text-gray-600">
                   Are you sure you want to delete this checksheet? This action
                   cannot be undone.
                 </p>
                 <div className="flex justify-end space-x-4">
                   <button
                     onClick={cancelDelete}
-                    className="rounded border border-stroke px-4 py-2 text-black hover:bg-gray-100 dark:border-strokedark dark:text-white dark:hover:bg-gray-700"
+                    className="rounded border border-stroke px-4 py-2 text-black hover:bg-gray-100"
                   >
                     Cancel
                   </button>

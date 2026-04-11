@@ -16,7 +16,7 @@ export const getData = async (
       return null;
     }
   } catch (error) {
-    console.error("Error getting hero data:", error);
+    console.error("Error getting Firestore data:", error instanceof Error ? error.message : "Unknown error");
     return null;
   }
 };

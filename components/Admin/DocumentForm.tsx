@@ -81,17 +81,17 @@ export default function DocumentForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="rounded-lg border border-stroke bg-white p-6 dark:border-strokedark dark:bg-black">
+      <div className="rounded-lg border border-stroke bg-white p-6">
         {isCreating && (
           <div className="mb-6">
-            <label className="mb-2.5 block text-black dark:text-white">
+            <label className="mb-2.5 block text-black">
               Document ID (leave empty for auto-generated ID)
             </label>
             <input
               type="text"
               value={documentId}
               onChange={(e) => setDocumentId(e.target.value)}
-              className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white"
+              className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none"
               placeholder="Optional document ID"
             />
           </div>
@@ -106,7 +106,7 @@ export default function DocumentForm({
               className={`px-3 py-1 text-xs ${
                 formMode === "simple"
                   ? "bg-primary text-white"
-                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                  : "bg-gray-100 text-gray-700"
               }`}
             >
               Simple Mode
@@ -117,7 +117,7 @@ export default function DocumentForm({
               className={`px-3 py-1 text-xs ${
                 formMode === "json"
                   ? "bg-primary text-white"
-                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                  : "bg-gray-100 text-gray-700"
               }`}
             >
               JSON Mode
@@ -126,7 +126,7 @@ export default function DocumentForm({
         </div>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -134,7 +134,7 @@ export default function DocumentForm({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -145,7 +145,7 @@ export default function DocumentForm({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -158,7 +158,7 @@ export default function DocumentForm({
           {isSimple ? (
             // Simple text input/textarea for string values
             <div>
-              <label className="mb-2.5 block text-black dark:text-white">
+              <label className="mb-2.5 block text-black">
                 Content ({activeTab === "en" ? "English" : "Indonesia"})
               </label>
               <textarea
@@ -166,13 +166,13 @@ export default function DocumentForm({
                 value={formData[activeTab] || ""}
                 onChange={handleSimpleDataChange}
                 rows={10}
-                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white"
+                className="w-full rounded border border-stroke bg-white px-4 py-2 text-black focus:border-primary focus:outline-none"
               />
             </div>
           ) : (
             // JSON editor for complex data
             <div className="min-h-80">
-              <label className="mb-2.5 block text-black dark:text-white">
+              <label className="mb-2.5 block text-black">
                 JSON Content ({activeTab === "en" ? "English" : "Indonesia"})
               </label>
               <JsonEditor
@@ -187,7 +187,7 @@ export default function DocumentForm({
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded border border-stroke px-6 py-2 text-black hover:bg-gray-100 dark:border-strokedark dark:text-white dark:hover:bg-gray-800"
+            className="rounded border border-stroke px-6 py-2 text-black hover:bg-gray-100"
             disabled={isSaving}
           >
             Cancel

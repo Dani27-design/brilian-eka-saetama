@@ -230,14 +230,14 @@ const ServiceEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Services Section Title
               </label>
               <input
                 type="text"
                 value={localTextInputs.title || ""}
                 onChange={(e) => handleTextInputChange(e, "title")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en" ? "Our Services" : "Layanan Kami"
                 }
@@ -253,13 +253,13 @@ const ServiceEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Services Section Subtitle
               </label>
               <textarea
                 value={localTextInputs.subtitle || ""}
                 onChange={(e) => handleTextInputChange(e, "subtitle")}
-                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                className="h-32 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder={
                   activeTab === "en"
                     ? "Discover our comprehensive range of services."
@@ -277,7 +277,7 @@ const ServiceEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Service Items
               </label>
               <p className="mb-4 text-sm text-gray-500">
@@ -285,7 +285,7 @@ const ServiceEditor = ({
               </p>
 
               {serviceItems.length === 0 && (
-                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500 dark:bg-gray-800">
+                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500">
                   No service items yet. Add one below.
                 </div>
               )}
@@ -293,23 +293,23 @@ const ServiceEditor = ({
               {serviceItems.map((item, index) => (
                 <div
                   key={index}
-                  className="mb-6 rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-700"
+                  className="mb-6 rounded-lg border border-gray-300 bg-white p-4"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="font-medium text-black dark:text-white">
+                    <span className="font-medium text-black">
                       Service Item {index + 1}
                     </span>
                     <button
                       type="button"
                       onClick={() => removeServiceItem(index)}
-                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200"
                     >
                       Remove
                     </button>
                   </div>
 
                   <div className="mb-3">
-                    <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <label className="mb-1 block text-xs font-medium text-gray-700">
                       Service Title
                     </label>
                     <input
@@ -318,12 +318,12 @@ const ServiceEditor = ({
                       onChange={(e) =>
                         handleServiceItemChange(index, "title", e.target.value)
                       }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
 
                   <div className="mb-3">
-                    <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <label className="mb-1 block text-xs font-medium text-gray-700">
                       Service Description
                     </label>
                     <textarea
@@ -335,12 +335,12 @@ const ServiceEditor = ({
                           e.target.value,
                         )
                       }
-                      className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      className="h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
 
                   <div className="mb-3">
-                    <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <label className="mb-1 block text-xs font-medium text-gray-700">
                       Service Image
                     </label>
 
@@ -360,7 +360,7 @@ const ServiceEditor = ({
               <button
                 type="button"
                 onClick={addServiceItem}
-                className="mt-2 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5 dark:bg-transparent"
+                className="mt-2 w-full rounded-md border border-primary bg-white px-3 py-2 text-sm text-primary hover:bg-primary/5"
               >
                 + Add Service Item
               </button>
@@ -400,12 +400,12 @@ const ServiceEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -413,7 +413,7 @@ const ServiceEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -424,7 +424,7 @@ const ServiceEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -438,7 +438,7 @@ const ServiceEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

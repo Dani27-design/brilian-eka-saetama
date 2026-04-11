@@ -1,16 +1,15 @@
-import { Metadata } from "next";
-import ChecksheetAparForm from "@/components/Admin/ChecksheetAparForm";
-import AdminPageHeader from "@/components/Admin/AdminPageHeader";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Edit APAR Checksheet",
-};
+import ChecksheetAparForm from "@/components/Admin/ChecksheetAparForm";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 export default function EditChecksheetAparPage({
   params,
 }: {
   params: { id: string };
 }) {
+  usePageHeader("Edit APAR Checksheet", "Edit an existing APAR inspection checksheet");
+
   return (
     <div className="container mx-auto">
       <ChecksheetAparForm id={params.id} isEditing={true} />

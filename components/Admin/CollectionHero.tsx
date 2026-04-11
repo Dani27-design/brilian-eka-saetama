@@ -53,9 +53,9 @@ const CollectionHero = ({ collectionName }) => {
   if (error) {
     console.error("Error fetching hero data:", error);
     return (
-      <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black">
+      <div className="rounded-lg border border-stroke bg-white p-6 shadow-sm">
         <div className="flex flex-col items-center justify-center text-center">
-          <div className="mb-3 rounded-full bg-red-100 p-3 text-red-600 dark:bg-red-900/30 dark:text-red-400">
+          <div className="mb-3 rounded-full bg-red-100 p-3 text-red-600">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
@@ -91,7 +91,7 @@ const CollectionHero = ({ collectionName }) => {
   }
 
   return (
-    <div className="rounded-lg border border-stroke bg-white shadow-sm dark:border-strokedark dark:bg-black">
+    <div className="rounded-lg border border-stroke bg-white shadow-sm">
       {isLoading ? (
         <div className="flex h-64 items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>

@@ -35,8 +35,8 @@ export default function JsonEditor({ value, onChange }: JsonEditorProps) {
       <textarea
         value={jsonValue}
         onChange={handleChange}
-        className={`font-mono h-80 w-full rounded border border-stroke bg-white p-4 text-sm text-black focus:border-primary focus:outline-none dark:border-strokedark dark:bg-black dark:text-white ${
-          error ? "border-red-500 dark:border-red-500" : ""
+        className={`font-mono h-80 w-full rounded border border-stroke bg-white p-4 text-sm text-black focus:border-primary focus:outline-none ${
+          error ? "border-red-500" : ""
         }`}
         style={{
           resize: "vertical",

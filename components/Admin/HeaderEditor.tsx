@@ -248,7 +248,7 @@ const HeaderEditor = ({
         return (
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Light Mode Logo
               </label>
               <ImageUploader
@@ -263,7 +263,7 @@ const HeaderEditor = ({
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Dark Mode Logo
               </label>
               <ImageUploader
@@ -284,7 +284,7 @@ const HeaderEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 English Language Display Text
               </label>
               <input
@@ -302,7 +302,7 @@ const HeaderEditor = ({
             </div>
 
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Indonesian Language Display Text
               </label>
               <input
@@ -325,7 +325,7 @@ const HeaderEditor = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 block font-medium text-gray-700">
                 Menu Items
               </label>
               <p className="mb-4 text-sm text-gray-500">
@@ -334,7 +334,7 @@ const HeaderEditor = ({
               </p>
 
               {menuItems.length === 0 && (
-                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500 dark:bg-gray-800">
+                <div className="mb-4 rounded-md bg-gray-50 p-4 text-center text-gray-500">
                   No menu items yet. Add one below.
                 </div>
               )}
@@ -342,16 +342,16 @@ const HeaderEditor = ({
               {menuItems.map((item, index) => (
                 <div
                   key={index}
-                  className="mb-6 rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-700"
+                  className="mb-6 rounded-lg border border-gray-300 bg-white p-4"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="font-medium text-black dark:text-white">
+                    <span className="font-medium text-black">
                       #{index + 1}
                     </span>
                     {/* <button
                       type="button"
                       onClick={() => removeMenuItem(index)}
-                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
+                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200"
                     >
                       Remove
                     </button> */}
@@ -359,7 +359,7 @@ const HeaderEditor = ({
 
                   <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <label className="mb-1 block text-xs font-medium text-gray-700">
                         Display Title
                       </label>
                       <input
@@ -368,12 +368,12 @@ const HeaderEditor = ({
                         onChange={(e) =>
                           handleMenuItemChange(index, "title", e.target.value)
                         }
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
 
                     <div className="cursor-not-allowed">
-                      <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <label className="mb-1 block text-xs font-medium text-gray-700">
                         Path / URL
                       </label>
                       <input
@@ -383,7 +383,7 @@ const HeaderEditor = ({
                           handleMenuItemChange(index, "path", e.target.value)
                         }
                         disabled={true}
-                        className="w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800"
+                        className="w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         placeholder="#section or /page"
                       />
                     </div>
@@ -426,12 +426,12 @@ const HeaderEditor = ({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-stroke bg-white p-6 shadow-sm dark:border-strokedark dark:bg-black"
+        className="rounded-lg border border-stroke bg-white p-6 shadow-sm"
       >
         <h2 className="mb-4 text-xl font-bold capitalize">Form Editor</h2>
 
         {/* Language tabs */}
-        <div className="mb-4 border-b border-stroke dark:border-strokedark">
+        <div className="mb-4 border-b border-stroke">
           <div className="flex">
             <button
               type="button"
@@ -439,7 +439,7 @@ const HeaderEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "en"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               English
@@ -450,7 +450,7 @@ const HeaderEditor = ({
               className={`px-4 py-2 ${
                 activeTab === "id"
                   ? "border-b-2 border-primary text-primary"
-                  : "text-gray-500 hover:text-black dark:hover:text-white"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Indonesia
@@ -464,7 +464,7 @@ const HeaderEditor = ({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100 dark:border-strokedark dark:bg-black dark:hover:bg-gray-800"
+            className="rounded-lg border border-stroke bg-white px-4 py-2 hover:bg-gray-100"
           >
             Cancel
           </button>

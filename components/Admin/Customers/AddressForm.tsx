@@ -218,13 +218,13 @@ export default function AddressForm({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+      <h3 className="text-lg font-medium text-gray-900">
         Alamat
       </h3>
       
       {/* Street Address */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="mb-1 block text-sm font-medium text-gray-700">
           Alamat Jalan <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -232,10 +232,10 @@ export default function AddressForm({
           onChange={(e) => handleFieldChange("street", e.target.value)}
           disabled={disabled}
           rows={2}
-          className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+          className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
             errors.street
-              ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-              : "border-stroke bg-transparent dark:border-strokedark"
+              ? "border-red-500 bg-red-50"
+              : "border-stroke bg-transparent"
           }`}
           placeholder="Contoh: Jl. Sudirman No. 123, RT 001/RW 002"
         />
@@ -246,17 +246,17 @@ export default function AddressForm({
 
       {/* Province */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="mb-1 block text-sm font-medium text-gray-700">
           Provinsi <span className="text-red-500">*</span>
         </label>
         <select
           value={address.province || ""}
           onChange={(e) => handleFieldChange("province", e.target.value)}
           disabled={disabled}
-          className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+          className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
             errors.province
-              ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-              : "border-stroke bg-transparent dark:border-strokedark"
+              ? "border-red-500 bg-red-50"
+              : "border-stroke bg-transparent"
           }`}
         >
           <option value="">Pilih Provinsi</option>
@@ -273,7 +273,7 @@ export default function AddressForm({
 
       {/* City */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="mb-1 block text-sm font-medium text-gray-700">
           Kota/Kabupaten <span className="text-red-500">*</span>
         </label>
         {showCityTextInput ? (
@@ -283,15 +283,15 @@ export default function AddressForm({
               value={address.city || ""}
               onChange={(e) => handleFieldChange("city", e.target.value)}
               disabled={disabled || !address.province}
-              className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+              className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
                 errors.city
-                  ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                  : "border-stroke bg-transparent dark:border-strokedark"
+                  ? "border-red-500 bg-red-50"
+                  : "border-stroke bg-transparent"
               }`}
               placeholder={!address.province ? "Pilih provinsi terlebih dahulu" : "Masukkan nama kota/kabupaten"}
             />
             {address.province && showCityTextInput && (
-              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              <p className="mt-1 text-xs text-amber-600">
                 ℹ️ Data kota untuk provinsi ini menggunakan input manual
               </p>
             )}
@@ -301,10 +301,10 @@ export default function AddressForm({
             value={address.city || ""}
             onChange={(e) => handleFieldChange("city", e.target.value)}
             disabled={disabled || !address.province || loadingCities}
-            className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+            className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
               errors.city
-                ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                : "border-stroke bg-transparent dark:border-strokedark"
+                ? "border-red-500 bg-red-50"
+                : "border-stroke bg-transparent"
             }`}
           >
             <option value="">
@@ -345,7 +345,7 @@ export default function AddressForm({
           />
         ) : (
           <>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Kecamatan <span className="text-red-500">*</span>
             </label>
             <input
@@ -353,15 +353,15 @@ export default function AddressForm({
               value={address.district || ""}
               onChange={(e) => handleFieldChange("district", e.target.value)}
               disabled={disabled || !address.city}
-              className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+              className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
                 errors.district
-                  ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                  : "border-stroke bg-transparent dark:border-strokedark"
+                  ? "border-red-500 bg-red-50"
+                  : "border-stroke bg-transparent"
               }`}
               placeholder={!address.city ? "Pilih kota terlebih dahulu" : "Nama Kecamatan"}
             />
             {!selectedCityId && address.city && (
-              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              <p className="mt-1 text-xs text-amber-600">
                 ℹ️ Data kecamatan untuk kota ini menggunakan input manual
               </p>
             )}
@@ -388,7 +388,7 @@ export default function AddressForm({
           />
         ) : (
           <>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Kelurahan/Desa <span className="text-red-500">*</span>
             </label>
             <input
@@ -396,15 +396,15 @@ export default function AddressForm({
               value={address.village || ""}
               onChange={(e) => handleFieldChange("village", e.target.value)}
               disabled={disabled || !address.district}
-              className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+              className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
                 errors.village
-                  ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                  : "border-stroke bg-transparent dark:border-strokedark"
+                  ? "border-red-500 bg-red-50"
+                  : "border-stroke bg-transparent"
               }`}
               placeholder={!address.district ? "Pilih kecamatan terlebih dahulu" : "Nama Kelurahan/Desa"}
             />
             {!selectedDistrictId && address.district && (
-              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              <p className="mt-1 text-xs text-amber-600">
                 ℹ️ Data kelurahan/desa untuk kecamatan ini menggunakan input manual
               </p>
             )}
@@ -417,7 +417,7 @@ export default function AddressForm({
 
       {/* Postal Code */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="mb-1 block text-sm font-medium text-gray-700">
           Kode Pos
         </label>
         <input
@@ -426,10 +426,10 @@ export default function AddressForm({
           onChange={(e) => handleFieldChange("postalCode", e.target.value)}
           disabled={disabled}
           maxLength={5}
-          className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary dark:text-white ${
+          className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-primary ${
             errors.postalCode
-              ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-              : "border-stroke bg-transparent dark:border-strokedark"
+              ? "border-red-500 bg-red-50"
+              : "border-stroke bg-transparent"
           }`}
           placeholder="12345"
         />
@@ -440,7 +440,7 @@ export default function AddressForm({
 
       {/* Region validation error */}
       {errors.region && (
-        <div className="rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
+        <div className="rounded-lg bg-red-50 p-3">
           <p className="text-sm text-red-600">{errors.region}</p>
         </div>
       )}

@@ -53,10 +53,10 @@ export default function MaintenanceCalendarPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-gray-900">
             Kalender Maintenance
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-gray-600">
             Lihat jadwal maintenance dalam tampilan kalender
           </p>
         </div>
@@ -64,7 +64,7 @@ export default function MaintenanceCalendarPage() {
         <div className="flex gap-3">
           <Link
             href="/admin/maintenances"
-            className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-gray-300 dark:hover:bg-gray-800"
+            className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -85,12 +85,12 @@ export default function MaintenanceCalendarPage() {
       </div>
 
       {/* Calendar Component */}
-      <div className="rounded-lg border border-stroke bg-white shadow-sm dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-lg border border-stroke bg-white shadow-sm">
         {loading ? (
           <div className="flex h-96 items-center justify-center">
             <div className="flex items-center gap-3">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Memuat kalender...</span>
+              <span className="text-sm text-gray-600">Memuat kalender...</span>
             </div>
           </div>
         ) : (
