@@ -288,7 +288,7 @@ export function generateImportTemplate(productType?: ProductType): string {
 
   // Create sample row with realistic Indonesian data
   const sampleRow = [
-    "PRD-001",
+    "1001",
     "APAR Portable ABC 3kg",
     productType || "APAR",
     "Yamato",

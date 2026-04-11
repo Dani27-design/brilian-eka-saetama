@@ -67,8 +67,6 @@ export default function ProductsPage() {
     currentProduct: string;
   } | null>(null);
   
-  // Dropdown state for row actions
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // Specs modal state
   const [specsModalProduct, setSpecsModalProduct] = useState<(Product & { contractData?: any }) | null>(null);
@@ -119,19 +117,6 @@ export default function ProductsPage() {
     setCurrentPage(1);
   }, [filters]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      if (openDropdown) {
-        setOpenDropdown(null);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [openDropdown]);
 
   // Get unique options for filters
   const availableTypes = Array.from(
@@ -237,6 +222,34 @@ export default function ProductsPage() {
       } catch {
         setError("Gagal menghapus produk");
       }
+    }
+  };
+
+  // Bulk delete products
+  const handleBulkDelete = async () => {
+    const selectedList = products.filter(p => p.id && selectedProducts.has(p.id));
+    const withContract = selectedList.filter(p => p.contract);
+
+    if (withContract.length > 0) {
+      setError(`${withContract.length} produk memiliki kontrak aktif dan tidak dapat dihapus. Hapus kontrak terlebih dahulu.`);
+      return;
+    }
+
+    if (!window.confirm(`Hapus ${selectedList.length} produk yang dipilih? Tindakan ini tidak dapat dibatalkan.`)) {
+      return;
+    }
+
+    try {
+      setError(null);
+      for (const product of selectedList) {
+        if (product.id) {
+          await deleteDoc(doc(firestore, "products", product.id));
+        }
+      }
+      setProducts(prev => prev.filter(p => !p.id || !selectedProducts.has(p.id)));
+      setSelectedProducts(new Set());
+    } catch {
+      setError("Gagal menghapus beberapa produk");
     }
   };
 
@@ -520,6 +533,7 @@ export default function ProductsPage() {
             }
           }}
           onBulkEdit={() => setShowBulkEditDialog(true)}
+          onBulkDelete={handleBulkDelete}
           onBulkAddToContract={() => setShowBulkAddToContractDialog(true)}
           onBulkQR={handleBulkQRGeneration}
           onClearSelection={() => setSelectedProducts(new Set())}
@@ -605,10 +619,7 @@ export default function ProductsPage() {
                       Nama
                     </SortableHeader>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
-                      Tipe
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
-                      Merk
+                      Tipe / Merk
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
                       Spesifikasi
@@ -652,14 +663,14 @@ export default function ProductsPage() {
                           <span className="font-medium text-gray-900">{product.name}</span>
                         </td>
                         <td className="px-4 py-4">
-                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">
+                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
                             {product.productType}
                           </span>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="text-sm">
-                            <div className="font-medium text-gray-900">{product.specs.brand}</div>
-                            <div className="text-gray-500">{product.specs.brandType}</div>
+                          <div className="mt-1 text-sm">
+                            <span className="font-medium text-gray-900">{product.specs.brand}</span>
+                            {product.specs.brandType && (
+                              <span className="text-gray-500"> · {product.specs.brandType}</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-4">
@@ -723,8 +734,8 @@ export default function ProductsPage() {
                           <button
                             onClick={() => handleGenerateQR(product)}
                             disabled={generatingQR === product.id}
-                            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
-                            title="Print QR Sticker"
+                            className="inline-flex whitespace-nowrap items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                            title="Cetak Barcode"
                           >
                             {generatingQR === product.id ? (
                               <div className="h-3 w-3 animate-spin rounded-full border border-gray-600 border-t-transparent"></div>
@@ -749,71 +760,21 @@ export default function ProductsPage() {
                                 />
                               </svg>
                             )}
-                            <span className="hidden sm:inline">
-                              {generatingQR === product.id ? "..." : "Print QR"}
+                            <span>
+                              {generatingQR === product.id ? "..." : "Cetak Barcode"}
                             </span>
                           </button>
 
-                          {/* Dropdown Aksi Lainnya */}
-                          <div className="relative">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setOpenDropdown(openDropdown === product.id ? null : product.id || null);
-                              }}
-                              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
-                              title="Aksi Lainnya"
-                            >
-                              <svg
-                                className="h-3 w-3"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                                />
-                              </svg>
-                            </button>
-                            {openDropdown === product.id && (
-                              <div className="absolute right-0 top-full z-10 mt-1 w-32 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
-                                <button
-                                  disabled={product.contract ? true : false}
-                                  onClick={() => {
-                                    setOpenDropdown(null);
-                                    handleDelete(product?.id ?? "");
-                                  }}
-                                  className={`block w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50 ${
-                                    product.contract
-                                      ? "cursor-not-allowed opacity-50"
-                                      : ""
-                                  }`}
-                                  title={product.contract ? "Tidak dapat dihapus - produk memiliki kontrak aktif" : "Hapus produk"}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <svg
-                                      className="h-3 w-3"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                      />
-                                    </svg>
-                                    Hapus
-                                  </div>
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          <button
+                            onClick={() => handleDelete(product?.id ?? "")}
+                            disabled={!!product.contract}
+                            className={`inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 ${
+                              product.contract ? "cursor-not-allowed opacity-50" : ""
+                            }`}
+                            title={product.contract ? "Tidak dapat dihapus — produk memiliki kontrak aktif" : "Hapus produk"}
+                          >
+                            Hapus
+                          </button>
                         </div>
                       </td>
                     </tr>

@@ -29,6 +29,7 @@ interface ProductActionsProps {
   selectedCount: number;
   onExport: () => void;
   onBulkEdit: () => void;
+  onBulkDelete: () => void;
   onBulkQR: () => void;
   onBulkAddToContract: () => void;
   onClearSelection: () => void;
@@ -62,6 +63,7 @@ export default function ProductFiltersComponent({
   selectedCount,
   onExport,
   onBulkEdit,
+  onBulkDelete,
   onBulkQR,
   onBulkAddToContract,
   onClearSelection,
@@ -184,6 +186,10 @@ export default function ProductFiltersComponent({
 
           <button onClick={onBulkEdit} className={buttonOutlineClass}>
             Edit Produk
+          </button>
+
+          <button onClick={onBulkDelete} className={buttonOutlineClass}>
+            Hapus Produk
           </button>
 
           <button onClick={onBulkAddToContract} className={buttonOutlineClass}>

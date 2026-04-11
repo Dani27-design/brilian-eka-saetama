@@ -2,7 +2,7 @@ import { collection, writeBatch, doc, serverTimestamp, DocumentReference, WriteB
 import { firestore } from '@/db/firebase/firebaseConfig';
 import { Product } from '@/types/product';
 import { ImportConfig, ImportResult, ImportError, BulkEditOperation, UpdateResult } from '@/types/bulkOperations';
-import { prepareProductForImport, checkMultipleProductNumbers } from './productValidator';
+import { prepareProductForImport, checkMultipleProductNumbers, getExistingProductMap } from './productValidator';
 import { ValidationMessages } from './validationMessages';
 
 /**
@@ -28,9 +28,15 @@ export async function bulkImportProducts(
   try {
     // Check for existing product numbers if needed
     let existingNumbers = new Set<number>();
+    let existingProductMap = new Map<number, string>();
     if (config.skipDuplicates || config.updateExisting) {
       const productNumbers = products.map(p => p.productNumber).filter(Boolean);
-      existingNumbers = await checkMultipleProductNumbers(productNumbers);
+      if (config.updateExisting) {
+        existingProductMap = await getExistingProductMap(productNumbers);
+        existingNumbers = new Set(existingProductMap.keys());
+      } else {
+        existingNumbers = await checkMultipleProductNumbers(productNumbers);
+      }
     }
     
     // Firebase batch operations are limited to 500
@@ -67,19 +73,32 @@ export async function bulkImportProducts(
           
           // Prepare product for import
           const product = prepareProductForImport(productData);
-          
-          // Add user reference if available
-          if (userId) {
-            product.createdBy = doc(firestore, 'users', userId) as DocumentReference;
+
+          // Check if updating existing or creating new
+          const existingDocId = existingProductMap.get(productData.productNumber);
+
+          if (existingDocId && config.updateExisting) {
+            // Update existing document
+            const docRef = doc(firestore, 'products', existingDocId);
+            if (userId) {
+              product.updatedBy = doc(firestore, 'users', userId) as DocumentReference;
+            }
+            batch.set(docRef, {
+              ...product,
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+          } else {
+            // Create new document
+            if (userId) {
+              product.createdBy = doc(firestore, 'users', userId) as DocumentReference;
+            }
+            const docRef = doc(collection(firestore, 'products'));
+            batch.set(docRef, {
+              ...product,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
           }
-          
-          // Add to batch
-          const docRef = doc(collection(firestore, 'products'));
-          batch.set(docRef, {
-            ...product,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
           
           batchOperations++;
           

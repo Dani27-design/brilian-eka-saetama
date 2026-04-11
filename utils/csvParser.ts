@@ -262,8 +262,8 @@ export function transformRowToProduct(
       product[productField] = ['Yes', 'yes', 'true', '1'].includes(value);
     }
     // Transform numeric values
-    else if (['maintenanceInterval', 'height', 'width', 'pressure', 'capacity', 
-              'weight', 'flowRate', 'hoseLength', 'coverageArea', 'soundLevel', 
+    else if (['productNumber', 'maintenanceInterval', 'height', 'width', 'pressure', 'capacity',
+              'weight', 'flowRate', 'hoseLength', 'coverageArea', 'soundLevel',
               'openingSpeed', 'patrolInterval'].includes(productField)) {
       const num = Number(value);
       product[productField] = isNaN(num) ? null : num;

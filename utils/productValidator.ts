@@ -59,6 +59,41 @@ export async function checkMultipleProductNumbers(
 }
 
 /**
+ * Batch checks multiple product numbers and returns their document IDs
+ * @param productNumbers - Array of product numbers to check
+ * @returns Promise resolving to map of productNumber → documentId
+ */
+export async function getExistingProductMap(
+  productNumbers: number[]
+): Promise<Map<number, string>> {
+  const existingMap = new Map<number, string>();
+
+  const batchSize = 10;
+  for (let i = 0; i < productNumbers.length; i += batchSize) {
+    const batch = productNumbers.slice(i, i + batchSize);
+
+    try {
+      const q = query(
+        collection(firestore, 'products'),
+        where('productNumber', 'in', batch)
+      );
+      const snapshot = await getDocs(q);
+
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.productNumber) {
+          existingMap.set(data.productNumber, docSnap.id);
+        }
+      });
+    } catch (error) {
+      console.error('Error checking batch of product numbers:', error);
+    }
+  }
+
+  return existingMap;
+}
+
+/**
  * Converts date string to Firestore Timestamp
  * @param dateString - Date string in various formats
  * @returns Firestore Timestamp or null if invalid
