@@ -12,20 +12,88 @@ import { ProductType } from "@/types/product";
  * const aparItems = getChecklistItemsByType("APAR");
  * // Returns: ["Hose", "Pressure", "Handle", "Body", "Safety Pin", "Exp Date"]
  */
-export function getChecklistItemsByType(productType: ProductType): string[] {
+// Hydrant HPE checklist items (15 items)
+export const HYDRANT_HPE_ITEMS = [
+  { item: "Pemeriksaan Kotak Hydrant", detail: "Melakukan pemeriksaan dan pemeliharaan kotak hydrant beserta kelengkapannya, meliputi selang (hose) dan nozzle, untuk memastikan kondisi layak pakai." },
+  { item: "Running Test Pompa Diesel", detail: "Melakukan pemeliharaan pompa hydrant diesel, termasuk pengujian operasional (running test) untuk memastikan kinerja mesin berfungsi optimal." },
+  { item: "Pemeliharaan Pompa Elektrik", detail: "Melakukan pemeriksaan dan pemeliharaan pompa hydrant elektrik guna memastikan sistem bekerja secara otomatis dan normal." },
+  { item: "Pemeliharaan Pompa Jockey", detail: "Melakukan pemeliharaan pompa jockey hydrant elektrik untuk menjaga kestabilan tekanan dalam sistem perpipaan." },
+  { item: "Pemeriksaan Siamese Connection", detail: "Melakukan pemeriksaan dan pemeliharaan sambungan siamese (siamese connection) untuk memastikan tidak terdapat kebocoran atau kerusakan." },
+  { item: "Perawatan Hydrant Pilar", detail: "Melakukan perawatan hydrant pilar ukuran 2,5 inci, termasuk pelumasan (greasing) dan pengecekan seal guna mencegah kebocoran." },
+  { item: "Pemeriksaan Pressure Tank", detail: "Melakukan pemeriksaan dan pemeliharaan tangki tekanan (pressure tank) kapasitas 250 liter agar tetap berfungsi dengan baik." },
+  { item: "Pemeriksaan Panel Kontrol", detail: "Melakukan pemeriksaan panel distribusi dan kontrol (controller) pompa hydrant untuk memastikan sistem kelistrikan bekerja dengan aman dan normal." },
+  { item: "Penggantian Oli & Filter", detail: "Melakukan penggantian oli mesin hydrant, termasuk penggantian filter dan pengecekan bahan bakar (solar)." },
+  { item: "Pengisian BBM Solar", detail: "Melakukan pengisian bahan bakar solar non-subsidi untuk mendukung operasional pompa hydrant." },
+  { item: "Pengecekan Aki", detail: "Melakukan pengecekan dan pengisian air aki (accu) guna menjaga performa sistem kelistrikan." },
+  { item: "Pemeliharaan Pompa Priming", detail: "Melakukan pemeliharaan pompa air pendukung (priming/pancingan) agar sistem dapat bekerja saat start awal." },
+  { item: "Pembersihan Ruang Pompa", detail: "Melakukan pembersihan ruang pompa hydrant dari kotoran dan potensi penghambat operasional." },
+  { item: "Pemeriksaan Instalasi Pipa", detail: "Melakukan pemeriksaan dan pemeliharaan instalasi perpipaan hydrant untuk memastikan tidak terdapat kebocoran atau kerusakan." },
+  { item: "Uji Fungsi Mandatory Test", detail: "Melaksanakan uji fungsi hydrant (mandatory test) untuk memastikan seluruh sistem siap digunakan dalam kondisi darurat." },
+];
+
+// Hydrant HPO checklist items (13 items)
+export const HYDRANT_HPO_ITEMS = [
+  { item: "Pemeliharaan Pompa Portable", detail: "Melakukan pemeliharaan pompa air portable untuk pengisian tandon, guna memastikan suplai air tersedia dengan baik." },
+  { item: "Pengecekan Tandon Air", detail: "Melakukan pengecekan kondisi tandon air, termasuk volume dan kebersihan air yang digunakan." },
+  { item: "Pemeliharaan Battery Charger", detail: "Melakukan pemeliharaan battery charger serta pengisian aki (accu) untuk memastikan sistem starter berfungsi optimal." },
+  { item: "Penggantian Oli Mesin", detail: "Melakukan pemeriksaan dan penggantian oli mesin sesuai kebutuhan untuk menjaga performa mesin." },
+  { item: "Pengisian BBM", detail: "Melakukan pengisian bahan bakar (BBM) guna memastikan peralatan siap digunakan sewaktu-waktu." },
+  { item: "Pemeriksaan Pipa Hisap & Foot Valve", detail: "Melakukan pemeriksaan dan pemeliharaan pipa hisap (intake) serta foot valve untuk memastikan tidak terjadi kebocoran atau hambatan aliran." },
+  { item: "Pemeriksaan Selang & Nozzle", detail: "Melakukan pemeriksaan dan pemeliharaan selang ukuran 2 inci beserta nozzle agar dalam kondisi siap pakai." },
+  { item: "Pembersihan Kotak Hydrant", detail: "Melakukan pembersihan dan perawatan kotak hydrant portable agar peralatan tersimpan dengan baik dan aman." },
+  { item: "Pemeliharaan Starter Elektrik", detail: "Melakukan pemeliharaan sistem starter elektrik untuk memastikan mesin dapat dioperasikan dengan mudah." },
+  { item: "Pemeriksaan Hydrant Valve", detail: "Melakukan pemeriksaan dan pemeliharaan hydrant valve ukuran 2 inci guna memastikan fungsi buka-tutup berjalan normal." },
+  { item: "Pemeriksaan Panel Kontrol", detail: "Melakukan pemeriksaan dan pemeliharaan panel kontrol untuk memastikan sistem kelistrikan berfungsi dengan baik." },
+  { item: "Pemeliharaan Pompa Jockey", detail: "Melakukan pemeliharaan pompa jockey (jika tersedia) untuk menjaga kestabilan tekanan sistem." },
+  { item: "Uji Fungsi Mandatory Test", detail: "Melaksanakan uji fungsi peralatan hydrant portable (mandatory test) untuk memastikan kesiapan operasional." },
+];
+
+// Fire Alarm checklist items (5 items)
+export const FIRE_ALARM_ITEMS = [
+  { item: "Pembersihan Smoke Detector", detail: "Melakukan pembersihan smoke detector dari debu dan kotoran untuk menjaga sensitivitas deteksi asap." },
+  { item: "Pengecekan Heat Detector", detail: "Melakukan pengecekan fungsi heat detector guna memastikan alat dapat merespons kenaikan suhu secara akurat." },
+  { item: "Pemeriksaan Instalasi Kabel", detail: "Melakukan pemeriksaan instalasi sistem fire alarm, termasuk kabel dan koneksi, untuk memastikan tidak terdapat gangguan." },
+  { item: "Pengujian Panel MCFA", detail: "Melakukan pengujian fungsi panel MCFA (Main Control Fire Alarm) guna memastikan sistem kontrol bekerja dengan baik." },
+  { item: "Pengecekan Manual Call Point", detail: "Melakukan pengecekan manual call point (break glass) untuk memastikan dapat digunakan dalam kondisi darurat." },
+];
+
+/**
+ * Gets the checklist item names for a specific product type
+ * For HYDRANT, pass subType ("HPE" or "HPO") from product.specs.brandType
+ */
+export function getChecklistItemsByType(productType: ProductType, subType?: string): string[] {
   switch (productType) {
     case "APAR":
       return ["Hose", "Pressure", "Handle", "Body", "Safety Pin", "Exp Date"];
     case "HYDRANT":
-      return ["Height", "Width", "Flow Rate", "Pressure", "Valve Type", "Hose Length", "Material"];
+      if (subType === "HPE") return HYDRANT_HPE_ITEMS.map(i => i.item);
+      if (subType === "HPO") return HYDRANT_HPO_ITEMS.map(i => i.item);
+      return HYDRANT_HPO_ITEMS.map(i => i.item); // Default to HPO
+    case "FIRE_ALARM":
+      return FIRE_ALARM_ITEMS.map(i => i.item);
     case "CCTV":
       return ["Resolution", "Lens", "Night Vision", "Power", "Connectivity", "Pan", "Tilt", "Storage Capacity"];
-    case "FIRE_ALARM":
-      return ["Sensor Type", "Power", "Coverage Area", "Sound Level", "Battery Backup", "Connectivity"];
     case "ACCESS_DOOR":
       return ["Material", "Lock Type", "Width", "Height", "Opening Speed"];
     case "PATROL_GUARD":
       return ["Device Type", "Battery Life", "Connectivity", "Patrol Interval", "Firmware Version"];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Gets checklist items with detail for Hydrant and Fire Alarm
+ * Returns array of { item, detail } objects
+ */
+export function getChecklistItemsWithDetail(productType: ProductType, subType?: string): Array<{ item: string; detail: string }> {
+  switch (productType) {
+    case "HYDRANT":
+      if (subType === "HPE") return HYDRANT_HPE_ITEMS;
+      if (subType === "HPO") return HYDRANT_HPO_ITEMS;
+      return HYDRANT_HPO_ITEMS;
+    case "FIRE_ALARM":
+      return FIRE_ALARM_ITEMS;
     default:
       return [];
   }

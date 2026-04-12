@@ -208,7 +208,18 @@ export function createCertificateData(
     inspectionDate,
     engineerNames: engineerNames.map(name => safeStringify(name)),
     checklistResults,
-    photos: maintenanceData.inspection?.photos || [],
+    photos: (() => {
+      // APAR: inspection-level photos
+      const inspectionPhotos = maintenanceData.inspection?.photos || [];
+      if (inspectionPhotos.length > 0) return inspectionPhotos;
+      // Hydrant/FA: sum all per-item photos
+      const checklist = maintenanceData.inspection?.checklist || [];
+      const itemPhotos = checklist.reduce((all: string[], item: any) => {
+        if (item.photos && Array.isArray(item.photos)) return [...all, ...item.photos];
+        return all;
+      }, []);
+      return itemPhotos;
+    })(),
     
     // Approval Information
     approvedBy: safeStringify(approverName),

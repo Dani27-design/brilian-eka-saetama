@@ -45,17 +45,31 @@ export type AparInspectionChecklistItem = {
 
 export type AparInspectionChecklist = AparInspectionChecklistItem[];
 
-export type HydrantInspectionChecklistItem = {
-  item:
-    | "Height"
-    | "Width"
-    | "Flow Rate"
-    | "Pressure"
-    | "Valve Type"
-    | "Hose Length"
-    | "Material";
-  status: boolean; // true = OK, false = NOK
+export type HydrantHPEInspectionChecklistItem = {
+  item: string;
+  detail: string; // Full Indonesian activity description
+  status: boolean; // true = Sudah dilakukan, false = Belum dilakukan
   remarks?: string;
+  photos?: string[]; // Per-item photos from Firebase Storage
+};
+export type HydrantHPEInspectionChecklist = HydrantHPEInspectionChecklistItem[];
+
+export type HydrantHPOInspectionChecklistItem = {
+  item: string;
+  detail: string;
+  status: boolean;
+  remarks?: string;
+  photos?: string[];
+};
+export type HydrantHPOInspectionChecklist = HydrantHPOInspectionChecklistItem[];
+
+// Legacy type kept for backward compatibility with old data
+export type HydrantInspectionChecklistItem = {
+  item: string;
+  detail?: string;
+  status: boolean;
+  remarks?: string;
+  photos?: string[];
 };
 export type HydrantInspectionChecklist = HydrantInspectionChecklistItem[];
 
@@ -75,15 +89,11 @@ export type CctvInspectionChecklistItem = {
 export type CctvInspectionChecklist = CctvInspectionChecklistItem[];
 
 export type FireAlarmInspectionChecklistItem = {
-  item:
-    | "Sensor Type"
-    | "Power"
-    | "Coverage Area"
-    | "Sound Level"
-    | "Battery Backup"
-    | "Connectivity";
-  status: boolean; // true = OK, false = NOK
+  item: string;
+  detail?: string; // Full Indonesian activity description
+  status: boolean; // true = Sudah dilakukan, false = Belum dilakukan
   remarks?: string;
+  photos?: string[]; // Per-item photos from Firebase Storage
 };
 export type FireAlarmInspectionChecklist = FireAlarmInspectionChecklistItem[];
 
@@ -110,6 +120,8 @@ export type PatrolGuardInspectionChecklist =
 export type InspectionChecklist =
   | AparInspectionChecklist
   | HydrantInspectionChecklist
+  | HydrantHPEInspectionChecklist
+  | HydrantHPOInspectionChecklist
   | CctvInspectionChecklist
   | FireAlarmInspectionChecklist
   | AccessDoorInspectionChecklist

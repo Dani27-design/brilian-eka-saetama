@@ -51,6 +51,7 @@ export interface InspectionTableRow {
   expirationDate: string;
   location: string;
   inspectionDate: string;
+  inspectionDateRaw: Date | null;
   inspectorName?: string;
   engineerNames: string[];
   checklistSummary: {
@@ -127,24 +128,46 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
 
   const fetchInspectionsForExport = async (startDate?: Date, endDate?: Date): Promise<InspectionTableRow[]> => {
     try {
-      const constraints: any[] = [
-        where("inspection.createdAt", "!=", null),
-      ];
+      // Use only range constraints — avoid combining != with >= / <= (requires composite index).
+      // Filter out null inspection.createdAt client-side instead.
+      const constraints: any[] = [];
 
-      if (startDate) constraints.push(where("inspection.createdAt", ">=", Timestamp.fromDate(startDate)));
-      if (endDate) constraints.push(where("inspection.createdAt", "<=", Timestamp.fromDate(endDate)));
+      if (startDate && endDate) {
+        constraints.push(where("inspection.createdAt", ">=", Timestamp.fromDate(startDate)));
+        constraints.push(where("inspection.createdAt", "<=", Timestamp.fromDate(endDate)));
+      } else if (startDate) {
+        constraints.push(where("inspection.createdAt", ">=", Timestamp.fromDate(startDate)));
+      } else if (endDate) {
+        constraints.push(where("inspection.createdAt", "<=", Timestamp.fromDate(endDate)));
+      } else {
+        // No date range — use != null to get all inspections
+        constraints.push(where("inspection.createdAt", "!=", null));
+      }
       constraints.push(orderBy("inspection.createdAt", "asc"));
 
       const exportQuery = query(collection(firestore, "maintenances"), ...constraints);
       const exportSnapshot = await getDocs(exportQuery);
 
+      console.log("[fetchExport] Firestore returned:", exportSnapshot.size, "docs");
       if (exportSnapshot.empty) return [];
 
+      // Filter client-side: must have inspection data and match productType
+      const validDocs = exportSnapshot.docs.filter((d) => {
+        const data = d.data() as Maintenance;
+        return data.inspection?.createdAt && data.productType === productType;
+      });
+      console.log("[fetchExport] After productType filter:", validDocs.length, "docs (productType:", productType, ")");
+
+      // Log first few docs for debugging
+      exportSnapshot.docs.slice(0, 3).forEach((d, i) => {
+        const data = d.data();
+        console.log(`[fetchExport] Doc ${i}: productType=${data.productType}, hasInspection=${!!data.inspection?.createdAt}`);
+      });
+
       const rows = await Promise.all(
-        exportSnapshot.docs.map(async (maintenanceDoc) => {
-          const maintenanceData = maintenanceDoc.data() as Maintenance;
+        validDocs.map(async (maintenanceDoc) => {
           try {
-            return await buildInspectionRow(maintenanceDoc.id, maintenanceData);
+            return await buildInspectionRow(maintenanceDoc.id, maintenanceDoc.data() as Maintenance);
           } catch {
             return null;
           }
@@ -152,6 +175,7 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
       );
       return rows.filter((r) => r !== null) as InspectionTableRow[];
     } catch (error: any) {
+      console.error("[fetchExport] Error:", error);
       throw new Error(`Failed to fetch export data: ${error.message}`);
     }
   };
@@ -209,6 +233,11 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
       contractNumber, contractName, productNumber, productName, productBrand, brandType, capacity,
       productType: maintenanceData.productType, expirationDate, location,
       inspectionDate: formatToWIBExport(maintenanceData.inspection?.createdAt),
+      inspectionDateRaw: maintenanceData.inspection?.createdAt
+        ? (typeof maintenanceData.inspection.createdAt === 'object' && 'toDate' in maintenanceData.inspection.createdAt
+            ? (maintenanceData.inspection.createdAt as any).toDate()
+            : new Date(maintenanceData.inspection.createdAt as any))
+        : null,
       inspectorName, engineerNames,
       checklistSummary: {
         totalItems: checklist.length,
@@ -279,12 +308,12 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
 
     if (filters.dateFrom) {
       const fromDate = new Date(filters.dateFrom); fromDate.setHours(0, 0, 0, 0);
-      filtered = filtered.filter((i) => new Date(i.inspectionDate) >= fromDate);
+      filtered = filtered.filter((i) => i.inspectionDateRaw && i.inspectionDateRaw >= fromDate);
     }
 
     if (filters.dateTo) {
       const toDate = new Date(filters.dateTo); toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((i) => new Date(i.inspectionDate) <= toDate);
+      filtered = filtered.filter((i) => i.inspectionDateRaw && i.inspectionDateRaw <= toDate);
     }
 
     setFilteredInspections(filtered);
@@ -434,10 +463,10 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
       <ExportDataModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
+        allInspections={inspections.filter((i) => i.productType === productType)}
         filteredInspections={filteredInspections}
         filterProductType={productType}
         filterStatus={filters.status}
-        fetchInspectionsForExport={fetchInspectionsForExport}
         onError={setError}
       />
 

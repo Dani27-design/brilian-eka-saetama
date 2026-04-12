@@ -1,3 +1,10 @@
+/**
+ * @deprecated This page is replaced by product-type-specific inspection pages:
+ *   - /admin/apar-inspections
+ *   - /admin/hydrant-inspections
+ *   - /admin/fire-alarm-inspections
+ * Kept as backup only. Do NOT edit or update this file.
+ */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -843,10 +850,10 @@ export default function InspectionsPage() {
       <ExportDataModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
+        allInspections={filters.productType ? inspections.filter((i) => i.productType === filters.productType) : inspections}
         filteredInspections={filteredInspections}
         filterProductType={filters.productType}
         filterStatus={filters.status}
-        fetchInspectionsForExport={fetchInspectionsForExport}
         onError={setError}
       />
 

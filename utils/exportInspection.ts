@@ -1,430 +1,331 @@
 import * as XLSX from "xlsx";
-import Papa from "papaparse";
 import { ProductType } from "@/types/product";
-import { formatDateOnlyWIB } from "./dateFormatter";
+
+// ─── APAR Export (flat table, multiple rows per file) ────────────────────────
 
 /**
- * Represents a flattened inspection row for export with new Indonesian format
- * Uses proper Indonesian column headers and restructured data
+ * APAR checklist column names in export order.
+ * "Exp Date" is excluded per spec — it stays as a core column (Tgl Expired).
  */
-export interface InspectionExportRow {
-  // Core Required Columns (Indonesian headers)
-  "No. Kontrak": string; // contracts.contractNumber
-  "Nama Kontrak": string; // contracts.contractName
-  "No. Produk": string; // products.productNumber
-  "Merk Produk": string; // products.specs.brand
-  "Jenis Produk": string; // products.specs.brandType
-  "Kapasitas Produk": string; // products.specs.capacity
-  "Tgl Expired": string; // products.specs.expirationDate
-  Lokasi: string; // contracts.productDetails[x].location
-  "Pelaksanaan Inspeksi": string; // maintenances.inspection.createdAt
-  "Petugas Inspeksi": string; // users.name (from inspection.createdBy)
-
-  // Dynamic Columns (checklist items and photos)
-  [key: string]: string; // For checklist items and "Foto [n]" columns
-}
+const APAR_CHECKLIST_COLUMNS = ["Hose", "Pressure", "Handle", "Body", "Safety Pin"];
 
 /**
- * Transforms inspection data for export
- * Flattens complex nested data into exportable format
- *
- * @param inspections - Array of inspection data from the listing page
- * @returns Array of flattened export rows
- *
- * @example
- * const inspectionData = [
- *   {
- *     contractNumber: "CTR-001",
- *     productName: "Fire Extinguisher",
- *     checklistSummary: { totalItems: 5, okCount: 4, nokCount: 1 },
- *     // ... other data
- *   }
- * ];
- *
- * const exportData = transformInspectionData(inspectionData);
- * // Returns flattened data with individual checklist columns
+ * Builds an APAR flat-table worksheet from inspection rows.
+ * Columns: core fields → checklist status → Foto N (=IMAGE) → Link Foto N (raw URL)
  */
-export function transformInspectionData(
-  inspections: any[],
-): InspectionExportRow[] {
-  return inspections.map((inspection, rowIndex) => {
-    const baseRow: InspectionExportRow = {
-      // 10 core columns (header dalam bahasa Indonesia)
-      "No. Kontrak": inspection.contractNumber ?? "N/A",
-      "Nama Kontrak": inspection.contractName ?? "N/A",
-      "No. Produk": inspection.productNumber ?? "N/A",
-      "Merk Produk": inspection.productBrand ?? "N/A",
-      "Jenis Produk": inspection.brandType ?? "N/A",
-      "Kapasitas Produk": inspection.capacity ?? "N/A",
-      "Tgl Expired": inspection.expirationDate ?? "N/A",
-      Lokasi: inspection.location ?? "N/A",
-      "Pelaksanaan Inspeksi": inspection.inspectionDate ?? "N/A",
-      "Petugas Inspeksi": inspection.inspectorName ?? "N/A",
-    };
+function buildAparWorksheet(inspections: any[]): XLSX.WorkSheet {
+  // Determine max photo count across all inspections (inspection-level photos)
+  const maxPhotos = inspections.reduce((max, insp) => {
+    const photos: string[] = insp.photos || insp.maintenance?.inspection?.photos || [];
+    return Math.max(max, photos.length);
+  }, 0);
 
-    // checklist items (dynamic)
-    const checklistItems: string[] = [];
-    if (
-      inspection.checklistDetails &&
-      Array.isArray(inspection.checklistDetails)
-    ) {
-      inspection.checklistDetails.forEach((item: any) => {
-        const columnName = item.item ?? "Unknown Item";
-        checklistItems.push(columnName);
-        baseRow[columnName] =
-          item.status === true ? "BAIK" : item.remarks ?? "NOK";
-      });
-    } else if (inspection.maintenance?.inspection?.checklist) {
-      inspection.maintenance.inspection.checklist.forEach((item: any) => {
-        const columnName = item.item ?? "Unknown Item";
-        checklistItems.push(columnName);
-        baseRow[columnName] =
-          item.status === true ? "BAIK" : item.remarks ?? "NOK";
-      });
-    }
+  // Build header row
+  const headers: string[] = [
+    "No. Kontrak",
+    "Nama Kontrak",
+    "No. Produk",
+    "Merk Produk",
+    "Jenis Produk",
+    "Kapasitas Produk",
+    "Tgl Expired",
+    "Lokasi",
+    "Pelaksanaan Inspeksi",
+    "Petugas Inspeksi",
+    ...APAR_CHECKLIST_COLUMNS,
+  ];
 
-    // photos
-    const photos: string[] =
-      Array.isArray(inspection.photos) && inspection.photos.length > 0
-        ? inspection.photos
-        : Array.isArray(inspection.maintenance?.inspection?.photos)
-        ? inspection.maintenance!.inspection!.photos
-        : [];
+  // Photo columns: Foto 1..N then Link Foto 1..N
+  for (let i = 1; i <= maxPhotos; i++) headers.push(`Foto ${i}`);
+  for (let i = 1; i <= maxPhotos; i++) headers.push(`Link Foto ${i}`);
 
-    photos.forEach((photoUrl: string, index: number) => {
-      const linkColumnName = `Link Foto ${index + 1}`; // will contain raw URL
-      const photoColumnName = `Foto ${index + 1}`; // will contain formula referencing the URL column
+  // Build data rows
+  const rows: (string | object)[][] = [];
+  for (const insp of inspections) {
+    const checklist: any[] = insp.checklistDetails || insp.maintenance?.inspection?.checklist || [];
+    const photos: string[] = insp.photos || insp.maintenance?.inspection?.photos || [];
 
-      baseRow[linkColumnName] = photoUrl;
-      // Put a placeholder string (we'll convert to real formula object after sheet creation)
-      // set to empty string to avoid accidental Excel interpretation
-      baseRow[photoColumnName] = ""; // placeholder for IMAGE formula
-    });
+    const row: (string | object)[] = [
+      insp.contractNumber ?? "N/A",
+      insp.contractName ?? "N/A",
+      insp.productNumber ?? "N/A",
+      insp.productBrand ?? "N/A",
+      insp.brandType ?? "N/A",
+      insp.capacity ?? "N/A",
+      insp.expirationDate ?? "N/A",
+      insp.location ?? "N/A",
+      insp.inspectionDate ?? "N/A",
+      insp.engineerNames?.join(", ") || insp.inspectorName || "N/A",
+    ];
 
-    return baseRow;
-  });
-}
-
-/**
- * Exports inspection data to Excel format
- * Creates downloadable XLSX file with formatted data
- *
- * @param inspections - Array of inspection data
- * @param filename - Optional filename (without extension)
- * @returns Promise that resolves when download is complete
- *
- * @example
- * await exportToExcel(inspectionData, "inspection_report_2025");
- * // Downloads file named "inspection_report_2025.xlsx"
- */
-export async function exportToExcel(
-  inspections: any[],
-  filename: string = `inspection_export_${
-    new Date().toISOString().split("T")[0]
-  }`,
-): Promise<void> {
-  try {
-    if (!Array.isArray(inspections)) {
-      throw new Error("Invalid inspections data: must be an array");
-    }
-    if (inspections.length === 0) {
-      throw new Error("Tidak ada data inspeksi untuk diekspor");
-    }
-
-    // Transform data
-    const exportData = transformInspectionData(inspections);
-    if (exportData.length === 0) {
-      throw new Error(
-        "Tidak ada data inspeksi untuk diekspor setelah transformasi",
-      );
-    }
-
-    // Build workbook & worksheet from JSON (keuntungan: json_to_sheet pakai object insertion order untuk header)
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(exportData, {
-      skipHeader: false,
-    });
-
-    // Prepare column widths (you can tune these)
-    // We'll build !cols berdasarkan header order
-    const headerKeys = Object.keys(exportData[0]);
-    const cols = headerKeys.map((key) => {
-      if (key.startsWith("Link Foto ")) return { wch: 50 }; // Wide for URL columns
-      if (key.startsWith("Foto ")) return { wch: 30 }; // For IMAGE formula columns
-      return { wch: 20 }; // Default width for other columns
-    });
-    worksheet["!cols"] = cols;
-
-    // --- POST-PROCESS: convert placeholder formula cells into real formula objects,
-    // and ensure the formula references the correct URL cell address ---
-    //
-    // headerKeys: array of headers in the exact order json_to_sheet used.
-    // For each row (data index r -> sheet row r+2), find any header that matches "Foto N"
-    // then find column index of "Link Foto N" and set formula cell at (formulaCol, row) to { f: `IMAGE(A2)` }.
-
-    // Helper: iterate rows
-    for (let r = 0; r < exportData.length; r++) {
-      const sheetRowIndex = r + 1; // 0-based row in encode_cell (0 is header), so data start at r+1
-      for (let c = 0; c < headerKeys.length; c++) {
-        const header = headerKeys[c];
-        // detect formula-target headers like "Foto 1" (which will contain the IMAGE formula)
-        const match = header.match(/^Foto\s+(\d+)$/i);
-        if (!match) continue;
-        const photoNumber = match[1];
-        const urlHeader = `Link Foto ${photoNumber}`; // Find the corresponding URL column
-
-        // column indexes
-        const formulaColIndex = headerKeys.indexOf(header); // c
-        const urlColIndex = headerKeys.indexOf(urlHeader);
-
-        if (urlColIndex === -1) {
-          // URL column not found; skip
-          continue;
-        }
-
-        // addresses
-        const formulaCellAddress = XLSX.utils.encode_cell({
-          c: formulaColIndex,
-          r: sheetRowIndex,
-        });
-        const urlCellAddressA1 = XLSX.utils.encode_cell({
-          c: urlColIndex,
-          r: sheetRowIndex,
-        });
-
-        // read URL value (should be present in worksheet already)
-        const urlCellObj = worksheet[urlCellAddressA1];
-        const urlValue = urlCellObj ? urlCellObj.v ?? "" : "";
-
-        // Build formula referencing the URL cell (no quotes so IMAGE(A2) expects the URL cell content)
-        // If the URL cell is empty we still write IMAGE("") (it will show empty)
-        const formulaText = `IMAGE("${urlValue}")`;
-
-        // Overwrite whatever is at formula cell with proper formula object
-        // We set .f to formulaText (without leading '=' because SheetJS expects f without '=')
-        // But SheetJS accepts { f: 'IMAGE(A2)' } — when writing XLSX it will add '=' automatically.
-        worksheet[formulaCellAddress] = { f: formulaText };
-
-        // Optionally we can set cached value (v) empty or the image URL itself.
-        // For compatibility, we won't set a cached value; Excel/Sheets will evaluate.
+    // Checklist status columns — "BAIK" if OK, remarks if not
+    for (const colName of APAR_CHECKLIST_COLUMNS) {
+      const item = checklist.find((c: any) => c.item === colName);
+      if (!item) {
+        row.push("-");
+      } else if (item.status === true) {
+        row.push("BAIK");
+      } else {
+        row.push(item.remarks || "NOK");
       }
     }
 
-    // Ensure range is correct
-    if (!worksheet["!ref"]) {
-      worksheet["!ref"] = XLSX.utils.encode_range({
-        s: { c: 0, r: 0 },
-        e: { c: headerKeys.length - 1, r: exportData.length },
-      });
+    // Foto N columns (=IMAGE formula placeholder — will be set after sheet creation)
+    for (let i = 0; i < maxPhotos; i++) {
+      row.push(i < photos.length ? "" : ""); // placeholder
     }
 
-    // Add workbook sheets
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Inspection Data");
-
-    // Write workbook -> array buffer
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
-    downloadBlob(blob, `${filename}.xlsx`);
-  } catch (err) {
-    console.error("Error exporting to Excel:", err);
-    throw err;
-  }
-}
-
-/**
- * Exports inspection data to CSV format
- * Creates downloadable CSV file with comma-separated values
- *
- * @param inspections - Array of inspection data
- * @param filename - Optional filename (without extension)
- * @returns Promise that resolves when download is complete
- *
- * @example
- * await exportToCSV(inspectionData, "inspection_data");
- * // Downloads file named "inspection_data.csv"
- */
-export async function exportToCSV(
-  inspections: any[],
-  filename: string = `inspection_export_${
-    new Date().toISOString().split("T")[0]
-  }`,
-): Promise<void> {
-  try {
-    console.log(`📊 Starting CSV export for ${inspections.length} inspections`);
-
-    // Validate input
-    if (!Array.isArray(inspections)) {
-      throw new Error("Invalid inspections data: must be an array");
+    // Link Foto N columns (raw URL)
+    for (let i = 0; i < maxPhotos; i++) {
+      row.push(i < photos.length ? photos[i] : "");
     }
 
-    if (inspections.length === 0) {
-      throw new Error("Tidak ada data inspeksi untuk diekspor");
+    rows.push(row);
+  }
+
+  // Create worksheet
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  // Post-process: inject IMAGE formulas for Foto N columns
+  const fotoStartCol = headers.indexOf("Foto 1");
+  const linkStartCol = headers.indexOf("Link Foto 1");
+  if (fotoStartCol !== -1 && linkStartCol !== -1) {
+    for (let r = 0; r < rows.length; r++) {
+      const sheetRow = r + 1; // 0-based, row 0 is header
+      for (let p = 0; p < maxPhotos; p++) {
+        const fotoCell = XLSX.utils.encode_cell({ c: fotoStartCol + p, r: sheetRow });
+        const linkCell = XLSX.utils.encode_cell({ c: linkStartCol + p, r: sheetRow });
+        const linkValue = ws[linkCell]?.v ?? "";
+        if (linkValue) {
+          ws[fotoCell] = { f: `IMAGE("${linkValue}")` };
+        }
+      }
     }
-
-    // Transform data for export
-    console.log(`🔄 Transforming ${inspections.length} inspection records...`);
-    const exportData = transformInspectionData(inspections);
-    console.log(
-      `✅ Transformed data: ${exportData.length} rows ready for export`,
-    );
-
-    if (exportData.length === 0) {
-      throw new Error(
-        "Tidak ada data inspeksi untuk diekspor setelah transformasi",
-      );
-    }
-
-    // Convert to CSV using Papa Parse
-    const csv = Papa.unparse(exportData, {
-      header: true,
-      delimiter: ",",
-      quoteChar: '"',
-      escapeChar: '"',
-      newline: "\r\n",
-    });
-
-    // Create and download blob
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    downloadBlob(blob, `${filename}.csv`);
-  } catch (error) {
-    console.error("Error exporting to CSV:", error);
-    throw new Error("Gagal mengekspor data ke CSV");
-  }
-}
-
-/**
- * Exports inspection data to both Excel and CSV formats
- * Creates two downloadable files simultaneously
- *
- * @param inspections - Array of inspection data
- * @param baseFilename - Base filename (without extension)
- * @returns Promise that resolves when both downloads are complete
- *
- * @example
- * await exportToBoth(inspectionData, "monthly_inspection_report");
- * // Downloads both "monthly_inspection_report.xlsx" and "monthly_inspection_report.csv"
- */
-export async function exportToBoth(
-  inspections: any[],
-  baseFilename: string = `inspection_export_${
-    new Date().toISOString().split("T")[0]
-  }`,
-): Promise<void> {
-  try {
-    // Run both exports in parallel
-    await Promise.all([
-      exportToExcel(inspections, baseFilename),
-      exportToCSV(inspections, baseFilename),
-    ]);
-  } catch (error) {
-    console.error("Error exporting to both formats:", error);
-    throw new Error("Gagal mengekspor data ke Excel dan CSV");
-  }
-}
-
-/**
- * Creates export data with filtered inspection information
- * Applies filters before export to reduce file size
- *
- * @param inspections - Array of inspection data
- * @param filters - Export filter options
- * @returns Filtered inspection data ready for export
- *
- * @example
- * const filtered = createFilteredExport(inspections, {
- *   productTypes: ["APAR", "HYDRANT"],
- *   status: ["approved"],
- *   dateRange: { start: "2025-01-01", end: "2025-12-31" }
- * });
- */
-export function createFilteredExport(
-  inspections: any[],
-  filters: {
-    productTypes?: ProductType[];
-    status?: string[];
-    dateRange?: { start: string; end: string };
-    contracts?: string[];
-  } = {},
-): any[] {
-  let filtered = [...inspections];
-
-  // Filter by product types
-  if (filters.productTypes && filters.productTypes.length > 0) {
-    filtered = filtered.filter((inspection) =>
-      filters.productTypes!.includes(inspection.productType),
-    );
   }
 
-  // Filter by status
-  if (filters.status && filters.status.length > 0) {
-    filtered = filtered.filter((inspection) =>
-      filters.status!.includes(inspection.status),
-    );
-  }
-
-  // Filter by date range
-  if (filters.dateRange) {
-    const startDate = new Date(filters.dateRange.start);
-    const endDate = new Date(filters.dateRange.end);
-
-    filtered = filtered.filter((inspection) => {
-      const inspectionDate = new Date(inspection.inspectionDate);
-      return inspectionDate >= startDate && inspectionDate <= endDate;
-    });
-  }
-
-  // Filter by contracts
-  if (filters.contracts && filters.contracts.length > 0) {
-    filtered = filtered.filter((inspection) =>
-      filters.contracts!.includes(inspection.contractNumber),
-    );
-  }
-
-  return filtered;
-}
-
-/**
- * Gets column headers for export data
- * Returns formatted column names for display
- *
- * @param sampleData - Sample inspection data to determine columns
- * @returns Array of formatted column headers
- */
-export function getExportHeaders(sampleData: any[]): string[] {
-  if (sampleData.length === 0) return [];
-
-  const transformedData = transformInspectionData(sampleData);
-  if (transformedData.length === 0) return [];
-
-  return Object.keys(transformedData[0]).map((key) => {
-    // Convert camelCase to readable format
-    return key
-      .replace(/([A-Z])/g, " $1")
-      .replace(/^./, (str) => str.toUpperCase())
-      .replace(/item_(\d+)_(\w+)/i, (_, num, type) => {
-        return `Item ${num} ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-      });
+  // Column widths
+  ws["!cols"] = headers.map((h) => {
+    if (h.startsWith("Link Foto")) return { wch: 50 };
+    if (h.startsWith("Foto")) return { wch: 30 };
+    return { wch: 20 };
   });
+
+  return ws;
 }
 
 /**
- * Validates export data before processing
- * Checks for required fields and data integrity
+ * Exports APAR inspections to a single Excel file (flat table, multiple rows).
+ */
+export async function exportAparToExcel(
+  inspections: any[],
+  filename: string,
+): Promise<void> {
+  if (!inspections.length) throw new Error("Tidak ada data inspeksi APAR untuk diekspor");
+
+  const ws = buildAparWorksheet(inspections);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Inspeksi APAR");
+
+  const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  downloadBlob(
+    new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+    `${filename}.xlsx`,
+  );
+}
+
+// ─── Hydrant / Fire Alarm Export (vertical header, 1 file per inspection) ────
+
+/**
+ * Builds a vertical-header worksheet for a single Hydrant or Fire Alarm inspection.
  *
- * @param inspections - Array of inspection data to validate
- * @returns Validation result with success status and messages
- *
- * @example
- * const validation = validateExportData(inspections);
- * if (!validation.isValid) {
- *   console.error("Validation errors:", validation.errors);
- * }
+ * Layout:
+ *   Row 1: Nama Produk        | [productName] - [productNumber]
+ *   Row 2: No. Kontrak        | [contractNumber]
+ *   Row 3: Nama Kontrak       | [contractName]
+ *   Row 4: Petugas Inspeksi   | [engineerNames]
+ *   Row 5: Tanggal Inspeksi   | [inspectionDate]
+ *   Row 6: (empty)
+ *   Row 7: No. | Uraian Pekerjaan | Foto Bukti Kegiatan 1 | ... | Link Bukti Kegiatan 1 | ...
+ *   Row 8+: data rows
+ */
+function buildVerticalWorksheet(insp: any): XLSX.WorkSheet {
+  const checklist: any[] = insp.checklistDetails || insp.maintenance?.inspection?.checklist || [];
+
+  // Determine max per-item photo count
+  const maxItemPhotos = checklist.reduce((max: number, item: any) => {
+    const photos: string[] = item.photos || [];
+    return Math.max(max, photos.length);
+  }, 0);
+
+  // --- Header rows (vertical key-value) ---
+  const headerRows: (string | object)[][] = [
+    ["Nama Produk", `${insp.productName ?? "N/A"} - ${insp.productNumber ?? "N/A"}`],
+    ["No. Kontrak", insp.contractNumber ?? "N/A"],
+    ["Nama Kontrak", insp.contractName ?? "N/A"],
+    ["Petugas Inspeksi", insp.engineerNames?.join(", ") || insp.inspectorName || "N/A"],
+    ["Tanggal Inspeksi", insp.inspectionDate ?? "N/A"],
+    [], // empty separator row
+  ];
+
+  // --- Table header row ---
+  const tableHeaders: string[] = ["No.", "Uraian Pekerjaan"];
+  for (let i = 1; i <= maxItemPhotos; i++) tableHeaders.push(`Foto Bukti Kegiatan ${i}`);
+  for (let i = 1; i <= maxItemPhotos; i++) tableHeaders.push(`Link Bukti Kegiatan ${i}`);
+  tableHeaders.push("Keterangan");
+
+  // --- Table data rows ---
+  const tableRows: (string | number | object)[][] = [];
+  checklist.forEach((item: any, idx: number) => {
+    const photos: string[] = item.photos || [];
+    const row: (string | number | object)[] = [
+      idx + 1,
+      item.detail || item.item || "N/A",
+    ];
+
+    // Foto Bukti Kegiatan N (placeholder for IMAGE formula)
+    for (let i = 0; i < maxItemPhotos; i++) {
+      row.push(""); // placeholder
+    }
+
+    // Link Bukti Kegiatan N (raw URL)
+    for (let i = 0; i < maxItemPhotos; i++) {
+      row.push(i < photos.length ? photos[i] : "");
+    }
+
+    // Keterangan: "BAIK" if OK, remarks if not
+    if (item.status === true) {
+      row.push("BAIK");
+    } else {
+      row.push(item.remarks || "NOK");
+    }
+
+    tableRows.push(row);
+  });
+
+  // Combine all rows
+  const allRows = [...headerRows, tableHeaders, ...tableRows];
+  const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+  // Post-process: inject IMAGE formulas for Foto Bukti Kegiatan columns
+  const dataStartRow = headerRows.length + 1; // 0-based row after table header
+  const fotoStartCol = 2; // column C (0=No., 1=Uraian, 2=first foto)
+  const linkStartCol = 2 + maxItemPhotos; // after all foto columns
+
+  for (let r = 0; r < tableRows.length; r++) {
+    const sheetRow = dataStartRow + r;
+    for (let p = 0; p < maxItemPhotos; p++) {
+      const fotoCell = XLSX.utils.encode_cell({ c: fotoStartCol + p, r: sheetRow });
+      const linkCell = XLSX.utils.encode_cell({ c: linkStartCol + p, r: sheetRow });
+      const linkValue = ws[linkCell]?.v ?? "";
+      if (linkValue) {
+        ws[fotoCell] = { f: `IMAGE("${linkValue}")` };
+      }
+    }
+  }
+
+  // Column widths
+  const totalCols = tableHeaders.length;
+  const cols: XLSX.ColInfo[] = [];
+  for (let c = 0; c < totalCols; c++) {
+    const header = tableHeaders[c] || "";
+    if (header === "No.") cols.push({ wch: 6 });
+    else if (header === "Uraian Pekerjaan") cols.push({ wch: 50 });
+    else if (header.startsWith("Link Bukti")) cols.push({ wch: 50 });
+    else if (header.startsWith("Foto Bukti")) cols.push({ wch: 30 });
+    else if (header === "Keterangan") cols.push({ wch: 25 });
+    else cols.push({ wch: 20 });
+  }
+  ws["!cols"] = cols;
+
+  // Bold header label cells (column A rows 1-5)
+  for (let r = 0; r < 5; r++) {
+    const cell = XLSX.utils.encode_cell({ c: 0, r });
+    if (ws[cell]) {
+      ws[cell].s = { font: { bold: true } };
+    }
+  }
+
+  return ws;
+}
+
+/**
+ * Exports a single Hydrant/Fire Alarm inspection to Excel.
+ * Returns the blob + filename so the caller can trigger multiple downloads.
+ */
+function buildSingleInspectionExcel(
+  insp: any,
+  productTypeLabel: string,
+): { blob: Blob; filename: string } {
+  const ws = buildVerticalWorksheet(insp);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `Inspeksi ${productTypeLabel}`);
+
+  const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([buf], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  // Build filename: {type}_inspection_{contract}_{product}_{date}.xlsx
+  const safeContract = sanitizeFilename(insp.contractNumber || "unknown");
+  const safeProduct = sanitizeFilename(insp.productNumber || "unknown");
+  const safeDate = sanitizeFilename(insp.inspectionDate || new Date().toISOString().split("T")[0]);
+
+  const filename = `${productTypeLabel.toLowerCase()}_inspection_${safeContract}_${safeProduct}_${safeDate}.xlsx`;
+
+  return { blob, filename };
+}
+
+/**
+ * Exports Hydrant or Fire Alarm inspections — one file per inspection.
+ * Downloads each file sequentially with a small delay to avoid browser blocking.
+ */
+export async function exportVerticalInspections(
+  inspections: any[],
+  productType: ProductType,
+  onProgress?: (current: number, total: number) => void,
+): Promise<void> {
+  if (!inspections.length) throw new Error("Tidak ada data inspeksi untuk diekspor");
+
+  const label = productType === "HYDRANT" ? "Hydrant" : "Fire_Alarm";
+
+  for (let i = 0; i < inspections.length; i++) {
+    if (onProgress) onProgress(i + 1, inspections.length);
+
+    const { blob, filename } = buildSingleInspectionExcel(inspections[i], label);
+    downloadBlob(blob, filename);
+
+    // Small delay between downloads to avoid browser popup blockers
+    if (i < inspections.length - 1) {
+      await delay(300);
+    }
+  }
+}
+
+// ─── Unified export entry point ──────────────────────────────────────────────
+
+/**
+ * Main export function — dispatches to APAR or Vertical format based on productType.
+ */
+export async function exportInspections(
+  inspections: any[],
+  productType: ProductType,
+  filename: string,
+  onProgress?: (current: number, total: number) => void,
+): Promise<void> {
+  if (productType === "APAR") {
+    await exportAparToExcel(inspections, filename);
+  } else if (productType === "HYDRANT" || productType === "FIRE_ALARM") {
+    await exportVerticalInspections(inspections, productType, onProgress);
+  } else {
+    // Fallback: use APAR flat format for other types
+    await exportAparToExcel(inspections, filename);
+  }
+}
+
+// ─── Validation ──────────────────────────────────────────────────────────────
+
+/**
+ * Validates export data before processing.
  */
 export function validateExportData(inspections: any[]): {
   isValid: boolean;
@@ -444,28 +345,16 @@ export function validateExportData(inspections: any[]): {
     return { isValid: false, errors, warnings };
   }
 
-  // Check required fields
   const requiredFields = ["contractNumber", "productNumber", "inspectionDate"];
   const missingFields = new Set<string>();
 
   inspections.forEach((inspection, index) => {
     requiredFields.forEach((field) => {
-      if (!inspection[field]) {
-        missingFields.add(field);
-      }
+      if (!inspection[field]) missingFields.add(field);
     });
 
-    // Check for empty checklist
-    if (
-      !inspection.checklistSummary ||
-      inspection.checklistSummary.totalItems === 0
-    ) {
+    if (!inspection.checklistDetails?.length && !inspection.maintenance?.inspection?.checklist?.length) {
       warnings.push(`Inspeksi ${index + 1} tidak memiliki data checklist`);
-    }
-
-    // Check for missing photos
-    if (!inspection.photos || inspection.photos.length === 0) {
-      warnings.push(`Inspeksi ${index + 1} tidak memiliki foto`);
     }
   });
 
@@ -473,129 +362,37 @@ export function validateExportData(inspections: any[]): {
     errors.push(`Field wajib hilang: ${Array.from(missingFields).join(", ")}`);
   }
 
-  return {
-    isValid: errors.length === 0,
-    errors,
-    warnings,
-  };
+  return { isValid: errors.length === 0, errors, warnings };
 }
 
-/**
- * Helper function to download blob as file
- * Creates temporary download link and triggers download with enhanced error handling
- *
- * @param blob - The blob to download
- * @param filename - Name of the file to download
- */
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function sanitizeFilename(str: string): string {
+  return str.replace(/[^a-zA-Z0-9_\-]/g, "_").replace(/_+/g, "_").substring(0, 50);
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function downloadBlob(blob: Blob, filename: string): void {
-  try {
-    console.log(`📥 Starting download of ${filename} (${blob.size} bytes)`);
+  if (!blob || blob.size === 0) {
+    throw new Error("Invalid or empty blob data");
+  }
 
-    // Check if blob is valid
-    if (!blob || blob.size === 0) {
-      throw new Error("Invalid or empty blob data");
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+
+  setTimeout(() => {
+    try {
+      link.click();
+    } finally {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     }
-
-    // Create object URL
-    const url = window.URL.createObjectURL(blob);
-    console.log(`🔗 Created blob URL: ${url}`);
-
-    // Create download link
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.style.display = "none";
-
-    // Add to DOM and trigger click
-    document.body.appendChild(link);
-    console.log(`⬇️ Triggering download for ${filename}`);
-
-    // Use a timeout to ensure the link is properly added to DOM
-    setTimeout(() => {
-      try {
-        link.click();
-        console.log(`✅ Download initiated successfully for ${filename}`);
-      } catch (clickError) {
-        console.error(`❌ Error clicking download link:`, clickError);
-
-        // Fallback: try direct blob download
-        try {
-          const dataUrl = URL.createObjectURL(blob);
-          const fallbackLink = document.createElement("a");
-          fallbackLink.href = dataUrl;
-          fallbackLink.download = filename;
-          fallbackLink.click();
-          console.log(`✅ Fallback download successful for ${filename}`);
-        } catch (fallbackError) {
-          console.error(`❌ Fallback download failed:`, fallbackError);
-          throw new Error("Unable to trigger download");
-        }
-      } finally {
-        // Cleanup
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }
-    }, 100);
-  } catch (error) {
-    console.error(`❌ Download failed for ${filename}:`, error);
-    throw new Error(
-      `Gagal mengunduh file ${filename}: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`,
-    );
-  }
-}
-
-/**
- * Gets export summary statistics
- * Provides overview of data being exported
- *
- * @param inspections - Array of inspection data
- * @returns Export statistics object
- *
- * @example
- * const stats = getExportStats(inspections);
- * console.log(`Exporting ${stats.totalInspections} inspections from ${stats.contractCount} contracts`);
- */
-export function getExportStats(inspections: any[]): {
-  totalInspections: number;
-  contractCount: number;
-  productTypeBreakdown: Record<ProductType, number>;
-  statusBreakdown: Record<string, number>;
-  dateRange: { earliest: string; latest: string };
-} {
-  const stats = {
-    totalInspections: inspections.length,
-    contractCount: new Set(inspections.map((i) => i.contractNumber)).size,
-    productTypeBreakdown: {} as Record<ProductType, number>,
-    statusBreakdown: {} as Record<string, number>,
-    dateRange: { earliest: "", latest: "" },
-  };
-
-  if (inspections.length === 0) {
-    return stats;
-  }
-
-  // Count product types
-  inspections.forEach((inspection) => {
-    const productType = inspection.productType;
-    stats.productTypeBreakdown[productType] =
-      (stats.productTypeBreakdown[productType] || 0) + 1;
-
-    const status = inspection.status;
-    stats.statusBreakdown[status] = (stats.statusBreakdown[status] || 0) + 1;
-  });
-
-  // Find date range
-  const dates = inspections
-    .map((i) => new Date(i.inspectionDate))
-    .filter((date) => !isNaN(date.getTime()))
-    .sort((a, b) => a.getTime() - b.getTime());
-
-  if (dates.length > 0) {
-    stats.dateRange.earliest = formatDateOnlyWIB(dates[0]);
-    stats.dateRange.latest = formatDateOnlyWIB(dates[dates.length - 1]);
-  }
-
-  return stats;
+  }, 100);
 }

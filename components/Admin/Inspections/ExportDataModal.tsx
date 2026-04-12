@@ -3,10 +3,10 @@
 import { useState, memo } from "react";
 import Modal from "@/components/Admin/Modal";
 import {
-  exportToExcel,
-  exportToCSV,
+  exportInspections,
   validateExportData,
 } from "@/utils/exportInspection";
+import { ProductType } from "@/types/product";
 
 export interface ExportInspectionRow {
   id: string;
@@ -21,6 +21,7 @@ export interface ExportInspectionRow {
   expirationDate: string;
   location: string;
   inspectionDate: string;
+  inspectionDateRaw?: Date | null;
   inspectorName?: string;
   engineerNames: string[];
   checklistSummary: { totalItems: number; okCount: number; nokCount: number };
@@ -35,46 +36,67 @@ export interface ExportInspectionRow {
 interface ExportDataModalProps {
   isOpen: boolean;
   onClose: () => void;
+  allInspections: ExportInspectionRow[];
   filteredInspections: ExportInspectionRow[];
   filterProductType: string;
   filterStatus: string;
-  fetchInspectionsForExport: (startDate?: Date, endDate?: Date) => Promise<ExportInspectionRow[]>;
   onError: (message: string) => void;
 }
 
 function ExportDataModal({
   isOpen,
   onClose,
+  allInspections,
   filteredInspections,
   filterProductType,
   filterStatus,
-  fetchInspectionsForExport,
   onError,
 }: ExportDataModalProps) {
-  const [exportFormat, setExportFormat] = useState<"excel" | "csv">("excel");
   const [exportDateFrom, setExportDateFrom] = useState("");
   const [exportDateTo, setExportDateTo] = useState("");
   const [exportLoading, setExportLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState("");
 
-  const handleExport = async (format: "excel" | "csv") => {
+  const isVerticalFormat = filterProductType === "HYDRANT" || filterProductType === "FIRE_ALARM";
+  const productLabel = filterProductType === "HYDRANT" ? "Hydrant" : filterProductType === "FIRE_ALARM" ? "Fire Alarm" : "APAR";
+
+  const handleExport = async () => {
     setExportLoading(true);
-    setExportProgress(`Memulai export ${format === "excel" ? "Excel" : "CSV"}...`);
+    setExportProgress("Memulai export Excel...");
 
     try {
       let dataToExport: ExportInspectionRow[];
 
       if (exportDateFrom || exportDateTo) {
-        const startDate = exportDateFrom ? new Date(exportDateFrom) : undefined;
-        const endDate = exportDateTo ? new Date(exportDateTo + "T23:59:59") : undefined;
-        setExportProgress("Mengambil data dari database...");
-        dataToExport = await fetchInspectionsForExport(startDate, endDate);
+        // Filter the already-loaded data by date range (client-side)
+        // Use inspectionDateRaw (JS Date) — not inspectionDate (Indonesian formatted string)
+        dataToExport = allInspections.filter((insp) => {
+          if (!insp.inspectionDateRaw) return false;
+          const inspTime = insp.inspectionDateRaw.getTime();
+          if (isNaN(inspTime)) return false;
+          if (exportDateFrom) {
+            const from = new Date(exportDateFrom);
+            from.setHours(0, 0, 0, 0);
+            if (inspTime < from.getTime()) return false;
+          }
+          if (exportDateTo) {
+            const to = new Date(exportDateTo);
+            to.setHours(23, 59, 59, 999);
+            if (inspTime > to.getTime()) return false;
+          }
+          return true;
+        });
       } else {
+        // No date range — use current page-filtered data
         dataToExport = filteredInspections;
       }
 
       if (dataToExport.length === 0) {
-        onError("Tidak ada data inspeksi untuk diekspor dalam rentang tanggal yang dipilih");
+        onError(
+          exportDateFrom || exportDateTo
+            ? "Tidak ada data inspeksi untuk diekspor dalam rentang tanggal yang dipilih"
+            : "Tidak ada data inspeksi untuk diekspor pada halaman saat ini",
+        );
         return;
       }
 
@@ -91,18 +113,29 @@ function ExportDataModal({
       if (filterStatus) filename += `_${filterStatus}`;
       if (exportDateFrom && exportDateTo) filename += `_${exportDateFrom}_to_${exportDateTo}`;
 
-      setExportProgress(`Membuat file ${format === "excel" ? "Excel" : "CSV"} dengan ${dataToExport.length} data...`);
-
-      if (format === "excel") {
-        await exportToExcel(dataToExport, filename);
+      if (isVerticalFormat) {
+        setExportProgress(`Mengunduh ${dataToExport.length} file inspeksi ${productLabel}...`);
       } else {
-        await exportToCSV(dataToExport, filename);
+        setExportProgress(`Membuat file Excel dengan ${dataToExport.length} data...`);
       }
 
-      setExportProgress(`${format === "excel" ? "Excel" : "CSV"} berhasil diunduh!`);
+      await exportInspections(
+        dataToExport,
+        filterProductType as ProductType,
+        filename,
+        (current, total) => {
+          setExportProgress(`Mengunduh file ${current}/${total}...`);
+        },
+      );
+
+      setExportProgress(
+        isVerticalFormat
+          ? `${dataToExport.length} file berhasil diunduh!`
+          : "Excel berhasil diunduh!",
+      );
     } catch (error: any) {
       console.error("Export error:", error instanceof Error ? error.message : "Unknown error");
-      onError(error.message || `Gagal mengekspor data`);
+      onError(error.message || "Gagal mengekspor data");
     } finally {
       setExportLoading(false);
       setExportProgress("");
@@ -110,8 +143,8 @@ function ExportDataModal({
   };
 
   const handleModalExport = async () => {
+    await handleExport();
     onClose();
-    await handleExport(exportFormat);
   };
 
   return (
@@ -119,25 +152,23 @@ function ExportDataModal({
       <div className="space-y-4">
         <div>
           <p className="text-sm text-gray-600">
-            Pilih format file dan rentang tanggal untuk mengekspor data inspeksi.
+            {isVerticalFormat
+              ? `Export data inspeksi ${productLabel}. Setiap inspeksi akan diunduh sebagai file Excel terpisah dengan format vertikal.`
+              : "Export data inspeksi APAR ke file Excel dengan semua data dalam satu tabel."}
           </p>
         </div>
 
         <div className="rounded-lg border border-gray-200 p-4">
           <label className="mb-2 block text-sm font-medium text-gray-700">Format Export</label>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input type="radio" value="excel" checked={exportFormat === "excel"}
-                onChange={(e) => setExportFormat(e.target.value as "excel" | "csv")}
-                className="mr-2 h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500" />
-              <span className="text-sm">Excel (.xlsx) - Recommended untuk analisis data</span>
-            </label>
-            <label className="flex items-center">
-              <input type="radio" value="csv" checked={exportFormat === "csv"}
-                onChange={(e) => setExportFormat(e.target.value as "excel" | "csv")}
-                className="mr-2 h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500" />
-              <span className="text-sm">CSV (.csv) - Universal format untuk sistem lain</span>
-            </label>
+          <div className="rounded-md bg-gray-50 p-3">
+            <p className="text-sm font-medium text-gray-800">
+              {isVerticalFormat ? "Excel (.xlsx) — 1 file per inspeksi" : "Excel (.xlsx) — Tabel flat"}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              {isVerticalFormat
+                ? `Setiap inspeksi ${productLabel} akan diunduh sebagai file terpisah dengan header vertikal dan tabel checklist.`
+                : "Semua data inspeksi APAR ditampilkan dalam satu tabel dengan kolom checklist dan foto."}
+            </p>
           </div>
         </div>
 
@@ -171,11 +202,20 @@ function ExportDataModal({
         {!exportLoading && (exportDateFrom || exportDateTo || filteredInspections.length > 0) && (
           <div className="rounded-lg bg-gray-50 p-3 text-sm">
             <p className="font-medium text-gray-700">Informasi Export:</p>
-            <p className="text-blue-600">Format: {exportFormat === "excel" ? "Excel (.xlsx)" : "CSV (.csv)"}</p>
+            <p className="text-blue-600">
+              {isVerticalFormat
+                ? `Format: Excel — 1 file per inspeksi ${productLabel}`
+                : "Format: Excel — Tabel flat (.xlsx)"}
+            </p>
             {(exportDateFrom || exportDateTo) ? (
-              <p className="text-blue-600">Data akan diambil dari database berdasarkan rentang tanggal yang dipilih</p>
+              <p className="text-blue-600">
+                Data akan difilter berdasarkan rentang tanggal dari {allInspections.length} inspeksi yang tersedia
+              </p>
             ) : (
-              <p className="text-blue-600">Tanpa filter tanggal, akan menggunakan data halaman saat ini: {filteredInspections.length} inspeksi</p>
+              <p className="text-blue-600">
+                Tanpa filter tanggal, akan menggunakan data halaman saat ini: {filteredInspections.length} inspeksi
+                {isVerticalFormat ? ` (${filteredInspections.length} file)` : ""}
+              </p>
             )}
           </div>
         )}
@@ -186,10 +226,8 @@ function ExportDataModal({
             Batal
           </button>
           <button onClick={handleModalExport} disabled={exportLoading}
-            className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
-              exportFormat === "excel" ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
-            } disabled:opacity-50`}>
-            {exportLoading ? "Processing..." : exportFormat === "excel" ? "Export Excel" : "Export CSV"}
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
+            {exportLoading ? "Processing..." : "Export Excel"}
           </button>
         </div>
       </div>

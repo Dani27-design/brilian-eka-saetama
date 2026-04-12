@@ -3,11 +3,7 @@ import React, { memo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Modal from "@/components/Admin/Modal";
-import {
-  getChecklistItemsByType,
-  getChecklistItemStatus,
-  getChecklistItemRemarks,
-} from "@/utils/checklistHelpers";
+// checklistHelpers imports removed — checklist now displayed via modal
 import { MaintenanceStatus } from "@/types/maintenances";
 import { ProductType } from "@/types/product";
 const statusColors: Record<MaintenanceStatus, string> = {
@@ -53,6 +49,8 @@ function InspectionsTable({
   onSetCurrentPage,
 }: InspectionsTableProps) {
   const [detailModal, setDetailModal] = useState<any | null>(null);
+  const [checklistModal, setChecklistModal] = useState<any | null>(null);
+  const [itemPhotosModal, setItemPhotosModal] = useState<any | null>(null);
 
   const handlePageSizeChange = (newPageSize: number) => {
     onSetItemsPerPage(newPageSize);
@@ -90,15 +88,7 @@ function InspectionsTable({
                   <th className="px-4 py-3">Produk & Kontrak</th>
                   <th className="px-4 py-3">Lokasi</th>
                   <th className="px-4 py-3">Inspeksi</th>
-                  {filterProductType &&
-                    getChecklistItemsByType(filterProductType).map((item) => (
-                      <th
-                        key={item}
-                        className="min-w-24 px-4 py-3 text-center"
-                      >
-                        {item}
-                      </th>
-                    ))}
+                  <th className="px-4 py-3">Checklist</th>
                   <th className="px-4 py-3">Foto</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Aksi</th>
@@ -140,115 +130,71 @@ function InspectionsTable({
                         </div>
                       </div>
                     </td>
-                    {filterProductType &&
-                      getChecklistItemsByType(filterProductType).map(
-                        (item) => {
-                          const status = getChecklistItemStatus(
-                            inspection.checklistDetails,
-                            item,
-                          );
-                          const remarks = getChecklistItemRemarks(
-                            inspection.checklistDetails,
-                            item,
-                          );
-                          return (
-                            <td key={item} className="px-4 py-3 text-center">
-                              <div className="flex flex-col items-center">
-                                <div className="flex min-h-[3rem] flex-col items-center">
-                                  {status === "OK" ? (
-                                    <svg
-                                      className="h-5 w-5 text-green-600"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  ) : status === "NOK" ? (
-                                    <svg
-                                      className="h-5 w-5 text-red-600"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  ) : (
-                                    <svg
-                                      className="h-5 w-5 text-gray-400"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  )}
-                                  <span
-                                    className="max-w-20 mt-1 px-1 text-center text-xs"
-                                    title={
-                                      remarks !== "-"
-                                        ? remarks
-                                        : status === "-"
-                                        ? "Item checklist belum diisi"
-                                        : ""
-                                    }
-                                  >
-                                    {remarks !== "-" ? (
-                                      <span className="text-gray-600">
-                                        {remarks}
-                                      </span>
-                                    ) : status === "-" ? (
-                                      <span className="italic text-gray-400">
-                                        Belum diisi
-                                      </span>
-                                    ) : (
-                                      <span>&nbsp;</span>
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-                          );
-                        },
+                    {/* Checklist summary column */}
+                    <td className="px-4 py-3">
+                      {inspection.checklistDetails && inspection.checklistDetails.length > 0 ? (
+                        <div className="text-sm">
+                          <div className="text-xs text-gray-500">
+                            {inspection.checklistSummary.okCount}/{inspection.checklistSummary.totalItems} selesai
+                          </div>
+                          <button
+                            onClick={() => setChecklistModal(inspection)}
+                            className="mt-1 text-xs font-medium text-primary hover:underline"
+                          >
+                            Lihat {inspection.checklistDetails.length} checklist
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">Belum diisi</span>
                       )}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-col items-center">
-                        {inspection.photos.length > 0 ? (
-                          <>
-                            <button
-                              onClick={() =>
-                                onOpenPhotoGallery(inspection.photos, 0)
-                              }
-                              className="group relative"
-                            >
-                              <Image
-                                src={inspection.photos[0]}
-                                alt="Foto inspeksi"
-                                width={40}
-                                height={40}
-                                className="h-10 w-10 rounded object-cover transition-transform hover:scale-110"
-                              />
-                              {inspection.photos.length > 1 && (
-                                <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
-                                  {inspection.photos.length}
-                                </div>
-                              )}
-                            </button>
-                          </>
-                        ) : (
-                          <span className="text-xs text-gray-400">
-                            Tidak ada foto
-                          </span>
-                        )}
+                        {(() => {
+                          const isPerItemPhotos = inspection.productType === "HYDRANT" || inspection.productType === "FIRE_ALARM";
+
+                          if (isPerItemPhotos) {
+                            // Hydrant/FA: count all per-item photos
+                            const totalItemPhotos = (inspection.checklistDetails || []).reduce(
+                              (sum: number, item: any) => sum + (item.photos?.length || 0), 0
+                            );
+                            if (totalItemPhotos > 0) {
+                              return (
+                                <button
+                                  onClick={() => setItemPhotosModal(inspection)}
+                                  className="text-xs font-medium text-primary hover:underline"
+                                >
+                                  {totalItemPhotos} foto
+                                </button>
+                              );
+                            }
+                            return <span className="text-xs text-gray-400">Tidak ada foto</span>;
+                          }
+
+                          // APAR: inspection-level photos
+                          if (inspection.photos.length > 0) {
+                            return (
+                              <button
+                                onClick={() => onOpenPhotoGallery(inspection.photos, 0)}
+                                className="group relative"
+                              >
+                                <Image
+                                  src={inspection.photos[0]}
+                                  alt="Foto inspeksi"
+                                  width={40}
+                                  height={40}
+                                  className="h-10 w-10 rounded object-cover transition-transform hover:scale-110"
+                                />
+                                {inspection.photos.length > 1 && (
+                                  <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
+                                    {inspection.photos.length}
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          }
+                          return <span className="text-xs text-gray-400">Tidak ada foto</span>;
+                        })()}
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -524,6 +470,126 @@ function InspectionsTable({
                 </tr>
               </tbody>
             </table>
+          </div>
+        )}
+      </Modal>
+
+      {/* Checklist Detail Modal */}
+      <Modal
+        isOpen={checklistModal !== null}
+        onClose={() => setChecklistModal(null)}
+        title={checklistModal ? `Checklist — ${checklistModal.productName}` : "Checklist"}
+      >
+        {checklistModal && checklistModal.checklistDetails?.length > 0 && (
+          <div className="styled-scrollbar max-h-[60vh] overflow-auto">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+                  <th className="px-3 py-2 w-8">No</th>
+                  <th className="px-3 py-2">Item</th>
+                  <th className="px-3 py-2 w-16 text-center">Status</th>
+                  <th className="px-3 py-2">Keterangan</th>
+                  {checklistModal.checklistDetails.some((c: any) => c.photos?.length > 0) && (
+                    <th className="px-3 py-2 w-16 text-center">Foto</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stroke">
+                {checklistModal.checklistDetails.map((item: any, idx: number) => (
+                  <tr key={idx} className="hover:bg-blue-50/50">
+                    <td className="px-3 py-2 text-xs text-gray-500">{idx + 1}</td>
+                    <td className="px-3 py-2">
+                      <div className="font-medium text-gray-900">{item.item}</div>
+                      {item.detail && (
+                        <div className="mt-0.5 text-xs text-gray-500">{item.detail}</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      {item.status === true ? (
+                        <span className="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                          {checklistModal.productType === "APAR" ? "OK" : "Sudah"}
+                        </span>
+                      ) : item.status === false ? (
+                        <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          {checklistModal.productType === "APAR" ? "NOK" : "Belum"}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-gray-600">
+                      {item.remarks || "-"}
+                    </td>
+                    {checklistModal.checklistDetails.some((c: any) => c.photos?.length > 0) && (
+                      <td className="px-3 py-2 text-center">
+                        {item.photos?.length > 0 ? (
+                          <button
+                            onClick={() => {
+                              setChecklistModal(null);
+                              onOpenPhotoGallery(item.photos, 0);
+                            }}
+                            className="text-xs font-medium text-primary hover:underline"
+                          >
+                            {item.photos.length} foto
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Modal>
+
+      {/* Per-Item Photos Modal (Hydrant / Fire Alarm) */}
+      <Modal
+        isOpen={itemPhotosModal !== null}
+        onClose={() => setItemPhotosModal(null)}
+        title={itemPhotosModal ? `Foto Checklist — ${itemPhotosModal.productName}` : "Foto"}
+      >
+        {itemPhotosModal && (
+          <div className="styled-scrollbar max-h-[60vh] overflow-auto">
+            <div className="space-y-4 p-1">
+              {(itemPhotosModal.checklistDetails || [])
+                .filter((item: any) => item.photos?.length > 0)
+                .map((item: any, idx: number) => (
+                  <div key={idx} className="rounded-lg border border-stroke p-3">
+                    <div className="mb-2">
+                      <div className="text-sm font-medium text-gray-900">{item.item}</div>
+                      {item.detail && (
+                        <div className="mt-0.5 text-xs text-gray-500">{item.detail}</div>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {item.photos.map((photo: string, pIdx: number) => (
+                        <button
+                          key={pIdx}
+                          onClick={() => {
+                            setItemPhotosModal(null);
+                            onOpenPhotoGallery(item.photos, pIdx);
+                          }}
+                          className="group relative"
+                        >
+                          <Image
+                            src={photo}
+                            alt={`${item.item} foto ${pIdx + 1}`}
+                            width={80}
+                            height={80}
+                            className="h-20 w-20 rounded-lg object-cover transition-transform hover:scale-105"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              {(itemPhotosModal.checklistDetails || []).every((item: any) => !item.photos?.length) && (
+                <p className="py-4 text-center text-sm text-gray-400">Tidak ada foto</p>
+              )}
+            </div>
           </div>
         )}
       </Modal>
