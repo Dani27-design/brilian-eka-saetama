@@ -775,47 +775,32 @@ export default function InspectionsPage() {
   }, [inspections, filters]);
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsExportModalOpen(true)}
-            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-          >
-            Export Data
-          </button>
-          <button
-            onClick={() => setIsCertificateModalOpen(true)}
-            className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
-          >
-            Export Sertifikat
-          </button>
-        </div>
-      </div>
-
+    <div className="flex h-full flex-col">
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {error}
         </div>
       )}
 
       {exportProgress && (
-        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <div className="mb-4 rounded-lg border border-stroke bg-white p-4 shadow-sm">
           <div className="flex items-center">
-            <div className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-blue-300 border-t-blue-600"></div>
-            <p className="text-sm font-medium text-blue-800">{exportProgress}</p>
+            <div className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+            <p className="text-sm font-medium text-gray-700">{exportProgress}</p>
           </div>
         </div>
       )}
 
-      {/* Filter Component */}
-      <div className="mb-6">
+      {/* Filters & Actions */}
+      <div className="mb-4">
         <InspectionFiltersComponent
           filters={filters}
           onFiltersChange={setFilters}
           onClearFilters={handleClearFilters}
           inspectionCount={inspections.length}
           filteredCount={filteredInspections.length}
+          onExportData={() => setIsExportModalOpen(true)}
+          onExportCertificate={() => setIsCertificateModalOpen(true)}
         />
       </div>
 

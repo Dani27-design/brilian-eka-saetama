@@ -24,7 +24,6 @@ interface CustomerFiltersProps {
   addCustomerLabel: string;
   selectedCount: number;
   onExport: () => void;
-  onBulkEdit: () => void;
   onBulkDelete: () => void;
   onClearSelection: () => void;
   onImport: () => void;
@@ -47,7 +46,6 @@ export default function CustomerFiltersComponent({
   addCustomerLabel,
   selectedCount,
   onExport,
-  onBulkEdit,
   onBulkDelete,
   onClearSelection,
   onImport,
@@ -145,10 +143,6 @@ export default function CustomerFiltersComponent({
           <span className="text-sm text-gray-500">
             <span className="font-medium text-gray-700">{selectedCount}</span> pelanggan dipilih
           </span>
-
-          <button onClick={onBulkEdit} className={buttonOutlineClass}>
-            Edit Pelanggan
-          </button>
 
           <button onClick={onBulkDelete} className={buttonOutlineClass}>
             Hapus Pelanggan

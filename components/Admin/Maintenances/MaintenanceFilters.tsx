@@ -34,9 +34,7 @@ interface MaintenanceFiltersProps {
   onCalendarView: () => void;
   selectedCount: number;
   onExport: () => void;
-  onBulkStatusUpdate: () => void;
   onBulkEngineerAssignment: () => void;
-  onBulkDelete: () => void;
   onClearSelection: () => void;
 }
 
@@ -96,9 +94,7 @@ export default function MaintenanceFiltersComponent({
   onCalendarView,
   selectedCount,
   onExport,
-  onBulkStatusUpdate,
   onBulkEngineerAssignment,
-  onBulkDelete,
   onClearSelection,
 }: MaintenanceFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -295,10 +291,6 @@ export default function MaintenanceFiltersComponent({
             maintenance dipilih
           </span>
 
-          <button onClick={onBulkStatusUpdate} className={buttonOutlineClass}>
-            Update Status
-          </button>
-
           <button
             onClick={onBulkEngineerAssignment}
             className={buttonOutlineClass}
@@ -308,10 +300,6 @@ export default function MaintenanceFiltersComponent({
 
           <button onClick={onExport} className={buttonOutlineClass}>
             Ekspor Terpilih
-          </button>
-
-          <button onClick={onBulkDelete} className={buttonOutlineClass}>
-            Hapus Maintenance
           </button>
 
           <button onClick={onClearSelection} className={buttonOutlineClass}>

@@ -228,11 +228,6 @@ export default function MaintenancesPage() {
     }
   };
 
-  // Placeholder functions for bulk operations (to be implemented)
-  const handleBulkStatusUpdate = () => {
-    console.log("Bulk status update for:", selectedMaintenances);
-  };
-
   const handleBulkEngineerAssignment = () => {
     setIsBulkEngineerModalOpen(true);
   };
@@ -400,10 +395,6 @@ export default function MaintenancesPage() {
     }
   };
 
-  const handleBulkDelete = () => {
-    console.log("Bulk delete for:", selectedMaintenances);
-  };
-
   // Get available product types from loaded data
   const availableProductTypes = useMemo(() => {
     const types = new Set<ProductType>();
@@ -434,9 +425,7 @@ export default function MaintenancesPage() {
           onCalendarView={() => router.push("/admin/maintenances/calendar")}
           selectedCount={selectedMaintenances.size}
           onExport={handleExport}
-          onBulkStatusUpdate={handleBulkStatusUpdate}
           onBulkEngineerAssignment={handleBulkEngineerAssignment}
-          onBulkDelete={handleBulkDelete}
           onClearSelection={clearSelection}
         />
       </div>

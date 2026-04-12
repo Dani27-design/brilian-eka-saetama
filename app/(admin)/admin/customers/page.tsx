@@ -268,11 +268,6 @@ export default function CustomersPage() {
     );
   };
 
-  const handleBulkEdit = () => {
-    if (selectedCustomers.size === 0) return;
-    setShowBulkEditDialog(true);
-  };
-
   const handleClearSelection = () => {
     setSelectedCustomers(new Set());
   };
@@ -308,7 +303,6 @@ export default function CustomersPage() {
           addCustomerLabel="Tambah Pelanggan"
           selectedCount={selectedCustomers.size}
           onExport={handleExport}
-          onBulkEdit={handleBulkEdit}
           onBulkDelete={handleBulkDelete}
           onClearSelection={handleClearSelection}
           onImport={() => router.push("/admin/customers/import")}

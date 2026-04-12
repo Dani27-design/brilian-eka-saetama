@@ -1,7 +1,8 @@
 "use client";
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Modal from "@/components/Admin/Modal";
 import {
   getChecklistItemsByType,
   getChecklistItemStatus,
@@ -51,6 +52,8 @@ function InspectionsTable({
   onSetItemsPerPage,
   onSetCurrentPage,
 }: InspectionsTableProps) {
+  const [detailModal, setDetailModal] = useState<any | null>(null);
+
   const handlePageSizeChange = (newPageSize: number) => {
     onSetItemsPerPage(newPageSize);
     onSetCurrentPage(1);
@@ -58,7 +61,7 @@ function InspectionsTable({
     onFetchTotalCount(true);
   };
   return (
-    <div className="rounded-lg border border-stroke bg-white p-4">
+    <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm">
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -80,10 +83,10 @@ function InspectionsTable({
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          <div className="styled-scrollbar min-h-0 flex-1 overflow-auto">
             <table className="w-full table-auto">
-              <thead>
-                <tr className="border-b border-stroke bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+              <thead className="sticky top-0 z-10 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
                   <th className="px-4 py-3">Produk & Kontrak</th>
                   <th className="px-4 py-3">Lokasi</th>
                   <th className="px-4 py-3">Inspeksi</th>
@@ -103,34 +106,18 @@ function InspectionsTable({
               </thead>
               <tbody className="divide-y divide-stroke">
                 {filteredInspections.map((inspection) => (
-                  <tr key={inspection.id} className="text-sm hover:bg-gray-50">
+                  <tr key={inspection.id} className="text-sm hover:bg-blue-50/50">
                     <td className="px-4 py-3">
-                      <div className="flex flex-col">
-                        <div className="mb-1 flex items-center gap-2">
-                          <span className="font-medium">
-                            {inspection.productNumber}
-                          </span>
-                          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-800">
-                            {inspection.productType}
-                          </span>
-                        </div>
-                        <span className="mb-1 text-xs text-gray-700">
-                          {inspection.productName}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Brand: {inspection.productBrand}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Exp: {inspection.expirationDate}
-                        </span>
-                        <div className="mt-2 border-t border-gray-200 pt-2">
-                          <span className="text-xs font-medium text-gray-600">
-                            {inspection.contractNumber}
-                          </span>
-                          <span className="block text-xs text-gray-500">
-                            {inspection.contractName}
-                          </span>
-                        </div>
+                      <div className="text-sm">
+                        <div className="font-medium text-gray-900">{inspection.productName}</div>
+                        <div className="text-xs text-gray-500">{inspection.productNumber} · {inspection.productBrand}</div>
+                        <div className="mt-1 text-xs text-gray-500">{inspection.contractName}</div>
+                        <button
+                          onClick={() => setDetailModal(inspection)}
+                          className="mt-1 text-xs font-medium text-primary hover:underline"
+                        >
+                          Lihat detail
+                        </button>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -251,14 +238,11 @@ function InspectionsTable({
                                 className="h-10 w-10 rounded object-cover transition-transform hover:scale-110"
                               />
                               {inspection.photos.length > 1 && (
-                                <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                                <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
                                   {inspection.photos.length}
                                 </div>
                               )}
                             </button>
-                            <span className="mt-1 text-xs text-gray-500">
-                              {inspection.photos.length} foto
-                            </span>
                           </>
                         ) : (
                           <span className="text-xs text-gray-400">
@@ -283,18 +267,18 @@ function InspectionsTable({
                                 onUpdateStatus(inspection.id, "approved")
                               }
                               disabled={actionLoading === inspection.id}
-                              className="rounded bg-green-500 px-2 py-1 text-xs font-medium text-white hover:bg-green-600 disabled:opacity-50"
+                              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
                             >
-                              {actionLoading === inspection.id ? "..." : "✓"}
+                              {actionLoading === inspection.id ? "..." : "Setujui"}
                             </button>
                             <button
                               onClick={() =>
                                 onUpdateStatus(inspection.id, "rejected")
                               }
                               disabled={actionLoading === inspection.id}
-                              className="rounded bg-red-500 px-2 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
                             >
-                              {actionLoading === inspection.id ? "..." : "✕"}
+                              {actionLoading === inspection.id ? "..." : "Tolak"}
                             </button>
                           </div>
                         )}
@@ -306,30 +290,17 @@ function InspectionsTable({
                           href={`/admin/inspections/edit/${inspection.id}`}
                           className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
                         >
-                          <svg
-                            className="mr-1 h-3 w-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
                           Edit
                         </Link>
                         {inspection.status === "approved" && (
                           <button
                             onClick={() => onGenerateCertificate(inspection)}
                             disabled={certificateLoading === inspection.id}
-                            className="inline-flex w-16 items-center justify-center rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-800 hover:bg-green-200 disabled:opacity-50"
-                            title="Generate PDF Certificate"
+                            className="inline-flex whitespace-nowrap items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                            title="Cetak Sertifikat PDF"
                           >
                             {certificateLoading === inspection.id ? (
-                              <div className="h-3 w-3 animate-spin rounded-full border border-green-800 border-t-transparent"></div>
+                              <div className="h-3 w-3 animate-spin rounded-full border border-gray-600 border-t-transparent"></div>
                             ) : (
                               "Sertifikat"
                             )}
@@ -345,7 +316,7 @@ function InspectionsTable({
           {(currentPage > 1 ||
             hasNextPage ||
             filteredInspections.length > 0) && (
-            <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t pt-4 sm:flex-row sm:space-y-0">
+            <div className="my-0 flex flex-col items-center justify-between space-y-3 border-t border-stroke p-2 sm:flex-row sm:space-y-0">
               <div className="text-xs text-gray-600">
                 {isLoadingCount
                   ? "Menghitung total data..."
@@ -365,7 +336,7 @@ function InspectionsTable({
                   value={itemsPerPage}
                   onChange={(e) => handlePageSizeChange(Number(e.target.value))}
                   disabled={loading || isLoadingMore}
-                  className="rounded-md border px-2 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-md border border-stroke bg-white px-2 py-1 text-sm outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -383,8 +354,8 @@ function InspectionsTable({
                   disabled={currentPage === 1 || isLoadingMore}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === 1 || isLoadingMore
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : "border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
                   {isLoadingMore && currentPage > 1 ? (
@@ -446,8 +417,8 @@ function InspectionsTable({
                   disabled={!hasNextPage || isLoadingMore}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     !hasNextPage || isLoadingMore
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : "border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
                   {isLoadingMore && hasNextPage ? (
@@ -488,6 +459,74 @@ function InspectionsTable({
           )}
         </>
       )}
+      {/* Product & Contract Detail Modal */}
+      <Modal
+        isOpen={detailModal !== null}
+        onClose={() => setDetailModal(null)}
+        title={detailModal ? `Detail — ${detailModal.productName}` : "Detail"}
+      >
+        {detailModal && (
+          <div className="styled-scrollbar max-h-[60vh] overflow-auto">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
+                  <th className="px-3 py-2">Informasi</th>
+                  <th className="px-3 py-2">Detail</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stroke">
+                <tr className="hover:bg-blue-50/50">
+                  <td className="px-3 py-2 font-medium text-gray-700">Produk</td>
+                  <td className="px-3 py-2 text-gray-900">{detailModal.productName}</td>
+                </tr>
+                <tr className="hover:bg-blue-50/50">
+                  <td className="px-3 py-2 font-medium text-gray-700">Nomor Produk</td>
+                  <td className="px-3 py-2 font-mono text-gray-900">{detailModal.productNumber}</td>
+                </tr>
+                <tr className="hover:bg-blue-50/50">
+                  <td className="px-3 py-2 font-medium text-gray-700">Tipe</td>
+                  <td className="px-3 py-2 text-gray-900">{detailModal.productType}</td>
+                </tr>
+                <tr className="hover:bg-blue-50/50">
+                  <td className="px-3 py-2 font-medium text-gray-700">Brand</td>
+                  <td className="px-3 py-2 text-gray-900">{detailModal.productBrand}</td>
+                </tr>
+                {detailModal.brandType && detailModal.brandType !== "N/A" && (
+                  <tr className="hover:bg-blue-50/50">
+                    <td className="px-3 py-2 font-medium text-gray-700">Tipe Brand</td>
+                    <td className="px-3 py-2 text-gray-900">{detailModal.brandType}</td>
+                  </tr>
+                )}
+                {detailModal.capacity && detailModal.capacity !== "N/A" && (
+                  <tr className="hover:bg-blue-50/50">
+                    <td className="px-3 py-2 font-medium text-gray-700">Kapasitas</td>
+                    <td className="px-3 py-2 text-gray-900">{detailModal.capacity}</td>
+                  </tr>
+                )}
+                <tr className="hover:bg-blue-50/50">
+                  <td className="px-3 py-2 font-medium text-gray-700">Tanggal Kadaluarsa</td>
+                  <td className="px-3 py-2 text-gray-900">{detailModal.expirationDate}</td>
+                </tr>
+                <tr className="hover:bg-blue-50/50">
+                  <td className="px-3 py-2 font-medium text-gray-700">Lokasi</td>
+                  <td className="px-3 py-2 text-gray-900">{detailModal.location}</td>
+                </tr>
+                <tr className="bg-blue-50/30">
+                  <td colSpan={2} className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Kontrak</td>
+                </tr>
+                <tr className="hover:bg-blue-50/50">
+                  <td className="px-3 py-2 font-medium text-gray-700">Nama Kontrak</td>
+                  <td className="px-3 py-2 text-gray-900">{detailModal.contractName}</td>
+                </tr>
+                <tr className="hover:bg-blue-50/50">
+                  <td className="px-3 py-2 font-medium text-gray-700">Nomor Kontrak</td>
+                  <td className="px-3 py-2 text-gray-900">{detailModal.contractNumber}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

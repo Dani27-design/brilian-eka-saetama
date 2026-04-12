@@ -66,7 +66,7 @@ export default function AdminHeader({
     <header
       className={`${
         sidebarOpen ? "lg:ml-64" : "lg:ml-20"
-      } flex items-center justify-between border-b border-stroke bg-white px-3 py-3 transition-all duration-300`}
+      } flex min-h-[65px] items-center justify-between border-b border-stroke bg-white px-3 py-3 transition-all duration-300`}
     >
       <div className="flex items-center gap-4">
         {/* Mobile hamburger menu */}
