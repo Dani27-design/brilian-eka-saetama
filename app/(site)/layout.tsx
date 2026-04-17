@@ -31,9 +31,9 @@ export default async function SiteLayout({
         <Lines />
         <Header />
         {/* Skip to content link for accessibility */}
-        <a href="#main-content" className="sr-only focus:not-sr-only">
+        {/* <a href="#main-content" className="sr-only focus:not-sr-only">
           Skip to content
-        </a>
+        </a> */}
         <main id="main-content">{children}</main>
         <Footer />
         <ScrollToTop />
