@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo } from "react";
+import { useState, useEffect, memo } from "react";
 import Modal from "@/components/Admin/Modal";
 import {
   exportInspections,
@@ -56,20 +56,36 @@ function ExportDataModal({
   const [exportDateTo, setExportDateTo] = useState("");
   const [exportLoading, setExportLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState("");
+  const [localWarning, setLocalWarning] = useState("");
 
   const isVerticalFormat = filterProductType === "HYDRANT" || filterProductType === "FIRE_ALARM";
   const productLabel = filterProductType === "HYDRANT" ? "Hydrant" : filterProductType === "FIRE_ALARM" ? "Fire Alarm" : "APAR";
 
+  // Clear local warning when dates change or modal reopens
+  useEffect(() => {
+    setLocalWarning("");
+  }, [exportDateFrom, exportDateTo, isOpen]);
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setExportDateFrom("");
+      setExportDateTo("");
+      setExportLoading(false);
+      setExportProgress("");
+      setLocalWarning("");
+    }
+  }, [isOpen]);
+
   const handleExport = async () => {
     setExportLoading(true);
     setExportProgress("Memulai export Excel...");
+    setLocalWarning("");
 
     try {
       let dataToExport: ExportInspectionRow[];
 
       if (exportDateFrom || exportDateTo) {
-        // Filter the already-loaded data by date range (client-side)
-        // Use inspectionDateRaw (JS Date) — not inspectionDate (Indonesian formatted string)
         dataToExport = allInspections.filter((insp) => {
           if (!insp.inspectionDateRaw) return false;
           const inspTime = insp.inspectionDateRaw.getTime();
@@ -87,23 +103,33 @@ function ExportDataModal({
           return true;
         });
       } else {
-        // No date range — use current page-filtered data
         dataToExport = filteredInspections;
       }
 
       if (dataToExport.length === 0) {
-        onError(
-          exportDateFrom || exportDateTo
-            ? "Tidak ada data inspeksi untuk diekspor dalam rentang tanggal yang dipilih"
-            : "Tidak ada data inspeksi untuk diekspor pada halaman saat ini",
+        // Show detailed warning locally — don't propagate to parent
+        const dateInfo = exportDateFrom || exportDateTo
+          ? `Rentang tanggal: ${exportDateFrom || "awal"} — ${exportDateTo || "akhir"}`
+          : "Tidak ada filter tanggal yang diterapkan";
+        const totalInfo = `Total inspeksi ${productLabel} tersedia: ${allInspections.length}`;
+        const suggestion = exportDateFrom || exportDateTo
+          ? "Coba perluas rentang tanggal atau kosongkan filter tanggal untuk mengekspor semua data."
+          : "Pastikan ada data inspeksi yang tersedia pada halaman saat ini.";
+
+        setLocalWarning(
+          `Tidak ditemukan data inspeksi untuk diekspor.\n\n${dateInfo}\n${totalInfo}\n\n${suggestion}`
         );
+        setExportLoading(false);
+        setExportProgress("");
         return;
       }
 
       setExportProgress(`Memvalidasi ${dataToExport.length} data inspeksi...`);
       const validation = validateExportData(dataToExport);
       if (!validation.isValid) {
-        onError(`Gagal ekspor: ${validation.errors.join(", ")}`);
+        setLocalWarning(`Validasi gagal: ${validation.errors.join(", ")}`);
+        setExportLoading(false);
+        setExportProgress("");
         return;
       }
 
@@ -133,22 +159,22 @@ function ExportDataModal({
           ? `${dataToExport.length} file berhasil diunduh!`
           : "Excel berhasil diunduh!",
       );
+
+      // Auto-close after successful export
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (error: any) {
       console.error("Export error:", error instanceof Error ? error.message : "Unknown error");
-      onError(error.message || "Gagal mengekspor data");
+      onError(error.message || "Gagal mengekspor laporan");
+      onClose();
     } finally {
       setExportLoading(false);
-      setExportProgress("");
     }
   };
 
-  const handleModalExport = async () => {
-    await handleExport();
-    onClose();
-  };
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Export Data Inspeksi">
+    <Modal isOpen={isOpen} onClose={onClose} title="Ekspor Laporan Inspeksi" size="lg">
       <div className="space-y-4">
         <div>
           <p className="text-sm text-gray-600">
@@ -157,6 +183,32 @@ function ExportDataModal({
               : "Export data inspeksi APAR ke file Excel dengan semua data dalam satu tabel."}
           </p>
         </div>
+
+        {/* Local Warning — dismissible, detailed */}
+        {localWarning && (
+          <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+            <div className="flex items-start gap-3">
+              <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <div className="flex-1">
+                {localWarning.split("\n").map((line, i) => (
+                  <p key={i} className={`text-sm ${i === 0 ? "font-medium text-orange-800" : "text-orange-700"} ${line === "" ? "h-2" : ""}`}>
+                    {line}
+                  </p>
+                ))}
+              </div>
+              <button
+                onClick={() => setLocalWarning("")}
+                className="flex-shrink-0 rounded-md p-1 text-orange-400 hover:bg-orange-100 hover:text-orange-600"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-lg border border-gray-200 p-4">
           <label className="mb-2 block text-sm font-medium text-gray-700">Format Export</label>
@@ -173,6 +225,7 @@ function ExportDataModal({
         </div>
 
         <div className="rounded-lg border border-gray-200 p-4">
+          <label className="mb-2 block text-sm font-medium text-gray-700">Rentang Tanggal (Opsional)</label>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex-1">
               <label className="mb-1 block text-xs text-gray-500">Dari Tanggal</label>
@@ -188,6 +241,9 @@ function ExportDataModal({
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
             </div>
           </div>
+          <p className="mt-2 text-xs text-gray-400">
+            Kosongkan untuk mengekspor semua data yang sedang ditampilkan ({filteredInspections.length} inspeksi)
+          </p>
         </div>
 
         {exportLoading && exportProgress && (
@@ -199,24 +255,20 @@ function ExportDataModal({
           </div>
         )}
 
-        {!exportLoading && (exportDateFrom || exportDateTo || filteredInspections.length > 0) && (
+        {!exportLoading && !localWarning && (
           <div className="rounded-lg bg-gray-50 p-3 text-sm">
-            <p className="font-medium text-gray-700">Informasi Export:</p>
-            <p className="text-blue-600">
-              {isVerticalFormat
-                ? `Format: Excel — 1 file per inspeksi ${productLabel}`
-                : "Format: Excel — Tabel flat (.xlsx)"}
-            </p>
-            {(exportDateFrom || exportDateTo) ? (
-              <p className="text-blue-600">
-                Data akan difilter berdasarkan rentang tanggal dari {allInspections.length} inspeksi yang tersedia
-              </p>
-            ) : (
-              <p className="text-blue-600">
-                Tanpa filter tanggal, akan menggunakan data halaman saat ini: {filteredInspections.length} inspeksi
-                {isVerticalFormat ? ` (${filteredInspections.length} file)` : ""}
-              </p>
-            )}
+            <p className="font-medium text-gray-700">Ringkasan:</p>
+            <div className="mt-1 space-y-0.5 text-xs text-gray-600">
+              <p>Tipe produk: <span className="font-medium">{productLabel}</span></p>
+              <p>Total inspeksi tersedia: <span className="font-medium">{allInspections.length}</span></p>
+              {(exportDateFrom || exportDateTo) ? (
+                <p>Filter: <span className="font-medium">{exportDateFrom || "awal"} — {exportDateTo || "akhir"}</span></p>
+              ) : (
+                <p>Data yang akan diekspor: <span className="font-medium">{filteredInspections.length} inspeksi</span>
+                  {isVerticalFormat ? ` (${filteredInspections.length} file)` : ""}
+                </p>
+              )}
+            </div>
           </div>
         )}
 
@@ -225,9 +277,9 @@ function ExportDataModal({
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             Batal
           </button>
-          <button onClick={handleModalExport} disabled={exportLoading}
+          <button onClick={handleExport} disabled={exportLoading}
             className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
-            {exportLoading ? "Processing..." : "Export Excel"}
+            {exportLoading ? "Memproses..." : "Ekspor Laporan"}
           </button>
         </div>
       </div>

@@ -286,8 +286,8 @@ export default function CustomersPage() {
     <div className="flex h-full flex-col">
       {/* Error Display */}
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-          {error}
+        <div className="mb-4 flex-shrink-0 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <p className="break-words">{error}</p>
         </div>
       )}
 

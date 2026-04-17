@@ -20,8 +20,8 @@ interface InspectionFiltersProps {
   onClearFilters: () => void;
   inspectionCount: number;
   filteredCount: number;
-  onExportData: () => void;
-  onExportCertificate: () => void;
+  onExportData?: () => void;
+  onExportCertificate?: () => void;
   fixedProductType?: ProductType;
 }
 
@@ -117,40 +117,44 @@ export default function InspectionFiltersComponent({
         {/* Actions */}
         <div className="flex items-center gap-3">
           {/* Export Data */}
-          <button onClick={onExportData} className={buttonOutlineClass}>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"
-              />
-            </svg>
-            Ekspor Data
-          </button>
+          {onExportData && (
+            <button onClick={onExportData} className={buttonOutlineClass}>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"
+                />
+              </svg>
+              Ekspor Laporan
+            </button>
+          )}
 
           {/* Export Certificate */}
-          <button onClick={onExportCertificate} className={buttonOutlineClass}>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Ekspor Sertifikat
-          </button>
+          {onExportCertificate && (
+            <button onClick={onExportCertificate} className={buttonOutlineClass}>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Ekspor Sertifikat
+            </button>
+          )}
 
           {/* Filter Toggle */}
           <button

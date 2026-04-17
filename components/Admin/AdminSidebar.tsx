@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/app/context/LanguageContext";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { firestore } from "@/db/firebase/firebaseConfig";
 
 const translations = {
   id: {
@@ -15,6 +17,7 @@ const translations = {
     contractManagement: "Manajemen Kontrak",
     maintenanceManagement: "Manajemen Pemeliharaan",
     inspectionManagement: "Manajemen Inspeksi",
+    waitingApproval: "Menunggu Approval",
     aparInspection: "Inspeksi APAR",
     hydrantInspection: "Inspeksi Hydrant",
     fireAlarmInspection: "Inspeksi Fire Alarm",
@@ -42,6 +45,7 @@ const translations = {
     contractManagement: "Contract Management",
     maintenanceManagement: "Maintenance Management",
     inspectionManagement: "Inspection Management",
+    waitingApproval: "Waiting Approval",
     aparInspection: "APAR Inspection",
     hydrantInspection: "Hydrant Inspection",
     fireAlarmInspection: "Fire Alarm Inspection",
@@ -153,6 +157,7 @@ export default function AdminSidebar({
 }) {
   const [websiteContentExpanded, setWebsiteContentExpanded] = useState(false);
   const [inspectionExpanded, setInspectionExpanded] = useState(false);
+  const [waitingApprovalCount, setWaitingApprovalCount] = useState<number>(0);
   const pathname = usePathname();
   const { language } = useLanguage();
   const t =
@@ -165,6 +170,29 @@ export default function AdminSidebar({
       setWebsiteContentExpanded(true);
     if (pathname?.includes("-inspections") || pathname === "/admin/inspections")
       setInspectionExpanded(true);
+  }, []);
+
+  useEffect(() => {
+    const fetchWaitingCount = async () => {
+      try {
+        const q = query(
+          collection(firestore, "maintenances"),
+          where("status", "==", "waiting_approval")
+        );
+        const snapshot = await getDocs(q);
+        // Only count docs that have actual inspection data submitted
+        const count = snapshot.docs.filter((d) => {
+          const data = d.data();
+          return data.inspection && data.inspection.createdAt;
+        }).length;
+        setWaitingApprovalCount(count);
+      } catch (error) {
+        console.error("Error fetching waiting approval count:", error);
+      }
+    };
+    fetchWaitingCount();
+    const interval = setInterval(fetchWaitingCount, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const isActive = (href: string, startsWith?: boolean) => {
@@ -207,6 +235,7 @@ export default function AdminSidebar({
   ];
 
   const inspectionItems = [
+    { href: "/admin/inspections", label: t.waitingApproval, badge: waitingApprovalCount },
     { href: "/admin/apar-inspections", label: t.aparInspection },
     { href: "/admin/hydrant-inspections", label: t.hydrantInspection },
     { href: "/admin/fire-alarm-inspections", label: t.fireAlarmInspection },
@@ -403,6 +432,11 @@ export default function AdminSidebar({
                           <div className="h-1.5 w-1.5 rounded-full bg-current opacity-50" />
                         </div>
                         {isOpen && <span>{item.label}</span>}
+                        {isOpen && item.badge !== undefined && (
+                          <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+                            {item.badge}
+                          </span>
+                        )}
                       </Link>
                     </li>
                   ))}

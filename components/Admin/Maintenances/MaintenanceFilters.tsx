@@ -192,6 +192,24 @@ export default function MaintenanceFiltersComponent({
               </option>
             ))}
           </select>
+
+          {/* Kalender */}
+          <button onClick={onCalendarView} className={buttonOutlineClass}>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            Kalender
+          </button>
         </div>
 
         {/* Actions */}
@@ -212,42 +230,6 @@ export default function MaintenanceFiltersComponent({
               />
             </svg>
             Buat Jadwal
-          </button>
-
-          {/* Kalender */}
-          <button onClick={onCalendarView} className={buttonOutlineClass}>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            Kalender
-          </button>
-
-          {/* Ekspor */}
-          <button onClick={onExport} className={buttonOutlineClass}>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            Ekspor
           </button>
 
           {/* Filter */}
@@ -296,10 +278,6 @@ export default function MaintenanceFiltersComponent({
             className={buttonOutlineClass}
           >
             Tugaskan Teknisi
-          </button>
-
-          <button onClick={onExport} className={buttonOutlineClass}>
-            Ekspor Terpilih
           </button>
 
           <button onClick={onClearSelection} className={buttonOutlineClass}>

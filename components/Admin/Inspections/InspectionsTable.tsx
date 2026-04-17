@@ -23,6 +23,7 @@ interface InspectionsTableProps {
   countCacheTimestamp: number | null; COUNT_CACHE_DURATION: number;
   onUpdateStatus: (id: string, status: string) => Promise<void>;
   onGenerateCertificate: (inspection: any) => void;
+  onGenerateReport: (inspection: any) => void;
   onOpenPhotoGallery: (photos: string[], startIndex?: number) => void;
   onFetchInspections: (page: number) => void; onFetchTotalCount: (force?: boolean) => void;
   onSetItemsPerPage: (size: number) => void; onSetCurrentPage: (page: number) => void;
@@ -42,6 +43,7 @@ function InspectionsTable({
   certificateLoading,
   onUpdateStatus,
   onGenerateCertificate,
+  onGenerateReport,
   onOpenPhotoGallery,
   onFetchInspections,
   onFetchTotalCount,
@@ -257,6 +259,16 @@ function InspectionsTable({
                           </svg>
                           Edit
                         </Link>
+                        <button
+                          onClick={() => onGenerateReport(inspection)}
+                          className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-green-300 bg-white px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-50"
+                          title="Ekspor Laporan Inspeksi"
+                        >
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          Laporan
+                        </button>
                         {inspection.status === "approved" && (
                           <button
                             onClick={() => onGenerateCertificate(inspection)}

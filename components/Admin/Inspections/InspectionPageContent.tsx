@@ -115,6 +115,7 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
   const [exportLoading, setExportLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState<string>("");
   const [certificateLoading, setCertificateLoading] = useState<string | null>(null);
+  const [singleReportInspection, setSingleReportInspection] = useState<any | null>(null);
 
   const handleClearFilters = () => {
     setFilters({ ...defaultFilters, search: filters.search });
@@ -401,16 +402,16 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
   return (
     <div className="flex h-full flex-col">
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-          {error}
+        <div className="mb-4 flex-shrink-0 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <p className="break-words">{error}</p>
         </div>
       )}
 
       {exportProgress && (
-        <div className="mb-4 rounded-lg border border-stroke bg-white p-4 shadow-sm">
+        <div className="mb-4 flex-shrink-0 rounded-lg border border-stroke bg-white p-4 shadow-sm">
           <div className="flex items-center">
-            <div className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-            <p className="text-sm font-medium text-gray-700">{exportProgress}</p>
+            <div className="mr-3 h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+            <p className="break-words text-sm font-medium text-gray-700">{exportProgress}</p>
           </div>
         </div>
       )}
@@ -445,6 +446,10 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
         COUNT_CACHE_DURATION={0}
         onUpdateStatus={updateMaintenanceStatus}
         onGenerateCertificate={handleGenerateCertificate}
+        onGenerateReport={(inspection: any) => {
+          setSingleReportInspection(inspection);
+          setIsExportModalOpen(true);
+        }}
         onOpenPhotoGallery={openPhotoGallery}
         onFetchInspections={(page: number) => setCurrentPage(page)}
         onFetchTotalCount={() => {}}
@@ -462,9 +467,12 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
 
       <ExportDataModal
         isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        allInspections={inspections.filter((i) => i.productType === productType)}
-        filteredInspections={filteredInspections}
+        onClose={() => {
+          setIsExportModalOpen(false);
+          setSingleReportInspection(null);
+        }}
+        allInspections={singleReportInspection ? [singleReportInspection] : inspections.filter((i) => i.productType === productType)}
+        filteredInspections={singleReportInspection ? [singleReportInspection] : filteredInspections}
         filterProductType={productType}
         filterStatus={filters.status}
         onError={setError}
