@@ -238,7 +238,7 @@ export default function ContactPersonForm({
               </div>
 
               {/* Contact Form */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     Nama <span className="text-red-500">*</span>

@@ -221,9 +221,10 @@ export default function AddressForm({
       <h3 className="text-lg font-medium text-gray-900">
         Alamat
       </h3>
-      
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
       {/* Street Address */}
-      <div>
+      <div className="md:col-span-4">
         <label className="mb-1 block text-sm font-medium text-gray-700">
           Alamat Jalan <span className="text-red-500">*</span>
         </label>
@@ -436,6 +437,8 @@ export default function AddressForm({
         {errors.postalCode && (
           <p className="mt-1 text-sm text-red-600">{errors.postalCode}</p>
         )}
+      </div>
+
       </div>
 
       {/* Region validation error */}

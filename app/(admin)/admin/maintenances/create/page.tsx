@@ -355,8 +355,8 @@ export default function CreateMaintenancePage() {
       {/* Maintenance Form Container */}
       <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-auto mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
+          <div className="min-h-0 flex-1 overflow-auto mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Kontrak
             </label>
@@ -374,30 +374,6 @@ export default function CreateMaintenancePage() {
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Produk yang akan dijadwalkan
-            </label>
-            <div className="rounded-lg border border-stroke bg-gray-50 p-3">
-              {selectedProducts.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  Pilih kontrak terlebih dahulu untuk melihat produk
-                </p>
-              ) : (
-                <ul className="max-h-32 overflow-y-auto">
-                  {selectedProducts.map((product) => (
-                    <li key={product.id} className="mb-1 text-sm">
-                      {product.productNumber} - {product.name}
-                      <span className="ml-2 inline-block rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
-                        {product.productType}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
           </div>
 
           <div>
@@ -439,7 +415,31 @@ export default function CreateMaintenancePage() {
             />
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-4">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Produk yang akan dijadwalkan
+            </label>
+            <div className="rounded-lg border border-stroke bg-gray-50 p-3">
+              {selectedProducts.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  Pilih kontrak terlebih dahulu untuk melihat produk
+                </p>
+              ) : (
+                <ul className="max-h-32 overflow-y-auto">
+                  {selectedProducts.map((product) => (
+                    <li key={product.id} className="mb-1 text-sm">
+                      {product.productNumber} - {product.name}
+                      <span className="ml-2 inline-block rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
+                        {product.productType}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          <div className="md:col-span-4">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Teknisi
             </label>

@@ -499,7 +499,7 @@ export default function EditContractPage() {
       {/* Contract Form Container */}
       <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-auto mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="min-h-0 flex-1 overflow-auto mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               No. Kontrak
@@ -552,18 +552,21 @@ export default function EditContractPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Deskripsi Kontrak
+              Status
             </label>
-            <input
-              name="contractDescription"
-              placeholder="Deskripsi Kontrak"
-              value={form.contractDescription}
+            <select
+              name="status"
+              value={form.status}
               onChange={handleChange}
               className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
-            />
+            >
+              <option value="active">Aktif</option>
+              <option value="inactive">Tidak Aktif</option>
+              <option value="terminated">Dihentikan</option>
+            </select>
           </div>
-          <div>
+          <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Pelanggan
             </label>
@@ -608,24 +611,21 @@ export default function EditContractPage() {
               required
             />
           </div>
-          <div>
+          <div className="md:col-span-4">
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Status
+              Deskripsi Kontrak
             </label>
-            <select
-              name="status"
-              value={form.status}
+            <input
+              name="contractDescription"
+              placeholder="Deskripsi Kontrak"
+              value={form.contractDescription}
               onChange={handleChange}
               className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               required
-            >
-              <option value="active">Aktif</option>
-              <option value="inactive">Tidak Aktif</option>
-              <option value="terminated">Dihentikan</option>
-            </select>
+            />
           </div>
           {/* Detail produk (dynamic add/remove, sekaligus memilih produk) */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-4">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Produk (bisa tambah lebih dari satu)
             </label>
@@ -634,7 +634,7 @@ export default function EditContractPage() {
                 key={index}
                 className="mb-4 rounded-lg border border-stroke bg-gray-50 p-4"
               >
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700">
                       Produk
@@ -688,7 +688,7 @@ export default function EditContractPage() {
                     />
                   </div>
                 </div>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700">
                       Pemeliharaan

@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { usePageHeader } from "@/app/context/PageHeaderContext";
 import BlogFiltersComponent, {
@@ -34,7 +35,7 @@ const translations = {
     page: "Halaman",
     of: "dari",
     showing: "Menampilkan",
-    entries: "entri",
+    entries: "blog",
     error: "Terjadi kesalahan",
     deleted: "Blog berhasil dihapus",
     deleteError: "Gagal menghapus blog",
@@ -56,7 +57,7 @@ const translations = {
     page: "Page",
     of: "of",
     showing: "Showing",
-    entries: "entries",
+    entries: "blogs",
     error: "An error occurred",
     deleted: "Blog deleted successfully",
     deleteError: "Failed to delete blog",
@@ -87,6 +88,7 @@ export default function BlogsPage() {
   const t =
     translations[language as keyof typeof translations] || translations.en;
   usePageHeader(t.title, t.description);
+  const router = useRouter();
 
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -228,30 +230,8 @@ export default function BlogsPage() {
   };
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6 xl:p-7.5">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Link
-          href="/admin/blogs/create"
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          {t.addBlog}
-        </Link>
-      </div>
-
+    <div className="flex h-full flex-col">
+      {/* Error Display */}
       {error && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           {error}
@@ -263,8 +243,8 @@ export default function BlogsPage() {
         </div>
       )}
 
-      {/* Filter Component */}
-      <div className="mb-6">
+      {/* Filters & Actions */}
+      <div className="mb-4">
         <BlogFiltersComponent
           filters={filters}
           onFiltersChange={setFilters}
@@ -272,10 +252,12 @@ export default function BlogsPage() {
           blogCount={blogs.length}
           filteredCount={sortedBlogs.length}
           availableAuthors={availableAuthors}
+          onAddBlog={() => router.push("/admin/blogs/create")}
+          addBlogLabel={t.addBlog}
         />
       </div>
 
-      <div className="rounded-lg border border-stroke bg-white p-4">
+      <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -322,22 +304,22 @@ export default function BlogsPage() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="styled-scrollbar min-h-0 flex-1 overflow-auto">
               <table className="w-full table-auto">
-                <thead>
-                  <tr className="border-b border-stroke bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">
-                    <th className="px-4 py-3">{t.titleCol}</th>
-                    <th className="px-4 py-3">{t.metadataCol}</th>
-                    <th className="px-4 py-3">Author</th>
-                    <th className="px-4 py-3">{t.publishDate}</th>
-                    <th className="px-4 py-3">{t.actions}</th>
+                <thead className="sticky top-0 z-10 bg-white shadow-[inset_0_-2px_0_0_#bfdbfe]">
+                  <tr className="text-left">
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">{t.titleCol}</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">{t.metadataCol}</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">Author</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">{t.publishDate}</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-700">{t.actions}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stroke">
                   {currentBlogs.map((blog) => (
                     <tr
                       key={blog._id}
-                      className="text-sm text-black hover:bg-gray-50"
+                      className="text-sm text-black hover:bg-blue-50/50"
                     >
                       <td className="flex items-center gap-2 px-4 py-3">
                         {blog.title || "-"}
@@ -398,9 +380,8 @@ export default function BlogsPage() {
                 </tbody>
               </table>
             </div>
-
             {/* Pagination Controls */}
-            <div className="mt-4 flex flex-col items-center justify-between space-y-3 border-t border-stroke pt-4 sm:flex-row sm:space-y-0">
+            <div className="my-0 flex flex-col items-center justify-between space-y-3 border-t border-stroke p-2 sm:flex-row sm:space-y-0">
               <div className="text-xs text-gray-600">
                 {t.showing} {indexOfFirstItem + 1}-
                 {Math.min(indexOfLastItem, sortedBlogs.length)} {t.of}{" "}
@@ -416,7 +397,7 @@ export default function BlogsPage() {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="rounded-md border border-stroke bg-transparent px-2 py-1 text-sm"
+                  className="rounded-md border border-stroke bg-white px-2 py-1 text-sm outline-none focus:border-primary"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -431,8 +412,8 @@ export default function BlogsPage() {
                   disabled={currentPage === 1}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === 1
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : "border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
                   <svg
@@ -459,8 +440,8 @@ export default function BlogsPage() {
                   disabled={currentPage === totalPages || totalPages === 0}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
                     currentPage === totalPages || totalPages === 0
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : "border-stroke bg-white hover:bg-gray-100"
+                      ? "cursor-not-allowed border-gray-200 bg-blue-50/50 text-gray-400"
+                      : "border-stroke bg-white hover:bg-blue-50"
                   }`}
                 >
                   <svg

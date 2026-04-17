@@ -7,6 +7,8 @@ import { firestore } from "@/db/firebase/firebaseConfig";
 import { useLanguage } from "@/app/context/LanguageContext";
 import BlogItemEditor from "@/components/Admin/BlogItemEditor";
 import { Blog } from "@/types/blog";
+import Link from "next/link";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 export default function CreateBlogPage() {
   const router = useRouter();
@@ -14,6 +16,8 @@ export default function CreateBlogPage() {
   const currentLang = language || "id";
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  usePageHeader("Tambah Blog Baru", "Tulis dan terbitkan postingan blog baru.");
 
   const [blog, setBlog] = useState<Blog>({
     _id: Date.now(),
@@ -94,74 +98,67 @@ export default function CreateBlogPage() {
   };
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 md:p-6 xl:p-7.5">
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-black">
-          Create New Blog Post
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Write and publish a new blog post on your website.
-        </p>
+    <div className="flex h-full flex-col">
+      {/* Back button */}
+      <div className="mb-4">
+        <Link
+          href="/admin/blogs"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-stroke bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Kembali ke Blog
+        </Link>
       </div>
 
+      {/* Error Display */}
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 112 0v4a1 1 0 11-2 0V9z"
-                  clipRule="evenodd"
-                />
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                Error
-              </h3>
-              <p className="mt-2 text-sm text-red-700">
-                {error}
-              </p>
+              <h3 className="text-sm font-medium text-red-800">Terjadi Kesalahan</h3>
+              <div className="mt-2 text-sm text-red-700">{error}</div>
             </div>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-6 p-0">
-          <BlogItemEditor
-            blog={blog}
-            index={0}
-            onRemove={() => {}} // Not used in create mode
-            disableRemove={true}
-            onTextChange={handleTextChange}
-            onContentChange={handleContentChange}
-            activeTab={currentLang}
-          />
-        </div>
+      {/* Blog Form Container */}
+      <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-auto mb-6">
+            <BlogItemEditor
+              blog={blog}
+              index={0}
+              onTextChange={handleTextChange}
+              onContentChange={handleContentChange}
+              activeTab={currentLang}
+            />
+          </div>
 
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/blogs")}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-70"
-          >
-            {isSaving ? "Saving..." : "Publish Blog Post"}
-          </button>
-        </div>
-      </form>
+          <div className="flex justify-end space-x-4">
+            <Link
+              href="/admin/blogs"
+              className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            >
+              Batal
+            </Link>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-50"
+            >
+              {isSaving ? "Menyimpan..." : "Terbitkan Blog"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

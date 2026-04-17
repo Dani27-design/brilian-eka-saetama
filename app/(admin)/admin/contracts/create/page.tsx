@@ -326,7 +326,7 @@ export default function CreateContractPage() {
       {/* Contract Form Container */}
       <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-auto mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="min-h-0 flex-1 overflow-auto mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               No. Kontrak
@@ -346,6 +346,54 @@ export default function CreateContractPage() {
             )}
           </div>
           <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Nama Kontrak
+            </label>
+            <input
+              name="contractName"
+              placeholder="Nama Kontrak"
+              value={form.contractName}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Tipe Kontrak
+            </label>
+            <select
+              name="contractType"
+              value={form.contractType}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+              required
+            >
+              <option>Pilih Tipe Kontrak</option>
+              <option value="service">Perbaikan</option>
+              <option value="maintenance">Pemeliharaan</option>
+              <option value="rental">Penyewaan</option>
+              <option value="sales">Penjualan</option>
+              <option value="other">Lainnya</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <select
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+              required
+            >
+              <option value="active">Aktif</option>
+              <option value="inactive">Tidak Aktif</option>
+              <option value="terminated">Dihentikan</option>
+            </select>
+          </div>
+          <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Pelanggan
             </label>
@@ -390,55 +438,7 @@ export default function CreateContractPage() {
               required
             />
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Status
-            </label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-              required
-            >
-              <option value="active">Aktif</option>
-              <option value="inactive">Tidak Aktif</option>
-              <option value="terminated">Dihentikan</option>
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Nama Kontrak
-            </label>
-            <input
-              name="contractName"
-              placeholder="Nama Kontrak"
-              value={form.contractName}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-              required
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Tipe Kontrak
-            </label>
-            <select
-              name="contractType"
-              value={form.contractType}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-              required
-            >
-              <option>Pilih Tipe Kontrak</option>
-              <option value="service">Perbaikan</option>
-              <option value="maintenance">Pemeliharaan</option>
-              <option value="rental">Penyewaan</option>
-              <option value="sales">Penjualan</option>
-              <option value="other">Lainnya</option>
-            </select>
-          </div>
-          <div className="md:col-span-2">
+          <div className="md:col-span-4">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Deskripsi Kontrak
             </label>
@@ -451,7 +451,7 @@ export default function CreateContractPage() {
             />
           </div>
           {/* Produk dynamic add/remove */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-4">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Produk (bisa pilih lebih dari satu)
             </label>

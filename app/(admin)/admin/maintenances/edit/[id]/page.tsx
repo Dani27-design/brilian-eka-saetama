@@ -486,8 +486,8 @@ export default function EditMaintenancePage() {
       <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-auto">
-            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Kontrak
             </label>
@@ -498,7 +498,7 @@ export default function EditMaintenancePage() {
             />
           </div>
 
-          <div>
+          <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Produk
             </label>
@@ -583,7 +583,7 @@ export default function EditMaintenancePage() {
             />
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-4">
             {!form.inspection && (
               <>
                 <label className="mb-1 block text-sm font-medium text-gray-700">

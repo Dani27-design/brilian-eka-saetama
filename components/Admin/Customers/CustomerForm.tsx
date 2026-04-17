@@ -181,7 +181,7 @@ export default function CustomerForm({
             Informasi Dasar
           </h3>
           
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             {/* Customer Name */}
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">

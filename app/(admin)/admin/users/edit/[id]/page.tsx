@@ -383,7 +383,7 @@ export default function EditUserPage() {
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-auto">
             {/* Form fields grid */}
-            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
               {/* Name Field */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">

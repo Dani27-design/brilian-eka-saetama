@@ -30,12 +30,13 @@ const SimpleBlogEditor = ({
   };
 
   return (
-    <div className="markdown-editor" data-color-mode="light">
+    <div className="markdown-editor w-full overflow-hidden rounded-lg border border-stroke" data-color-mode="light">
       <MDEditor
         value={value}
         onChange={handleChange}
         height={400}
         preview="edit"
+        style={{ maxWidth: "100%" }}
       />
     </div>
   );

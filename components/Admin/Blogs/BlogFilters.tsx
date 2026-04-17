@@ -18,7 +18,23 @@ interface BlogFiltersProps {
   blogCount: number;
   filteredCount: number;
   availableAuthors: string[];
+  onAddBlog: () => void;
+  addBlogLabel: string;
 }
+
+const inputBaseClass =
+  "h-10 w-full rounded-lg border border-stroke bg-white px-4 text-sm outline-none transition-colors focus:border-primary";
+
+const selectBaseClass =
+  "h-10 w-full rounded-lg border border-stroke bg-white px-4 text-sm outline-none transition-colors focus:border-primary";
+
+const buttonPrimaryClass =
+  "inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary/90";
+
+const buttonOutlineClass =
+  "inline-flex h-10 items-center gap-2 rounded-lg border border-stroke bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50";
+
+const labelClass = "mb-1.5 block text-sm font-medium text-gray-700";
 
 export default function BlogFiltersComponent({
   filters,
@@ -27,10 +43,11 @@ export default function BlogFiltersComponent({
   blogCount,
   filteredCount,
   availableAuthors,
+  onAddBlog,
+  addBlogLabel,
 }: BlogFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Check if any filters are active (excluding search and default sort)
   const hasActiveFilters =
     filters.author !== "" ||
     filters.startDate !== "" ||
@@ -46,24 +63,38 @@ export default function BlogFiltersComponent({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Search and Quick Actions */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="space-y-3">
+      {/* Row 1: Search + Actions */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         {/* Search */}
-        <div className="flex-1 max-w-md">
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Cari Blog
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Judul, deskripsi..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="w-full rounded-lg border border-stroke bg-white px-4 py-2 pl-10 outline-none focus:border-primary"
+        <div className="relative flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Cari blog berdasarkan judul atau deskripsi..."
+            value={filters.search}
+            onChange={(e) => handleFilterChange("search", e.target.value)}
+            className={`${inputBaseClass} pl-10`}
+          />
+          <svg
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
+          </svg>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-wrap items-center gap-3">
+          <button onClick={onAddBlog} className={buttonPrimaryClass}>
             <svg
-              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              className="h-4 w-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -72,50 +103,38 @@ export default function BlogFiltersComponent({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                d="M12 4v16m8-8H4"
               />
             </svg>
-          </div>
-        </div>
-
-        {/* Quick Filter Toggle and Results Count */}
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">{filteredCount}</span> dari{" "}
-            <span className="font-medium">{blogCount}</span> blog
-          </div>
+            {addBlogLabel}
+          </button>
 
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className={buttonOutlineClass}
           >
             <svg
-              className={`h-4 w-4 transition-transform ${
-                isExpanded ? "rotate-180" : ""
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 16 16"
             >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
+                fill="currentColor"
+                fillRule="evenodd"
+                d="m8.5 8.379l.44-.44l4.56-4.56V2.5h-11v.879l4.56 4.56l.44.44v4l1-1v-3ZM10 12l-2.5 2.5L6 16V9L1.293 4.293A1 1 0 0 1 1 3.586V2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v1.586a1 1 0 0 1-.293.707L10 9v3Z"
+                clipRule="evenodd"
               />
             </svg>
-            Filter Lanjutan
+            Filter
             {hasActiveFilters && (
-              <span className="flex h-2 w-2 rounded-full bg-orange-400"></span>
+              <span className="h-2 w-2 rounded-full bg-primary"></span>
             )}
           </button>
 
           {hasActiveFilters && (
-            <button
-              onClick={onClearFilters}
-              className="text-sm text-red-600 hover:text-red-700"
-            >
-              Clear Filters
+            <button onClick={onClearFilters} className={buttonOutlineClass}>
+              Hapus Filter
             </button>
           )}
         </div>
@@ -123,17 +142,15 @@ export default function BlogFiltersComponent({
 
       {/* Advanced Filters */}
       {isExpanded && (
-        <div className="rounded-lg border border-stroke bg-gray-50 p-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border border-stroke bg-white p-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Author Filter */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Author
-              </label>
+              <label className={labelClass}>Author</label>
               <select
                 value={filters.author}
                 onChange={(e) => handleFilterChange("author", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                className={selectBaseClass}
               >
                 <option value="">Semua Author</option>
                 {availableAuthors.map((author) => (
@@ -146,44 +163,35 @@ export default function BlogFiltersComponent({
 
             {/* Start Date Filter */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Tanggal Mulai
-              </label>
+              <label className={labelClass}>Tanggal Mulai</label>
               <input
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange("startDate", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none [color-scheme:light] focus:border-primary"
+                className={`${inputBaseClass} [color-scheme:light]`}
               />
             </div>
 
             {/* End Date Filter */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Tanggal Akhir
-              </label>
+              <label className={labelClass}>Tanggal Akhir</label>
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange("endDate", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none [color-scheme:light] focus:border-primary"
+                className={`${inputBaseClass} [color-scheme:light]`}
               />
             </div>
-
-            {/* Placeholder for grid alignment */}
-            <div className="hidden lg:block"></div>
           </div>
 
           {/* Sorting */}
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Urutkan Berdasarkan
-              </label>
+              <label className={labelClass}>Urutkan Berdasarkan</label>
               <select
                 value={filters.sortBy}
                 onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                className={selectBaseClass}
               >
                 <option value="publishDate">Tanggal Publish</option>
                 <option value="title">Judul</option>
@@ -192,13 +200,11 @@ export default function BlogFiltersComponent({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Urutan
-              </label>
+              <label className={labelClass}>Urutan</label>
               <select
                 value={filters.sortOrder}
                 onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
-                className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                className={selectBaseClass}
               >
                 <option value="desc">Terbaru ke Terlama</option>
                 <option value="asc">Terlama ke Terbaru</option>
