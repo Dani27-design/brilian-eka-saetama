@@ -16,6 +16,8 @@ import { useAdmin } from "@/app/context/AdminContext";
 import { Maintenance, MaintenanceStatus } from "@/types/maintenances";
 import { ProductType } from "@/types/product";
 import Image from "next/image";
+import Link from "next/link";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 type UserMeta = {
   name?: string;
@@ -39,6 +41,8 @@ export default function EditMaintenancePage() {
   const params = useParams();
   const id = params?.id as string;
   const { user } = useAdmin();
+
+  usePageHeader("Edit Maintenance", "Ubah data jadwal maintenance sesuai kebutuhan.");
 
   const [form, setForm] = useState<MaintenanceFormData | null>(null);
   const [engineers, setEngineers] = useState<any[]>([]);
@@ -432,36 +436,57 @@ export default function EditMaintenancePage() {
   if (loading || !form) return <div className="p-8 text-center">Memuat...</div>;
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 md:p-6 xl:p-7.5">
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-black">
-          Edit Maintenance
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Ubah data jadwal maintenance sesuai kebutuhan.
-        </p>
+    <div className="flex h-full flex-col">
+      {/* Back button with meta info */}
+      <div className="flex flex-row w-full justify-between mb-4">
+        <Link
+          href="/admin/maintenances"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-stroke bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Kembali ke Maintenance
+        </Link>
+        {/* Meta Information */}
         {metaInfo && (
-          <div className="mt-3 rounded bg-blue-50 px-4 py-2 text-xs text-gray-700">
-            {metaInfo.label}{" "}
+          <div className="inline-flex h-10 items-center rounded-lg border border-stroke bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 text-xs text-blue-800">
+            <span className="font-medium">{metaInfo.label} : </span>
             {metaInfo.user?.name && (
-              <span>
+              <span className="ml-1">
                 <b>{metaInfo.user.name}</b>
                 {metaInfo.user.role ? ` (${metaInfo.user.role})` : ""}
               </span>
             )}
-            {metaInfo.date && <span className="ml-2">{metaInfo.date}</span>}
+            {metaInfo.date && (
+              <span className="ml-1 text-blue-600">{metaInfo.date}</span>
+            )}
           </div>
         )}
       </div>
 
+      {/* Error Display */}
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4">
-          <div className="ml-3">{error}</div>
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Terjadi Kesalahan</h3>
+              <div className="mt-2 text-sm text-red-700">{error}</div>
+            </div>
+          </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+      {/* Maintenance Edit Form Container */}
+      <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-auto">
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Kontrak
@@ -647,10 +672,11 @@ export default function EditMaintenancePage() {
               </div>
             )}
           </div>
-        </div>
+          </div>
 
-        {form.inspection && (
-          <div className="mb-6">
+            {/* Inspection section — KEEP EXACTLY AS-IS */}
+            {form.inspection && (
+            <div className="mb-6">
             <h3 className="mb-3 text-xl font-semibold text-black">
               Data Inspeksi
             </h3>
@@ -821,25 +847,26 @@ export default function EditMaintenancePage() {
               </div>
             </div>
           </div>
-        )}
+          )}
+          </div>
 
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/maintenances")}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-70"
-          >
-            {loading ? "Menyimpan..." : "Simpan Perubahan"}
-          </button>
-        </div>
-      </form>
+          <div className="flex justify-end space-x-4">
+            <Link
+              href="/admin/maintenances"
+              className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            >
+              Batal
+            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-50"
+            >
+              {loading ? "Menyimpan..." : "Simpan Perubahan"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

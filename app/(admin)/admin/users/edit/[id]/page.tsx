@@ -12,6 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAdmin } from "@/app/context/AdminContext";
 import { useLanguage } from "@/app/context/LanguageContext";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 import PasswordInput from "@/components/Admin/PasswordInput";
 
 // Types
@@ -109,6 +110,8 @@ export default function EditUserPage() {
   const { user } = useAdmin();
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations] || translations.en;
+
+  usePageHeader(t.title, t.description);
 
   const [form, setForm] = useState<UserForm>({
     name: "",
@@ -314,189 +317,194 @@ export default function EditUserPage() {
   }
 
   return (
-    <div className="">
-      {/* Header with Breadcrumb */}
-      <div className="mb-8">
-        <nav className="mb-4 flex items-center text-sm text-gray-500">
-          <Link href="/admin/users" className="hover:text-gray-700">
-            {t.backToUsers}
-          </Link>
-          <svg className="mx-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+    <div className="flex h-full flex-col">
+      {/* Back button with meta info */}
+      <div className="flex flex-row w-full justify-between mb-4">
+        <Link
+          href="/admin/users"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-stroke bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="text-gray-900">{t.title}</span>
-        </nav>
-        
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            {t.title}
-          </h1>
-          <p className="mt-1 text-sm text-gray-600">
-            {t.description}
-          </p>
-        </div>
-      </div>
-
-      {/* Messages */}
-      {error && (
-        <div className="mb-6 rounded-lg bg-red-50 p-4 border border-red-200">
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-6 rounded-lg bg-green-50 p-4 border border-green-200">
-          <p className="text-sm text-green-700">{success}</p>
-        </div>
-      )}
-
-      {/* Main Form Container */}
-      <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6">
-        {/* User Info Section */}
-        <div className="mb-6 border-b border-stroke pb-4">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {t.userInfo}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium text-gray-600">{t.createdAt}:</span>
-              <span className="ml-2 text-gray-900">
-                {userData.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}
-              </span>
-            </div>
+          {t.backToUsers}
+        </Link>
+        {/* Meta Information */}
+        {userData && (
+          <div className="inline-flex h-10 items-center rounded-lg border border-stroke bg-white px-4 text-xs text-blue-800">
+            <span className="font-medium">{t.createdAt}: </span>
+            <span className="ml-1">{userData.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}</span>
             {userData.updatedAt && (
-              <div>
-                <span className="font-medium text-gray-600">{t.lastUpdated}:</span>
-                <span className="ml-2 text-gray-900">
-                  {userData.updatedAt?.toDate?.()?.toLocaleDateString() || 'N/A'}
-                </span>
-              </div>
+              <>
+                <span className="mx-2 text-gray-300">|</span>
+                <span className="font-medium">{t.lastUpdated}: </span>
+                <span className="ml-1">{userData.updatedAt?.toDate?.()?.toLocaleDateString() || 'N/A'}</span>
+              </>
             )}
           </div>
-        </div>
+        )}
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Name Field */}
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                {t.name}<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                required
-              />
+      {/* Error Display */}
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-
-            {/* Email Field */}
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                {t.email}<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                required
-              />
-            </div>
-
-            {/* Role Field */}
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                {t.role}<span className="text-red-500">*</span>
-              </label>
-              <select
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                required
-              >
-                <option value="admin">{t.adminRole}</option>
-                <option value="engineer">{t.engineerRole}</option>
-                <option value="user">{t.userRole}</option>
-              </select>
-            </div>
-
-            {/* Status Field */}
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                {t.status}
-              </label>
-              <div className="flex items-center pt-2">
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  checked={form.isActive}
-                  onChange={handleChange}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <label className="ml-2 text-sm text-gray-700">
-                  {form.isActive ? t.active : t.inactive}
-                </label>
-              </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Terjadi Kesalahan</h3>
+              <div className="mt-2 text-sm text-red-700">{error}</div>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Password Section */}
-          <div className="mb-6 border-t border-stroke pt-6">
-            <h3 className="mb-4 text-base font-medium text-gray-900">
-              {t.password}
-            </h3>
-            <p className="mb-4 text-xs text-gray-500">
-              {t.passwordHint}
-            </p>
-            
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {/* New Password */}
+      {/* Success Display */}
+      {success && (
+        <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <div className="text-sm text-green-700">{success}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Edit Form Container */}
+      <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-auto">
+            {/* Form fields grid */}
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* Name Field */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {t.password}
+                  {t.name}<span className="text-red-500">*</span>
                 </label>
-                <PasswordInput
-                  name="password"
-                  value={form.password}
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                  minLength={6}
+                  required
                 />
               </div>
 
-              {/* Confirm Password */}
+              {/* Email Field */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {t.confirmPassword}
+                  {t.email}<span className="text-red-500">*</span>
                 </label>
-                <PasswordInput
-                  name="confirmPassword"
-                  value={form.confirmPassword}
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                  minLength={6}
+                  required
                 />
+              </div>
+
+              {/* Role Field */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {t.role}<span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="role"
+                  value={form.role}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                  required
+                >
+                  <option value="admin">{t.adminRole}</option>
+                  <option value="engineer">{t.engineerRole}</option>
+                  <option value="user">{t.userRole}</option>
+                </select>
+              </div>
+
+              {/* Status Field */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {t.status}
+                </label>
+                <div className="flex items-center pt-2">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={form.isActive}
+                    onChange={handleChange}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <label className="ml-2 text-sm text-gray-700">
+                    {form.isActive ? t.active : t.inactive}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Password Section */}
+            <div className="mb-6 border-t border-stroke pt-6">
+              <h3 className="mb-4 text-base font-medium text-gray-900">
+                {t.password}
+              </h3>
+              <p className="mb-4 text-xs text-gray-500">
+                {t.passwordHint}
+              </p>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* New Password */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    {t.password}
+                  </label>
+                  <PasswordInput
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                    minLength={6}
+                  />
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    {t.confirmPassword}
+                  </label>
+                  <PasswordInput
+                    name="confirmPassword"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                    minLength={6}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Form Actions */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <div className="flex justify-end space-x-4">
             <Link
               href="/admin/users"
-              className="flex w-full justify-center rounded-lg border border-stroke bg-gray-100 px-6 py-2 text-center font-medium text-black hover:bg-opacity-90 sm:w-auto"
+              className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
             >
               {t.cancel}
             </Link>
             <button
               type="submit"
               disabled={saving}
-              className="flex w-full justify-center rounded-lg bg-primary px-6 py-2 font-medium text-white hover:bg-opacity-90 disabled:opacity-50 sm:w-auto"
+              className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-50"
             >
               {saving ? t.saving : t.save}
             </button>

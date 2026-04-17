@@ -171,9 +171,10 @@ export default function CustomerForm({
   };
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-4 md:p-6">
+    <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 overflow-auto space-y-8">
         {/* Basic Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-gray-900">
@@ -276,7 +277,8 @@ export default function CustomerForm({
           disabled={loading}
         />
 
-        {/* Form Actions */}
+        </div>
+        {/* Form Actions — pinned below scroll area */}
         <div className="flex justify-end space-x-4 border-t pt-6">
           <button
             type="button"

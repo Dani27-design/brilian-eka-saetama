@@ -11,6 +11,7 @@ import {
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter, useParams } from "next/navigation";
 import { useAdmin } from "@/app/context/AdminContext";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 import { Customer } from "@/types/customer";
 import CustomerForm from "@/components/Admin/Customers/CustomerForm";
 import Link from "next/link";
@@ -35,6 +36,8 @@ export default function EditCustomerPage() {
     date?: string;
     user?: UserMeta;
   } | null>(null);
+
+  usePageHeader("Edit Pelanggan", "Ubah informasi pelanggan sesuai kebutuhan");
 
   useEffect(() => {
     const fetchCustomer = async () => {
@@ -143,48 +146,33 @@ export default function EditCustomerPage() {
   }
 
   return (
-    <div className="">
-      {/* Enhanced Header */}
-      <div className="mb-8">
-        <nav className="mb-4 flex items-center text-sm text-gray-500">
-          <Link href="/admin/customers" className="hover:text-gray-700">
-            Pelanggan
-          </Link>
-          <svg className="mx-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    <div className="flex h-full flex-col">
+      {/* Back button with meta info */}
+      <div className="flex flex-row w-full justify-between mb-4">
+        <Link
+          href="/admin/customers"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-stroke bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="text-gray-900">Edit</span>
-        </nav>
-        
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">Edit Pelanggan</h1>
-            <p className="mt-1 text-sm text-gray-600">Ubah informasi pelanggan sesuai kebutuhan</p>
-            {/* Meta Information */}
-            {metaInfo && (
-              <div className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800">
-                <span className="font-medium">{metaInfo.label}</span>
-                {metaInfo.user && (
-                  <span className="ml-1">
-                    {metaInfo.user.name} ({metaInfo.user.role})
-                  </span>
-                )}
-                {metaInfo.date && (
-                  <span className="ml-2 text-blue-600">pada {metaInfo.date}</span>
-                )}
-              </div>
+          Kembali ke Pelanggan
+        </Link>
+        {/* Meta Information */}
+        {metaInfo && (
+          <div className="inline-flex h-10 items-center rounded-lg border border-stroke bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 text-xs text-blue-800">
+            <span className="font-medium">{metaInfo.label} : </span>
+            {metaInfo.user?.name && (
+              <span className="ml-1">
+                <b>{metaInfo.user.name}</b>
+                {metaInfo.user.role ? ` (${metaInfo.user.role})` : ""}
+              </span>
+            )}
+            {metaInfo.date && (
+              <span className="ml-1 text-blue-600">{metaInfo.date}</span>
             )}
           </div>
-          <Link
-            href="/admin/customers"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 sm:w-auto"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Kembali ke Daftar
-          </Link>
-        </div>
+        )}
       </div>
 
       {/* Error Display */}
@@ -197,17 +185,13 @@ export default function EditCustomerPage() {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                Terjadi Kesalahan
-              </h3>
-              <div className="mt-2 text-sm text-red-700">
-                {error}
-              </div>
+              <h3 className="text-sm font-medium text-red-800">Terjadi Kesalahan</h3>
+              <div className="mt-2 text-sm text-red-700">{error}</div>
             </div>
           </div>
         </div>
       )}
-      
+
       {/* Customer Form */}
       <CustomerForm
         mode="edit"

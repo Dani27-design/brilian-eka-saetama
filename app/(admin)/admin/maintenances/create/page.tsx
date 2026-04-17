@@ -15,6 +15,8 @@ import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
 import { useAdmin } from "@/app/context/AdminContext";
 import { ProductType } from "@/types/product";
+import Link from "next/link";
+import { usePageHeader } from "@/app/context/PageHeaderContext";
 
 type Contract = {
   id: string;
@@ -55,6 +57,8 @@ export default function CreateMaintenancePage() {
   const [error, setError] = useState("");
   const router = useRouter();
   const { user } = useAdmin();
+
+  usePageHeader("Tambah Jadwal Maintenance", "Pilih kontrak dan tanggal untuk membuat jadwal maintenance.");
 
   useEffect(() => {
     const fetchContracts = async () => {
@@ -317,25 +321,41 @@ export default function CreateMaintenancePage() {
   };
 
   return (
-    <div className="shadow-default rounded-sm border border-stroke bg-white p-2 md:p-6 xl:p-7.5">
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-black">
-          Tambah Jadwal Maintenance
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Pilih kontrak dan tanggal untuk membuat jadwal maintenance. Satu
-          maintenance akan dibuat untuk setiap produk pada kontrak.
-        </p>
+    <div className="flex h-full flex-col">
+      {/* Back button */}
+      <div className="mb-4">
+        <Link
+          href="/admin/maintenances"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-stroke bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Kembali ke Maintenance
+        </Link>
       </div>
 
+      {/* Error Display */}
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4">
-          <div className="ml-3">{error}</div>
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Terjadi Kesalahan</h3>
+              <div className="mt-2 text-sm text-red-700">{error}</div>
+            </div>
+          </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+      {/* Maintenance Form Container */}
+      <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-auto mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Kontrak
@@ -493,25 +513,25 @@ export default function CreateMaintenancePage() {
               </div>
             )}
           </div>
-        </div>
+          </div>
 
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/maintenances")}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-70"
-          >
-            {loading ? "Menyimpan..." : "Simpan Maintenance"}
-          </button>
-        </div>
-      </form>
+          <div className="flex justify-end space-x-4">
+            <Link
+              href="/admin/maintenances"
+              className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+            >
+              Batal
+            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-50"
+            >
+              {loading ? "Menyimpan..." : "Simpan Maintenance"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
