@@ -66,8 +66,9 @@ export default function MaintenancesPage() {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   
-  // Bulk engineer assignment modal state
+  // Engineer assignment modal state
   const [isBulkEngineerModalOpen, setIsBulkEngineerModalOpen] = useState(false);
+  const [singleAssignMaintenanceId, setSingleAssignMaintenanceId] = useState<string | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
   
   // Filter options
@@ -254,21 +255,26 @@ export default function MaintenancesPage() {
     }
   };
 
-  // Main bulk engineer assignment function
+  // Main engineer assignment function (works for both single and bulk)
   const performBulkEngineerAssignment = async (
     engineerIds: string[],
     mode: AssignmentMode
   ) => {
-    if (selectedMaintenances.size === 0) {
+    // Determine which maintenances to process: single-assign or bulk selection
+    const maintenanceIds = singleAssignMaintenanceId
+      ? [singleAssignMaintenanceId]
+      : Array.from(selectedMaintenances);
+
+    if (maintenanceIds.length === 0) {
       toast.error("Tidak ada maintenance yang dipilih");
       return;
     }
 
     setBulkLoading(true);
-    
+
     try {
-      // Get selected maintenance data for validation and processing
-      const selectedMaintenanceData = Array.from(selectedMaintenances)
+      // Get maintenance data for validation and processing
+      const selectedMaintenanceData = maintenanceIds
         .map(id => allMaintenances.find(m => m.id === id))
         .filter(Boolean) as MaintenanceTableRow[];
 
@@ -369,6 +375,7 @@ export default function MaintenancesPage() {
 
       // Clear selection after successful operation
       setSelectedMaintenances(new Set());
+      setSingleAssignMaintenanceId(null);
 
       // Show results
       const totalRequested = validMaintenances.length;
@@ -549,15 +556,21 @@ export default function MaintenancesPage() {
                               <button
                                 onClick={() => updateMaintenanceStatus(maintenance.id, "approved")}
                                 disabled={actionLoading === maintenance.id}
-                                className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-lg border border-green-300 bg-white px-2 py-1 text-xs font-medium text-green-600 transition-colors hover:bg-green-50 disabled:opacity-50"
                               >
+                                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
                                 {actionLoading === maintenance.id ? "..." : "Setujui"}
                               </button>
                               <button
                                 onClick={() => updateMaintenanceStatus(maintenance.id, "rejected")}
                                 disabled={actionLoading === maintenance.id}
-                                className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-lg border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                               >
+                                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                                 {actionLoading === maintenance.id ? "..." : "Tolak"}
                               </button>
                             </div>
@@ -565,12 +578,41 @@ export default function MaintenancesPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Link
-                          href={`/admin/maintenances/edit/${maintenance.id}`}
-                          className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
-                        >
-                          Edit
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/admin/maintenances/edit/${maintenance.id}`}
+                            className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
+                          >
+                            <svg
+                              className="mr-1 h-3 w-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            Edit
+                          </Link>
+                          {!maintenance.hasInspection && (
+                            <button
+                              onClick={() => {
+                                setSingleAssignMaintenanceId(maintenance.id);
+                                setIsBulkEngineerModalOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                            >
+                              <svg className="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              Tugaskan Teknisi
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -654,13 +696,20 @@ export default function MaintenancesPage() {
         )}
       </Modal>
 
-      {/* Bulk Engineer Assignment Modal */}
+      {/* Engineer Assignment Modal (single or bulk) */}
       <BulkEngineerAssignmentModal
         isOpen={isBulkEngineerModalOpen}
-        onClose={() => setIsBulkEngineerModalOpen(false)}
-        selectedMaintenances={Array.from(selectedMaintenances)
-          .map(id => allMaintenances.find(m => m.id === id))
-          .filter(Boolean) as MaintenanceTableRow[]}
+        onClose={() => {
+          setIsBulkEngineerModalOpen(false);
+          setSingleAssignMaintenanceId(null);
+        }}
+        selectedMaintenances={
+          singleAssignMaintenanceId
+            ? allMaintenances.filter(m => m.id === singleAssignMaintenanceId)
+            : Array.from(selectedMaintenances)
+                .map(id => allMaintenances.find(m => m.id === id))
+                .filter(Boolean) as MaintenanceTableRow[]
+        }
         onAssign={performBulkEngineerAssignment}
         availableEngineers={availableEngineers}
         loading={bulkLoading}

@@ -267,15 +267,17 @@ export default function AdminSidebar({
             )}
           </div>
 
-          {/* Name + Role — same typography as header title + subtitle */}
+          {/* Name + Email */}
           {isOpen && (
             <div className="flex min-w-0 flex-1 flex-col justify-center">
               <div className="truncate text-xl font-semibold leading-tight text-black">
                 {userData?.name || "Admin"}
               </div>
-              <p className="mt-0.5 truncate text-sm leading-tight text-gray-500">
-                {userData?.role || ""}
-              </p>
+              {userData?.email && (
+                <p className="mt-0.5 truncate text-xs leading-tight text-gray-400">
+                  {userData.email}
+                </p>
+              )}
             </div>
           )}
         </div>

@@ -213,8 +213,11 @@ function InspectionsTable({
                                 onUpdateStatus(inspection.id, "approved")
                               }
                               disabled={actionLoading === inspection.id}
-                              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                              className="inline-flex items-center gap-1 rounded-lg border border-green-300 bg-white px-2 py-1 text-xs font-medium text-green-600 transition-colors hover:bg-green-50 disabled:opacity-50"
                             >
+                              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
                               {actionLoading === inspection.id ? "..." : "Setujui"}
                             </button>
                             <button
@@ -222,8 +225,11 @@ function InspectionsTable({
                                 onUpdateStatus(inspection.id, "rejected")
                               }
                               disabled={actionLoading === inspection.id}
-                              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                              className="inline-flex items-center gap-1 rounded-lg border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                             >
+                              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
                               {actionLoading === inspection.id ? "..." : "Tolak"}
                             </button>
                           </div>
@@ -236,19 +242,37 @@ function InspectionsTable({
                           href={`/admin/inspections/edit/${inspection.id}`}
                           className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
                         >
+                          <svg
+                            className="mr-1 h-3 w-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
                           Edit
                         </Link>
                         {inspection.status === "approved" && (
                           <button
                             onClick={() => onGenerateCertificate(inspection)}
                             disabled={certificateLoading === inspection.id}
-                            className="inline-flex whitespace-nowrap items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
+                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-blue-300 bg-white px-3 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50 disabled:opacity-50"
                             title="Cetak Sertifikat PDF"
                           >
                             {certificateLoading === inspection.id ? (
-                              <div className="h-3 w-3 animate-spin rounded-full border border-gray-600 border-t-transparent"></div>
+                              <div className="h-3 w-3 animate-spin rounded-full border border-blue-600 border-t-transparent"></div>
                             ) : (
-                              "Sertifikat"
+                              <>
+                                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Sertifikat
+                              </>
                             )}
                           </button>
                         )}

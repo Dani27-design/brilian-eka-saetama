@@ -13,6 +13,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { firestore, auth } from "@/db/firebase/firebaseConfig";
+import Image from "next/image";
 import { useLanguage } from "@/app/context/LanguageContext";
 import { usePageHeader } from "@/app/context/PageHeaderContext";
 import Modal from "@/components/Admin/Modal";
@@ -119,6 +120,7 @@ type User = {
   role: string;
   isActive: boolean;
   createdAt: Date;
+  photoURL: string;
 };
 
 const defaultFilters: UserFilters = {
@@ -171,6 +173,7 @@ export default function UserManagementPage() {
             role: data.role || "user",
             isActive: data.isActive !== false,
             createdAt: data.createdAt?.toDate() || new Date(),
+            photoURL: data.photoURL || "",
           });
         });
 
@@ -317,6 +320,7 @@ export default function UserManagementPage() {
           role: newUser.role,
           isActive: true,
           createdAt: new Date(),
+          photoURL: "",
         },
       ]);
 
@@ -474,7 +478,24 @@ export default function UserManagementPage() {
                       key={user.id}
                       className="text-sm text-black hover:bg-blue-50/50"
                     >
-                      <td className="px-4 py-3">{user.name}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {user.photoURL ? (
+                            <Image
+                              src={user.photoURL}
+                              alt={user.name}
+                              width={32}
+                              height={32}
+                              className="h-8 w-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span>{user.name}</span>
+                        </div>
+                      </td>
                       <td className="px-4 py-3">{user.email}</td>
                       <td className="px-4 py-3">
                         {user.role === "admin"

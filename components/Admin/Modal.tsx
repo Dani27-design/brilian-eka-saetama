@@ -8,9 +8,17 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   title?: string;
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
-const Modal = ({ isOpen, onClose, children, title }: ModalProps) => {
+const sizeClasses = {
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-2xl",
+  xl: "max-w-4xl",
+};
+
+const Modal = ({ isOpen, onClose, children, title, size = "md" }: ModalProps) => {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
   // Close on escape key
@@ -63,26 +71,25 @@ const Modal = ({ isOpen, onClose, children, title }: ModalProps) => {
 
   // Use portal to render modal outside the normal component hierarchy
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div
         ref={modalRef}
-        className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+        className={`flex max-h-[90vh] w-full flex-col rounded-lg bg-white shadow-xl ${sizeClasses[size]}`}
       >
         {title && (
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-black">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="rounded-full p-1 hover:bg-gray-100"
+              className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
             >
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-500"
+                className="h-5 w-5"
                 fill="none"
-                viewBox="0 0 24 24"
                 stroke="currentColor"
+                viewBox="0 0 24 24"
               >
                 <path
                   strokeLinecap="round"
@@ -94,7 +101,9 @@ const Modal = ({ isOpen, onClose, children, title }: ModalProps) => {
             </button>
           </div>
         )}
-        {children}
+        <div className="styled-scrollbar flex-1 overflow-auto px-6 py-4">
+          {children}
+        </div>
       </div>
     </div>,
     document.body,
