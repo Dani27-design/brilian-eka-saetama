@@ -258,7 +258,7 @@ export async function exportVerticalInspections(
 ): Promise<void> {
   if (!inspections.length) throw new Error("Tidak ada data inspeksi untuk diekspor");
 
-  const label = productType === "HYDRANT" ? "Hydrant" : "Fire_Alarm";
+  const label = productType === "HYDRANT" ? "Hydrant" : "Fire Alarm";
 
   for (let i = 0; i < inspections.length; i++) {
     if (onProgress) onProgress(i + 1, inspections.length);
@@ -409,7 +409,7 @@ export async function exportVerticalInspectionsCSV(
   onProgress?: (current: number, total: number) => void,
 ): Promise<void> {
   if (!inspections.length) throw new Error("Tidak ada data inspeksi untuk diekspor");
-  const label = productType === "HYDRANT" ? "Hydrant" : "Fire_Alarm";
+  const label = productType === "HYDRANT" ? "Hydrant" : "Fire Alarm";
 
   for (let i = 0; i < inspections.length; i++) {
     if (onProgress) onProgress(i + 1, inspections.length);
@@ -1100,7 +1100,7 @@ export async function exportVerticalInspectionsPDF(
   pdfOptions?: PDFExportOptions,
 ): Promise<void> {
   if (!inspections.length) throw new Error("Tidak ada data inspeksi untuk diekspor");
-  const label = productType === "HYDRANT" ? "Hydrant" : "Fire_Alarm";
+  const label = productType === "HYDRANT" ? "Hydrant" : "Fire Alarm";
 
   for (let i = 0; i < inspections.length; i++) {
     if (onProgress) onProgress(i + 1, inspections.length);
