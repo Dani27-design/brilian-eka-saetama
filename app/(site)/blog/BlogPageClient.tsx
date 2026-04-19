@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import BlogItem from "@/components/Site/Blog/BlogItem";
 import { useLanguage } from "@/app/context/LanguageContext";
 import type { Blog } from "@/types/blog";
+import PromoSection from "@/components/Site/PromoSection";
 
 // Component for skeleton loading
 const SectionLoader = () => (
@@ -62,27 +63,42 @@ const BlogPageClient = ({
 
   return (
     <>
-      {/* <!-- ===== Blog Grid Start ===== --> */}
+      {/* <!-- ===== Blog Start ===== --> */}
       <section className="py-10">
         <div className="mx-auto mt-15 max-w-c-1280 px-4 md:px-8 xl:mt-20 xl:px-0">
-          {blogs.length === 0 ? (
-            <div className="flex h-40 items-center justify-center">
-              <div className="text-xl">
-                {language === "id"
-                  ? "Tidak ada postingan blog"
-                  : "No blog posts available"}
+          <div className="flex flex-col gap-8 lg:flex-row">
+            {/* Left sidebar — vertical promo (sticky on desktop) */}
+            <div className="order-2 lg:order-1 lg:w-[240px] lg:flex-shrink-0">
+              <div className="lg:sticky lg:top-24">
+                <PromoSection variant="trust" vertical />
               </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {blogs.map((post, key) => (
-                <BlogItem key={post._id || key} blog={post} />
-              ))}
+
+            {/* Blog grid */}
+            <div className="order-1 flex-1 lg:order-2">
+              {blogs.length === 0 ? (
+                <div className="flex h-40 items-center justify-center">
+                  <div className="text-xl text-gray-600 dark:text-gray-400">
+                    {language === "id"
+                      ? "Tidak ada postingan blog"
+                      : "No blog posts available"}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {blogs.map((post, key) => (
+                    <BlogItem key={post._id || key} blog={post} />
+                  ))}
+                </div>
+              )}
+
+              {/* Bottom promotion */}
+              <PromoSection variant="services" className="mt-12" />
             </div>
-          )}
+          </div>
         </div>
       </section>
-      {/* <!-- ===== Blog Grid End ===== --> */}
+      {/* <!-- ===== Blog End ===== --> */}
     </>
   );
 };

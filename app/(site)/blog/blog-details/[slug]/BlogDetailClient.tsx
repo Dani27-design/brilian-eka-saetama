@@ -8,6 +8,7 @@ import SharePost from "@/components/Site/Blog/SharePost";
 import Image from "next/image";
 import { useLanguage } from "@/app/context/LanguageContext";
 import type { Blog } from "@/types/blog";
+import PromoSection from "@/components/Site/PromoSection";
 
 interface BlogDetailClientProps {
   slug: string;
@@ -95,78 +96,65 @@ const BlogDetailClient = ({
   }
 
   return (
-    <section className="pb-10 pt-25 xl:pt-30">
+    <section className="pb-16 pt-25 xl:pt-30">
       <div className="mx-auto max-w-c-1280 px-4 md:px-8 2xl:px-0">
-        <div className="flex flex-col-reverse gap-7.5 lg:flex-row xl:gap-12.5">
-          {/* Sidebar with search, categories and related posts */}
-          <div className="md:w-1/2 lg:w-[32%]">
-            <RelatedPost relatedPosts={relatedPosts} />
+        <div className="flex flex-col gap-6 lg:flex-row">
+          {/* Left sidebar — promo + related articles */}
+          <div className="order-2 lg:order-1 lg:w-[220px] lg:flex-shrink-0">
+            <div className="space-y-4 lg:sticky lg:top-24">
+              <PromoSection variant="trust" vertical />
+              {relatedPosts.length > 0 && (
+                <RelatedPost relatedPosts={relatedPosts} />
+              )}
+            </div>
           </div>
 
-          {/* Blog content */}
-          <div className="lg:w-2/3">
-            <div className="animate_top rounded-md border border-stroke bg-white p-3 shadow-solid-13 dark:border-strokedark dark:bg-blacksection md:p-10">
-              <div className="w-full overflow-hidden">
-                <div className="relative aspect-[97/60] h-fit w-full sm:aspect-[97/44]">
-                  <Image
-                    src={currentBlog.mainImage}
-                    alt={currentBlog.title}
-                    fill
-                    className="rounded-md object-cover object-center"
-                    priority={true}
-                    quality={80}
-                  />
-                </div>
-              </div>
-
-              <h2 className="mt-3 text-2xl font-semibold text-black dark:text-white 2xl:text-sectiontitle2">
-                {currentBlog.title}
-              </h2>
-
-              <ul className="mb-5 mt-2 flex w-full flex-col justify-between gap-y-1 sm:flex-row md:mb-10 2xl:gap-7.5">
-                {currentBlog.author && (
-                  <li className="flex items-start">
-                    <span className="mr-1 font-medium text-black dark:text-white">
-                      {language === "id" ? "Penulis:" : "Author:"}
-                    </span>{" "}
-                    {currentBlog.author}
-                  </li>
-                )}
-                {currentBlog.publishDate && (
-                  <li className="flex items-start">
-                    <span className="mr-1 font-medium text-black dark:text-white">
-                      {language === "id"
-                        ? "Dipublikasikan Pada:"
-                        : "Published On:"}{" "}
-                    </span>
-                    {new Date(currentBlog.publishDate).toLocaleDateString(
-                      language === "id" ? "id-ID" : "en-US",
-                      {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      },
-                    )}
-                  </li>
-                )}
-              </ul>
-
-              <div className="blog-content blog-details">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: renderedContent,
-                  }}
-                  className="rich-text-content"
-                />
-              </div>
-
-              <div className="mt-10">
-                <SharePost
-                  title={currentBlog.title}
-                  slug={currentBlog.slug || ""}
-                />
-              </div>
+          {/* Article — centered, readable width */}
+          <div className="order-1 min-w-0 flex-1 lg:order-2 lg:max-w-3xl">
+            {/* Meta — above image */}
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              {currentBlog.author && <span>{currentBlog.author}</span>}
+              {currentBlog.author && currentBlog.publishDate && <span>·</span>}
+              {currentBlog.publishDate && (
+                <span>
+                  {new Date(currentBlog.publishDate).toLocaleDateString(
+                    language === "id" ? "id-ID" : "en-US",
+                    { year: "numeric", month: "long", day: "numeric" },
+                  )}
+                </span>
+              )}
             </div>
+
+            {/* Hero image */}
+            <div className="relative aspect-[21/9] overflow-hidden rounded-lg">
+              <Image
+                src={currentBlog.mainImage}
+                alt={currentBlog.title}
+                fill
+                className="object-cover"
+                priority={true}
+                quality={80}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="mt-8 blog-content blog-details">
+              <div
+                dangerouslySetInnerHTML={{ __html: renderedContent }}
+                className="rich-text-content"
+              />
+            </div>
+
+            {/* Share */}
+            <div className="mt-10 border-t border-gray-200 pt-6 dark:border-gray-700">
+              <SharePost
+                title={currentBlog.title}
+                slug={currentBlog.slug || ""}
+              />
+            </div>
+
+            {/* Bottom Promotion */}
+            <PromoSection variant="trust" className="mt-10" />
           </div>
         </div>
       </div>

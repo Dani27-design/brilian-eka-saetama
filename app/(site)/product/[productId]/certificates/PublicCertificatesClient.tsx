@@ -7,6 +7,7 @@ import {
 } from "@/utils/pdfCertificate";
 import { MobileInspectionView } from "./MobileInspectionView";
 import { useLanguage } from "@/app/context/LanguageContext";
+import PromoSection from "@/components/Site/PromoSection";
 
 // Export the interface for other components
 export type { PublicCertificateData };
@@ -19,10 +20,6 @@ const translations = {
     errorLoading: "Gagal Memuat Sertifikat",
     tryAgain: "Coba Lagi",
     generatingPdf: "Menyiapkan pratinjau PDF...",
-    promoTitle: "Butuh Inspeksi Peralatan Kebakaran?",
-    promoDesc: "PT Brilian Eka Saetama menyediakan layanan inspeksi, perawatan, dan sertifikasi APAR, Hydrant, Fire Alarm, CCTV, dan Access Door untuk menjaga keamanan gedung Anda.",
-    promoButton: "Hubungi Kami",
-    promoTagline: "Inspeksi profesional, terpercaya, dan bersertifikat",
   },
   en: {
     certificatesAvailable: "certificates available",
@@ -31,10 +28,6 @@ const translations = {
     errorLoading: "Error Loading Certificates",
     tryAgain: "Try Again",
     generatingPdf: "Generating PDF preview...",
-    promoTitle: "Need Fire Safety Equipment Inspection?",
-    promoDesc: "PT Brilian Eka Saetama provides professional inspection, maintenance, and certification services for fire extinguishers, hydrants, fire alarms, CCTV, and access doors to keep your building safe.",
-    promoButton: "Contact Us",
-    promoTagline: "Professional, trusted, and certified inspections",
   },
 };
 
@@ -333,7 +326,7 @@ export default function PublicCertificatesClient({
   const { certificates, productInfo, totalCount } = data;
 
   return (
-    <div className="mx-auto mt-15 max-w-c-1280 px-4 md:px-8 xl:mt-20 xl:px-0">
+    <div className="mx-auto mt-20 mb-16 max-w-c-1280 px-4 md:px-8 xl:mt-28 xl:mb-20 xl:px-0">
       <div className="mx-auto max-w-4xl px-2 sm:px-3 md:px-4 lg:px-6">
         {/* Product Header */}
         <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm dark:shadow-gray-900/20">
@@ -467,26 +460,7 @@ export default function PublicCertificatesClient({
         )}
 
         {/* Promotion Section */}
-        <div className="mt-8 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800">
-          <div className="px-5 py-6 sm:px-8 sm:py-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex-1">
-                <h3 className="text-base font-bold text-gray-900 dark:text-white sm:text-lg">{t.promoTitle}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-gray-600 dark:text-gray-300 sm:text-sm">{t.promoDesc}</p>
-                <p className="mt-2 text-[10px] italic text-gray-500 dark:text-gray-400">{t.promoTagline}</p>
-              </div>
-              <a
-                href="/#contactus"
-                className="inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {t.promoButton}
-              </a>
-            </div>
-          </div>
-        </div>
+        <PromoSection variant="services" className="mt-8" />
       </div>
     </div>
   );
