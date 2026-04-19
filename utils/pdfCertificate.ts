@@ -123,13 +123,14 @@ export interface CertificateData {
  * // Returns: "CERT-2025-08-APAR-PRD001"
  */
 export function generateCertificateNumber(certificateData: Pick<CertificateData, 'issueDate' | 'productType' | 'productNumber'>): string {
-  const date = new Date(certificateData.issueDate);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  
+  // Use current date directly — don't parse formatted Indonesian string
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+
   // Clean product number for certificate (remove special characters)
-  const cleanProductNumber = certificateData.productNumber.replace(/[^A-Z0-9]/gi, '');
-  
+  const cleanProductNumber = String(certificateData.productNumber || "0").replace(/[^A-Z0-9]/gi, '');
+
   return `CERT-${year}-${month}-${certificateData.productType}-${cleanProductNumber}`;
 }
 
@@ -166,10 +167,13 @@ export function createCertificateData(
   const issueDate = formatToWIB(new Date());
   const inspectionDate = formatToWIB(convertFirestoreTimestamp(maintenanceData.inspection?.createdAt));
   const approvedAt = formatToWIB(convertFirestoreTimestamp(maintenanceData.updatedAt));
-  
-  // Calculate validity period (typically 1 year from issue date)
-  const validUntilDate = new Date();
-  validUntilDate.setFullYear(validUntilDate.getFullYear() + 1);
+
+  // Calculate validity period: inspectionDate + maintenanceInterval days
+  // Falls back to 365 days if interval is not set
+  const inspectionDateObj = convertFirestoreTimestamp(maintenanceData.inspection?.createdAt) || new Date();
+  const intervalDays = productData?.maintenanceInterval || 365;
+  const validUntilDate = new Date(inspectionDateObj.getTime());
+  validUntilDate.setDate(validUntilDate.getDate() + intervalDays);
   const validUntil = formatDateOnlyWIB(validUntilDate);
   
   // Process checklist results

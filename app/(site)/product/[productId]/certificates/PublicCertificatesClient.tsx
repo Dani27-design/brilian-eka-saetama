@@ -6,9 +6,37 @@ import {
   generateCertificatePDFBlob,
 } from "@/utils/pdfCertificate";
 import { MobileInspectionView } from "./MobileInspectionView";
+import { useLanguage } from "@/app/context/LanguageContext";
 
 // Export the interface for other components
 export type { PublicCertificateData };
+
+const translations = {
+  id: {
+    certificatesAvailable: "sertifikat tersedia",
+    noCertificates: "Belum Ada Sertifikat",
+    noCertificatesDesc: "Produk ini belum memiliki inspeksi yang disetujui.",
+    errorLoading: "Gagal Memuat Sertifikat",
+    tryAgain: "Coba Lagi",
+    generatingPdf: "Menyiapkan pratinjau PDF...",
+    promoTitle: "Butuh Inspeksi Peralatan Kebakaran?",
+    promoDesc: "PT Brilian Eka Saetama menyediakan layanan inspeksi, perawatan, dan sertifikasi APAR, Hydrant, Fire Alarm, CCTV, dan Access Door untuk menjaga keamanan gedung Anda.",
+    promoButton: "Hubungi Kami",
+    promoTagline: "Inspeksi profesional, terpercaya, dan bersertifikat",
+  },
+  en: {
+    certificatesAvailable: "certificates available",
+    noCertificates: "No Certificates Available",
+    noCertificatesDesc: "This product has not completed any approved inspections yet.",
+    errorLoading: "Error Loading Certificates",
+    tryAgain: "Try Again",
+    generatingPdf: "Generating PDF preview...",
+    promoTitle: "Need Fire Safety Equipment Inspection?",
+    promoDesc: "PT Brilian Eka Saetama provides professional inspection, maintenance, and certification services for fire extinguishers, hydrants, fire alarms, CCTV, and access doors to keep your building safe.",
+    promoButton: "Contact Us",
+    promoTagline: "Professional, trusted, and certified inspections",
+  },
+};
 
 interface PublicCertificateData {
   certificateNumber: string;
@@ -63,6 +91,8 @@ interface PublicCertificatesClientProps {
 export default function PublicCertificatesClient({
   productId,
 }: PublicCertificatesClientProps) {
+  const { language } = useLanguage();
+  const t = translations[language as keyof typeof translations] || translations.id;
   const [data, setData] = useState<CertificatesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -237,20 +267,20 @@ export default function PublicCertificatesClient({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse">
-            <div className="mb-6 rounded-lg bg-white p-6 shadow">
-              <div className="mb-4 h-8 w-1/2 rounded bg-gray-200"></div>
-              <div className="mb-2 h-4 w-3/4 rounded bg-gray-200"></div>
-              <div className="h-4 w-1/2 rounded bg-gray-200"></div>
+            <div className="mb-6 rounded-lg bg-white dark:bg-gray-800 p-6 shadow dark:shadow-gray-900/20">
+              <div className="mb-4 h-8 w-1/2 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div className="mb-2 h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700"></div>
             </div>
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="rounded-lg bg-white p-6 shadow">
-                  <div className="mb-4 h-6 w-1/3 rounded bg-gray-200"></div>
-                  <div className="mb-2 h-4 w-1/2 rounded bg-gray-200"></div>
-                  <div className="h-4 w-2/3 rounded bg-gray-200"></div>
+                <div key={i} className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow dark:shadow-gray-900/20">
+                  <div className="mb-4 h-6 w-1/3 rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div className="mb-2 h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700"></div>
+                  <div className="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-700"></div>
                 </div>
               ))}
             </div>
@@ -262,12 +292,12 @@ export default function PublicCertificatesClient({
 
   if (error) {
     return (
-      <div className="mt-20 min-h-screen bg-gray-50 py-8">
+      <div className="mt-20 min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-lg bg-white p-8 text-center shadow">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-8 text-center shadow dark:shadow-gray-900/20">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
               <svg
-                className="h-6 w-6 text-red-600"
+                className="h-6 w-6 text-red-600 dark:text-red-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -280,15 +310,15 @@ export default function PublicCertificatesClient({
                 />
               </svg>
             </div>
-            <h3 className="mb-2 text-lg font-medium text-gray-900">
-              Error Loading Certificates
+            <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+              {t.errorLoading}
             </h3>
-            <p className="mb-4 text-gray-600">{error}</p>
+            <p className="mb-4 text-gray-600 dark:text-gray-300">{error}</p>
             <button
               onClick={fetchCertificates}
-              className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="inline-flex items-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
-              Try Again
+              {t.tryAgain}
             </button>
           </div>
         </div>
@@ -305,77 +335,29 @@ export default function PublicCertificatesClient({
   return (
     <div className="mx-auto mt-15 max-w-c-1280 px-4 md:px-8 xl:mt-20 xl:px-0">
       <div className="mx-auto max-w-4xl px-2 sm:px-3 md:px-4 lg:px-6">
-        {/* Compact Product Header */}
-        <div className="mb-3 rounded-lg bg-white shadow-sm">
-          <div className="px-3 py-2">
-            <div className="flex items-start">
-              <div className="min-w-0 flex-1">
-                <h1 className="truncate text-lg font-bold text-gray-900">
-                  {productInfo.productName}
-                </h1>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-gray-600">
-                  <span className="inline-flex items-center rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-800">
-                    #{productInfo.productNumber}
-                  </span>
-                  <span className="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-800">
-                    {productInfo.productType}
-                  </span>
-                  <span className="inline-flex items-center rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-800">
-                    {productInfo.brand}
-                  </span>
-                  {productInfo.currentLocation && (
-                    <span className="inline-flex items-center rounded bg-purple-100 px-1.5 py-0.5 text-xs text-purple-800">
-                      <svg
-                        className="mr-1 h-3 w-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      {productInfo.currentLocation}
-                    </span>
-                  )}
-                </div>
-              </div>
+        {/* Product Header */}
+        <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm dark:shadow-gray-900/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">{productInfo.productName}</h1>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {productInfo.productType} · {productInfo.brand} · #{productInfo.productNumber}
+              </p>
             </div>
-
-            {/* Simple certificate counter */}
             {certificates.length > 0 && (
-              <div className="mt-2 border-t border-gray-100 pt-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">
-                    {totalCount} certificate{totalCount !== 1 ? "s" : ""}{" "}
-                    available
-                  </span>
-                  {certificates.length > 1 && (
-                    <span className="text-xs font-medium text-gray-500">
-                      {currentCertificateIndex + 1} / {certificates.length}
-                    </span>
-                  )}
-                </div>
-              </div>
+              <span className="rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs font-medium text-green-800 dark:text-green-300">
+                {totalCount} {t.certificatesAvailable}
+              </span>
             )}
           </div>
         </div>
 
         {/* Certificate Content */}
         {certificates.length === 0 ? (
-          <div className="rounded-lg bg-white p-6 text-center shadow-sm">
-            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 text-center shadow-sm dark:shadow-gray-900/20">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -388,79 +370,42 @@ export default function PublicCertificatesClient({
                 />
               </svg>
             </div>
-            <h3 className="mb-1 text-base font-medium text-gray-900">
-              No Certificates Available
+            <h3 className="mb-1 text-base font-medium text-gray-900 dark:text-white">
+              {t.noCertificates}
             </h3>
-            <p className="text-sm text-gray-600">
-              This product has not completed any approved inspections yet.
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {t.noCertificatesDesc}
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
-            <div className="rounded-lg bg-white shadow-sm">
-              <div
-                className={`flex items-center justify-center ${
-                  isMobile ? "px-3 py-2" : "px-3 py-1.5"
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={handlePrevious}
-                    disabled={currentCertificateIndex === 0}
-                    className={`inline-flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
-                      isMobile ? "h-8 w-8" : "h-6 w-6"
-                    }`}
-                  >
-                    <svg
-                      className={isMobile ? "h-5 w-5" : "h-3 w-3"}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2.5}
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                  </button>
-                  <span
-                    className={`text-gray-500 ${
-                      isMobile ? "px-2 text-xs" : "mx-2 text-xs"
-                    }`}
-                  >
-                    {currentCertificateIndex + 1} / {certificates.length}
-                  </span>
-                  <button
-                    onClick={handleNext}
-                    disabled={
-                      currentCertificateIndex === certificates.length - 1
-                    }
-                    className={`inline-flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
-                      isMobile ? "h-8 w-8" : "h-6 w-6"
-                    }`}
-                  >
-                    <svg
-                      className={isMobile ? "h-5 w-5" : "h-3 w-3"}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2.5}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
-                </div>
+          <div className="space-y-4">
+            {/* Navigation - only when multiple certificates */}
+            {certificates.length > 1 && (
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={handlePrevious}
+                  disabled={currentCertificateIndex === 0}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <span className="text-sm text-gray-500 dark:text-gray-400">{currentCertificateIndex + 1} / {certificates.length}</span>
+                <button
+                  onClick={handleNext}
+                  disabled={currentCertificateIndex === certificates.length - 1}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
-            </div>
+            )}
 
             {/* Certificate Preview */}
-            <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/20">
               {(() => {
                 const currentCert = certificates[currentCertificateIndex];
                 const blobUrl = pdfBlobUrls[currentCert.certificateNumber];
@@ -469,14 +414,10 @@ export default function PublicCertificatesClient({
 
                 if (isGenerating) {
                   return (
-                    <div
-                      className={`flex items-center justify-center ${
-                        isMobile ? "h-[350px]" : "h-[450px] sm:h-[650px]"
-                      }`}
-                    >
+                    <div className="flex h-[450px] items-center justify-center md:h-[650px]">
                       <div className="text-center">
                         <svg
-                          className="mx-auto h-8 w-8 animate-spin text-blue-600"
+                          className="mx-auto h-8 w-8 animate-spin text-primary"
                           fill="none"
                           viewBox="0 0 24 24"
                         >
@@ -494,8 +435,8 @@ export default function PublicCertificatesClient({
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           />
                         </svg>
-                        <p className="mt-2 text-sm text-gray-600">
-                          Generating PDF preview...
+                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                          {t.generatingPdf}
                         </p>
                       </div>
                     </div>
@@ -524,6 +465,28 @@ export default function PublicCertificatesClient({
             </div>
           </div>
         )}
+
+        {/* Promotion Section */}
+        <div className="mt-8 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800">
+          <div className="px-5 py-6 sm:px-8 sm:py-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white sm:text-lg">{t.promoTitle}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-gray-600 dark:text-gray-300 sm:text-sm">{t.promoDesc}</p>
+                <p className="mt-2 text-[10px] italic text-gray-500 dark:text-gray-400">{t.promoTagline}</p>
+              </div>
+              <a
+                href="/#contactus"
+                className="inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {t.promoButton}
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

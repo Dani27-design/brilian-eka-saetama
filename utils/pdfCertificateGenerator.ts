@@ -179,7 +179,7 @@ function drawTitleBlock(
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(fonts.title);
   pdf.setTextColor(colors.primary);
-  pdf.text("CERTIFICATE OF INSPECTION", pageWidth / 2, y + 5, {
+  pdf.text("SERTIFIKAT INSPEKSI", pageWidth / 2, y + 5, {
     align: "center",
   });
 
@@ -188,7 +188,7 @@ function drawTitleBlock(
   pdf.setFontSize(fonts.body);
   pdf.setTextColor(colors.secondary);
   pdf.text(
-    `Fire Safety Equipment — ${String(data.productType || "Equipment")}`,
+    `Peralatan Keselamatan Kebakaran : ${String(data.productType || "Peralatan")}`,
     pageWidth / 2,
     y + 11,
     { align: "center" },
@@ -198,7 +198,7 @@ function drawTitleBlock(
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(fonts.small);
   pdf.setTextColor(colors.secondary);
-  pdf.text(`Certificate No: ${String(data.certificateNumber || "N/A")}`, pageWidth / 2, y + 16, {
+  pdf.text(`No. Sertifikat: ${String(data.certificateNumber || "N/A")}`, pageWidth / 2, y + 16, {
     align: "center",
   });
 
@@ -216,6 +216,7 @@ function drawTwoColumnInfo(
   const { margins, colors, fonts } = cfg;
   const pageWidth = pdf.internal.pageSize.getWidth();
 
+  // Section title
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(fonts.subtitle);
   pdf.setTextColor(colors.accent);
@@ -224,26 +225,39 @@ function drawTwoColumnInfo(
 
   const usableWidth = pageWidth - margins.left - margins.right;
   const colWidth = usableWidth / 2;
-  const lineHeight = 5; // compact
+  const lineHeight = 5;
+
+  // Calculate max label width for alignment within this section
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(cfg.fonts.small);
+  let maxLabelW = 0;
+  rows.forEach((row) => {
+    row.forEach((cell) => {
+      const w = pdf.getTextWidth(cell.label);
+      if (w > maxLabelW) maxLabelW = w;
+    });
+  });
+  const labelOffset = Math.min(maxLabelW + 3, colWidth * 0.45); // cap at 45% of column
 
   rows.forEach((row) => {
     let x = margins.left;
     row.forEach((cell) => {
+      // Label
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(cfg.fonts.small);
       pdf.setTextColor(colors.text);
       pdf.text(cell.label, x, y + 1);
 
+      // Value — positioned right after label with consistent offset
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(cfg.fonts.small);
       pdf.setTextColor(colors.secondary);
-
-      // limit value width to colWidth - label offset
-      const valueX = x + 28;
-      const maxWidth = colWidth - 28 - 6;
-      // Ensure value is a string
+      const valueX = x + labelOffset;
+      const maxWidth = colWidth - labelOffset - 4;
       const textValue = typeof cell.value === 'string' ? cell.value : (cell.value ? String(cell.value) : "-");
-      pdf.text(textValue, valueX, y + 1, { maxWidth });
+      if (maxWidth > 0) {
+        pdf.text(textValue, valueX, y + 1, { maxWidth });
+      }
 
       x += colWidth;
     });
@@ -251,6 +265,21 @@ function drawTwoColumnInfo(
   });
 
   return y + 2;
+}
+
+/** --- Helper: draw vertical borders for a table row --- */
+function drawVerticalBorders(
+  pdf: jsPDF, x0: number, y: number, rowH: number, colW: number[], borderColor: string,
+) {
+  pdf.setDrawColor(borderColor);
+  let x = x0;
+  // Left border
+  pdf.line(x, y, x, y + rowH);
+  for (let i = 0; i < colW.length; i++) {
+    x += colW[i];
+    // Right border of each column
+    pdf.line(x, y, x, y + rowH);
+  }
 }
 
 /** --- Helper: checklist table compact --- */
@@ -264,69 +293,95 @@ function drawChecklistTable(
   const pageWidth = pdf.internal.pageSize.getWidth();
   const tableW = pageWidth - margins.left - margins.right;
 
-  const rowH = 5.2; // compact
-  const colW = [10, tableW - 10 - 20 - 40, 20, 40]; // No | Item | Status | Remarks
+  const rowH = 5.5;
+  // Proportional columns: No(8) | Item(remaining) | Status(15) | Keterangan(42)
+  const colW = [8, tableW - 8 - 15 - 42, 15, 42];
+  const headers = ["No.", "Item Inspeksi", "Status", "Keterangan"];
 
   // Title
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(fonts.subtitle);
   pdf.setTextColor(colors.primary);
-  pdf.text("Detailed Inspection Results", margins.left, y + 6);
+  pdf.text("Hasil Inspeksi", margins.left, y + 6);
   y += 10;
 
-  // Header background
-  pdf.setFillColor(245, 245, 245);
-  pdf.rect(margins.left, y, tableW, rowH, "F");
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(fonts.small);
-  pdf.setTextColor(colors.text);
+  // Helper to draw header row (reusable for page breaks)
+  const drawTableHeader = () => {
+    // Header background + border
+    pdf.setFillColor(245, 245, 245);
+    pdf.setDrawColor(0, 0, 0);
+    pdf.rect(margins.left, y, tableW, rowH, "FD");
+    drawVerticalBorders(pdf, margins.left, y, rowH, colW, "#000000");
 
-  let x = margins.left;
-  ["No.", "Inspection Item", "Status", "Remarks"].forEach((h, i) => {
-    pdf.text(h, x + 2, y + 3.6);
-    x += colW[i];
-  });
+    // Header text
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(fonts.small);
+    pdf.setTextColor(colors.text);
+    let x = margins.left;
+    headers.forEach((h, i) => {
+      // Center text in header cells
+      const cellCenter = x + colW[i] / 2;
+      pdf.text(h, cellCenter, y + 3.8, { align: "center" });
+      x += colW[i];
+    });
+    y += rowH;
+  };
 
-  y += rowH;
-  pdf.setDrawColor(colors.border);
-  pdf.line(margins.left, y, margins.left + tableW, y);
+  drawTableHeader();
 
-  // Rows
+  // Data rows
   data.checklistResults.details.forEach((it, idx) => {
-    if (y > pdf.internal.pageSize.getHeight() - margins.bottom - 60) {
+    if (y > pdf.internal.pageSize.getHeight() - margins.bottom - 20) {
       pdf.addPage();
       y = margins.top;
+      drawTableHeader();
     }
 
-    x = margins.left;
+    // Row border (horizontal bottom + vertical columns)
+    pdf.setDrawColor(0, 0, 0);
+    pdf.setLineWidth(0.2);
+    pdf.rect(margins.left, y, tableW, rowH, "S");
+    drawVerticalBorders(pdf, margins.left, y, rowH, colW, "#000000");
+
+    let x = margins.left;
+
+    // No — centered
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(fonts.small);
     pdf.setTextColor(colors.secondary);
-
-    // No
-    pdf.text(String(idx + 1), x + 2, y + 3.6);
+    pdf.text(String(idx + 1), x + colW[0] / 2, y + 3.8, { align: "center" });
     x += colW[0];
 
-    // Item (wrap if needed)
+    // Item — left aligned
     const itemText = String(it.item || `Item ${idx + 1}`);
-    pdf.text(itemText, x + 2, y + 3.6, { maxWidth: colW[1] - 4 });
+    pdf.text(itemText, x + 2, y + 3.8, { maxWidth: colW[1] - 4 });
     x += colW[1];
 
-    // Status
-    pdf.setFont("helvetica", "bold");
-    pdf.setTextColor(it.status ? cfg.colors.success : cfg.colors.danger);
-    pdf.text(it.status ? "PASS" : "FAIL", x + 2, y + 3.6);
+    // Status — green check or red cross icon, centered
+    const iconCx = x + colW[2] / 2;
+    const iconCy = y + rowH / 2;
+    const iconHalf = 1.8;
+    pdf.setLineWidth(0.5);
+    if (it.status) {
+      pdf.setDrawColor(34, 139, 34);
+      pdf.line(iconCx - iconHalf * 0.4, iconCy, iconCx - iconHalf * 0.05, iconCy + iconHalf * 0.4);
+      pdf.line(iconCx - iconHalf * 0.05, iconCy + iconHalf * 0.4, iconCx + iconHalf * 0.5, iconCy - iconHalf * 0.35);
+    } else {
+      pdf.setDrawColor(220, 38, 38);
+      pdf.line(iconCx - iconHalf * 0.35, iconCy - iconHalf * 0.35, iconCx + iconHalf * 0.35, iconCy + iconHalf * 0.35);
+      pdf.line(iconCx + iconHalf * 0.35, iconCy - iconHalf * 0.35, iconCx - iconHalf * 0.35, iconCy + iconHalf * 0.35);
+    }
+    pdf.setDrawColor(0, 0, 0);
+    pdf.setLineWidth(0.2);
     x += colW[2];
 
-    // Remarks
+    // Keterangan — left aligned
     pdf.setFont("helvetica", "normal");
     pdf.setTextColor(colors.secondary);
     const remarksText = String(it.remarks || "-");
-    pdf.text(remarksText, x + 2, y + 3.6, { maxWidth: colW[3] - 4 });
+    pdf.text(remarksText, x + 2, y + 3.8, { maxWidth: colW[3] - 4 });
 
     y += rowH;
-    pdf.setDrawColor(colors.border);
-    pdf.line(margins.left, y, margins.left + tableW, y);
   });
 
   return y + 6;
@@ -350,8 +405,8 @@ function drawSignatures(
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(cfg.fonts.body);
   pdf.setTextColor(colors.secondary);
-  pdf.text("Inspected By", leftX, y, { align: "center" });
-  pdf.text("Approved By", rightX, y, { align: "center" });
+  pdf.text("Diperiksa Oleh", leftX, y, { align: "center" });
+  pdf.text("Disetujui Oleh", rightX, y, { align: "center" });
 
   if (inspectorQR) {
     try {
@@ -367,21 +422,21 @@ function drawSignatures(
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(cfg.fonts.small);
   pdf.setTextColor(colors.text);
-  pdf.text("Inspection Engineer", leftX, y + 25, { align: "center" });
-  pdf.text(String(data.engineerNames[0] || "Inspector Name"), leftX, y + 29, {
+  pdf.text("Petugas Inspeksi", leftX, y + 25, { align: "center" });
+  pdf.text(String(data.engineerNames[0] || "Petugas"), leftX, y + 29, {
     align: "center",
   });
   pdf.text(String(data.inspectionDate || "-"), leftX, y + 33, { align: "center" });
 
-  pdf.text("Inspection Manager", rightX, y + 25, { align: "center" });
-  pdf.text(String(data.approvedBy || "Approver"), rightX, y + 29, { align: "center" });
+  pdf.text("Penanggung Jawab", rightX, y + 25, { align: "center" });
+  pdf.text(String(data.approvedBy || "Admin"), rightX, y + 29, { align: "center" });
   pdf.text(String(data.approvedAt || "-"), rightX, y + 33, { align: "center" });
 
   // Footer note
   pdf.setFontSize(cfg.fonts.tiny);
   pdf.setTextColor(colors.secondary);
   pdf.text(
-    "This certificate is digitally signed. Scan QR codes to verify authenticity.",
+    "Sertifikat ini ditandatangani secara digital. Pindai kode QR untuk verifikasi.",
     pageWidth / 2,
     y + 42,
     {
@@ -466,15 +521,15 @@ export async function generatePDFCertificate(
     y = drawTwoColumnInfo(
       pdf,
       cfg,
-      "CONTRACT INFORMATION",
+      "KONTRAK",
       [
         [
-          { label: "Contract No:", value: certData.contractNumber || "—" },
-          { label: "Customer:", value: certData.customerName || "—" },
+          { label: "No. Kontrak:", value: certData.contractNumber || "—" },
+          { label: "Pelanggan:", value: certData.customerName || "—" },
         ],
         [
-          { label: "Issue Date:", value: certData.issueDate || "—" },
-          { label: "Valid Until:", value: certData.validUntil || "—" },
+          { label: "Tgl. Terbit:", value: certData.issueDate || "—" },
+          { label: "Berlaku s/d:", value: certData.validUntil || "—" },
         ],
       ],
       y,
@@ -483,15 +538,15 @@ export async function generatePDFCertificate(
     y = drawTwoColumnInfo(
       pdf,
       cfg,
-      "PRODUCT INFORMATION",
+      "PRODUK",
       [
         [
-          { label: "Product No:", value: certData.productNumber || "—" },
-          { label: "Product Name:", value: certData.productName || "—" },
+          { label: "No. Produk:", value: certData.productNumber || "—" },
+          { label: "Nama Produk:", value: certData.productName || "—" },
         ],
         [
-          { label: "Brand:", value: certData.productBrand || "—" },
-          { label: "Location:", value: certData.location || "—" },
+          { label: "Merk:", value: certData.productBrand || "—" },
+          { label: "Lokasi:", value: certData.location || "—" },
         ],
       ],
       y,
@@ -500,19 +555,19 @@ export async function generatePDFCertificate(
     y = drawTwoColumnInfo(
       pdf,
       cfg,
-      "INSPECTION DETAILS",
+      "INSPEKSI",
       [
         [
-          { label: "Inspection Date:", value: certData.inspectionDate || "—" },
-          { label: "Inspector:", value: certData.engineerNames.join(", ") || "—" },
+          { label: "Tgl. Inspeksi:", value: certData.inspectionDate || "—" },
+          { label: "Petugas:", value: certData.engineerNames.join(", ") || "—" },
         ],
         [
           {
-            label: "Total Items:",
+            label: "Total Item:",
             value: String(certData.checklistResults.totalItems || 0),
           },
           {
-            label: "Pass Rate:",
+            label: "Kelulusan:",
             value: `${Math.round(
               ((certData.checklistResults.passedItems || 0) /
                 Math.max(1, certData.checklistResults.totalItems || 1)) *

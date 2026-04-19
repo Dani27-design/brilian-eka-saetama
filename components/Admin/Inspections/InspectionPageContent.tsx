@@ -42,6 +42,7 @@ export interface InspectionTableRow {
   id: string;
   contractNumber: string;
   contractName: string;
+  customerName?: string;
   productNumber: string;
   productName: string;
   productBrand: string;
@@ -187,7 +188,7 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
       maintenanceData.product ? getDoc(maintenanceData.product) : null,
     ]);
 
-    let contractNumber = "N/A", contractName = "N/A", location = "N/A";
+    let contractNumber = "N/A", contractName = "N/A", location = "N/A", customerName = "N/A";
     let productDetails: ProductDetail[] = [];
 
     if (contractSnap?.exists()) {
@@ -195,6 +196,13 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
       contractNumber = d.contractNumber || "N/A";
       contractName = d.contractName || "N/A";
       productDetails = d.productDetails || [];
+      // Resolve customer name from contract reference
+      if (d.customer) {
+        try {
+          const customerSnap = await getDoc(d.customer);
+          if (customerSnap.exists()) customerName = (customerSnap.data() as any).name || "N/A";
+        } catch { /* ignore */ }
+      }
     }
 
     let productNumber = "N/A", productName = "N/A", productBrand = "N/A", brandType = "N/A", capacity = "N/A", expirationDate = "N/A";
@@ -231,7 +239,7 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
 
     return {
       id: docId,
-      contractNumber, contractName, productNumber, productName, productBrand, brandType, capacity,
+      contractNumber, contractName, customerName, productNumber, productName, productBrand, brandType, capacity,
       productType: maintenanceData.productType, expirationDate, location,
       inspectionDate: formatToWIBExport(maintenanceData.inspection?.createdAt),
       inspectionDateRaw: maintenanceData.inspection?.createdAt
@@ -476,6 +484,7 @@ export default function InspectionPageContent({ productType }: InspectionPageCon
         filterProductType={productType}
         filterStatus={filters.status}
         onError={setError}
+        singleMode={!!singleReportInspection}
       />
 
       <CertificateModal

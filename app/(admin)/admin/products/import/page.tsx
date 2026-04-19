@@ -44,8 +44,9 @@ export default function ProductImportPage() {
   const [duplicateCheck, setDuplicateCheck] = useState<Set<number> | null>(null);
   
   // State for help section
-  const [isHelpSectionOpen, setIsHelpSectionOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [templateType, setTemplateType] = useState("");
+  const [tutorialOpen, setTutorialOpen] = useState(false);
 
   /**
    * Processes a selected CSV file (shared by click and drag-and-drop)
@@ -135,7 +136,7 @@ export default function ProductImportPage() {
     setImportResult(null);
     setDuplicateCheck(null);
     setError(null);
-    // Don't reset isProcessing or isHelpSectionOpen as they're UI state
+    // Don't reset isProcessing as it's UI state
   };
 
   /**
@@ -244,10 +245,6 @@ export default function ProductImportPage() {
     
     const errorCsv = createErrorReport(importResult.errors);
     downloadCSV(errorCsv, 'import_errors.csv');
-  };
-
-  const handleShowRequirements = () => {
-    setIsHelpSectionOpen(!isHelpSectionOpen);
   };
 
   // Product field options for mapping
@@ -431,44 +428,87 @@ export default function ProductImportPage() {
               </label>
             </div>
 
-            {/* Template download + Help toggle — single row */}
-            <div className="flex items-center justify-between text-sm">
-              <a
-                href="/api/products/template"
-                download="product_import_template.csv"
-                className="font-medium text-primary hover:underline"
-              >
-                Unduh template CSV
-              </a>
-              <button
-                onClick={handleShowRequirements}
-                className="font-medium text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Lihat persyaratan format
-              </button>
+            {/* Template download + Help toggle */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <select
+                  value={templateType}
+                  onChange={(e) => setTemplateType(e.target.value)}
+                  className="h-9 rounded-lg border border-stroke bg-white px-3 text-sm outline-none focus:border-primary"
+                >
+                  <option value="">Pilih tipe produk</option>
+                  <option value="APAR">APAR</option>
+                  <option value="HYDRANT">Hydrant</option>
+                  <option value="FIRE_ALARM">Fire Alarm</option>
+                  <option value="CCTV">CCTV</option>
+                  <option value="ACCESS_DOOR">Access Door</option>
+                  <option value="PATROL_GUARD">Patrol Guard</option>
+                </select>
+                {templateType ? (
+                  <a
+                    href={`/api/products/template?type=${templateType}`}
+                    download={`product_import_template_${templateType.toLowerCase()}.csv`}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 text-sm font-medium text-primary transition-colors hover:bg-gray-50"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Unduh Template
+                  </a>
+                ) : (
+                  <span className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm font-medium text-gray-400 cursor-not-allowed">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Unduh Template
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* Collapsible Help Section */}
-            {isHelpSectionOpen && (
-              <div className="rounded-lg border border-stroke bg-white p-4">
-                <div className="grid gap-4 sm:grid-cols-2">
+            {/* Step-by-step Tutorial — collapsible */}
+            <button
+              type="button"
+              onClick={() => setTutorialOpen(!tutorialOpen)}
+              className="flex w-full items-center justify-between rounded-lg border border-blue-100 bg-blue-50/50 px-4 py-2.5 text-left"
+            >
+              <span className="text-xs font-semibold text-gray-700">Cara Impor Produk</span>
+              <svg className={`h-4 w-4 text-gray-400 transition-transform ${tutorialOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {tutorialOpen && (
+              <div className="rounded-b-lg border border-t-0 border-blue-100 bg-blue-50/50 px-4 pb-4 pt-2">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="flex gap-2.5">
+                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">1</div>
                   <div>
-                    <h4 className="mb-2 text-sm font-medium text-gray-900">Field Wajib</h4>
-                    <ul className="space-y-1 text-xs text-gray-600">
-                      <li>Nomor Produk (harus unik)</li>
-                      <li>Nama Produk</li>
-                      <li>Tipe Produk</li>
-                      <li>Merk</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="mb-2 text-sm font-medium text-gray-900">Tipe Produk Valid</h4>
-                    <ul className="space-y-1 text-xs text-gray-600">
-                      <li>APAR, HYDRANT, CCTV</li>
-                      <li>FIRE_ALARM, ACCESS_DOOR, PATROL_GUARD</li>
-                    </ul>
+                    <p className="text-xs font-medium text-gray-800">Pilih tipe produk & unduh template</p>
+                    <p className="mt-0.5 text-[10px] text-gray-500">Pilih tipe produk di atas, lalu unduh file template CSV</p>
                   </div>
                 </div>
+                <div className="flex gap-2.5">
+                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">2</div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-800">Isi data produk di template</p>
+                    <p className="mt-0.5 text-[10px] text-gray-500">Buka file CSV dengan Excel/Google Sheets, isi data sesuai contoh. Kolom wajib: No. Produk, Nama, Tipe, Merk</p>
+                  </div>
+                </div>
+                <div className="flex gap-2.5">
+                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">3</div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-800">Upload file CSV</p>
+                    <p className="mt-0.5 text-[10px] text-gray-500">Seret file ke area upload di atas atau klik untuk memilih file</p>
+                  </div>
+                </div>
+                <div className="flex gap-2.5">
+                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">4</div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-800">Petakan kolom & impor</p>
+                    <p className="mt-0.5 text-[10px] text-gray-500">Sistem akan otomatis mencocokkan kolom. Review, validasi, lalu impor</p>
+                  </div>
+                </div>
+              </div>
               </div>
             )}
           </div>

@@ -44,6 +44,25 @@ export function ClientLayoutWrapper({
     // Clear all beforeunload listeners that might exist
     window.onbeforeunload = null;
 
+    // Handle hash-based scroll after dynamic content has loaded
+    // Retries scrolling to account for lazy-loaded sections changing page height
+    const hash = window.location.hash;
+    if (hash) {
+      let attempts = 0;
+      const maxAttempts = 10;
+      const scrollToHash = () => {
+        const el = document.querySelector(hash);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(scrollToHash, 300);
+        }
+      };
+      // Initial delay to let dynamic imports render
+      setTimeout(scrollToHash, 500);
+    }
+
     // Close any open connections on navigation
     return () => {
       // Clean up open connections

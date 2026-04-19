@@ -498,7 +498,9 @@ export function convertToCertificateData(
   maintenanceData: any
 ): CertificateData {
   const now = new Date();
-  const certificateNumber = `CERT-${inspection.contractNumber}-${inspection.productNumber}-${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, "0")}${now.getDate().toString().padStart(2, "0")}`;
+  const cleanContract = String(inspection.contractNumber || "0").replace(/[^A-Z0-9]/gi, '');
+  const cleanProduct = String(inspection.productNumber || "0").replace(/[^A-Z0-9]/gi, '');
+  const certificateNumber = `CERT-${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, "0")}-${cleanContract}-${cleanProduct}`;
 
   return {
     contractNumber: inspection.contractNumber || "N/A",

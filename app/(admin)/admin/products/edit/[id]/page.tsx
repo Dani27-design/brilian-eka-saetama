@@ -84,6 +84,7 @@ export default function EditProductPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [contractData, setContractData] = useState<any>(null);
 
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -331,11 +332,6 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
-            {/* BaseSpecs */}
-            {BaseSpecsFields({
-              specs,
-              onChange: handleSpecsChange,
-            })}
           </>
         );
       case "HYDRANT":
@@ -433,10 +429,6 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
-            {BaseSpecsFields({
-              specs,
-              onChange: handleSpecsChange,
-            })}
           </>
         );
       case "CCTV":
@@ -539,10 +531,6 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
-            {BaseSpecsFields({
-              specs,
-              onChange: handleSpecsChange,
-            })}
           </>
         );
       case "FIRE_ALARM":
@@ -610,10 +598,6 @@ export default function EditProductPage() {
                 className="cursor-pointer rounded border-stroke text-primary focus:ring-primary"
               />
             </div>
-            {BaseSpecsFields({
-              specs,
-              onChange: handleSpecsChange,
-            })}
           </>
         );
       case "ACCESS_DOOR":
@@ -683,10 +667,6 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
-            {BaseSpecsFields({
-              specs,
-              onChange: handleSpecsChange,
-            })}
           </>
         );
       case "PATROL_GUARD":
@@ -750,10 +730,6 @@ export default function EditProductPage() {
                 className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
               />
             </div>
-            {BaseSpecsFields({
-              specs,
-              onChange: handleSpecsChange,
-            })}
           </>
         );
       default:
@@ -764,12 +740,15 @@ export default function EditProductPage() {
   function BaseSpecsFields({
     specs,
     onChange,
+    productType,
   }: {
     specs: any;
     onChange: (
       e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     ) => void;
+    productType?: string;
   }) {
+    const isExpirationRequired = productType === "APAR";
     return (
       <>
         <div>
@@ -810,7 +789,7 @@ export default function EditProductPage() {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
-            Tanggal Kadaluarsa
+            Tanggal Kadaluarsa{isExpirationRequired && <span className="text-red-500">*</span>}
           </label>
           <input
             name="expirationDate"
@@ -818,6 +797,7 @@ export default function EditProductPage() {
             value={specs.expirationDate ?? ""}
             onChange={onChange}
             className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+            required={isExpirationRequired}
           />
         </div>
       </>
@@ -1081,148 +1061,182 @@ export default function EditProductPage() {
         </div>
       )}
 
-      {/* Product Form Container */}
-      <div className="styled-scrollbar flex min-h-0 flex-1 flex-col rounded-lg border border-white/80 bg-white p-4 shadow-sm md:p-6">
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="mb-6 grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-auto md:grid-cols-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                No. Produk<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                name="productNumber"
-                placeholder="No. Produk"
-                value={form.productNumber}
-                onChange={handleChange}
-                className={`w-full rounded-lg border ${
-                  productNumberError ? "border-red-500" : "border-stroke"
-                } bg-transparent px-4 py-2 outline-none focus:border-primary`}
-                required
-              />
-              {productNumberError && (
-                <p className="mt-1 text-xs text-red-600">
-                  {productNumberError}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Tipe Produk<span className="text-red-500">*</span>
-              </label>
-              <select
-                name="productType"
-                value={form.productType}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                required
-              >
-                <option value="">Pilih tipe produk</option>
-                <option value="APAR">APAR</option>
-                <option value="HYDRANT">Hydrant</option>
-                <option value="PATROL_GUARD">Patrol Guard</option>
-                <option value="CCTV">CCTV</option>
-                <option value="FIRE_ALARM">Fire Alarm</option>
-                <option value="ACCESS_DOOR">Access Door</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Nama Produk<span className="text-red-500">*</span>
-              </label>
-              <input
-                name="name"
-                placeholder="Nama Produk"
-                value={form.name}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Merk<span className="text-red-500">*</span>
-              </label>
-              <input
-                name="brand"
-                placeholder="Brand"
-                value={specs.brand || ""}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Jenis<span className="text-red-500">*</span>
-              </label>
-              <input
-                name="brandType"
-                placeholder="Jenis"
-                value={specs.brandType || ""}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Sumber Produk<span className="text-red-500">*</span>
-              </label>
-              <input
-                name="source"
-                placeholder="Sumber produk (misal: VENDOR ABC, INTERNAL)"
-                value={form.source}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Interval Maintenance (hari)
-              </label>
-              <input
-                name="maintenanceInterval"
-                type="number"
-                min={0}
-                placeholder="Interval maintenance (hari)"
-                value={form.maintenanceInterval}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
-              />
-            </div>
-            {renderSpecsFields()}
-            <div className="md:col-span-2">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Gambar Produk
-              </label>
-              <ImageUploader
-                value={form.imageUrl}
-                onChange={handleImageChange}
-                folder="products"
-                aspectRatio="square"
-              />
+      {/* Product Form */}
+      <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <div className="styled-scrollbar min-h-0 flex-1 overflow-auto space-y-6">
+          {/* Section 1: Informasi Produk */}
+          <div className="rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
+            <h3 className="mb-4 text-lg font-semibold">Informasi Produk</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    No. Produk<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="productNumber"
+                    placeholder="No. Produk"
+                    value={form.productNumber}
+                    onChange={handleChange}
+                    className={`w-full rounded-lg border ${
+                      productNumberError ? "border-red-500" : "border-stroke"
+                    } bg-transparent px-4 py-2 outline-none focus:border-primary`}
+                    required
+                  />
+                  {productNumberError && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {productNumberError}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Tipe Produk<span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="productType"
+                    value={form.productType}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                    required
+                  >
+                    <option value="">Pilih tipe produk</option>
+                    <option value="APAR">APAR</option>
+                    <option value="HYDRANT">Hydrant</option>
+                    <option value="PATROL_GUARD">Patrol Guard</option>
+                    <option value="CCTV">CCTV</option>
+                    <option value="FIRE_ALARM">Fire Alarm</option>
+                    <option value="ACCESS_DOOR">Access Door</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Nama Produk<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    name="name"
+                    placeholder="Nama Produk"
+                    value={form.name}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Merk<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    name="brand"
+                    placeholder="Brand"
+                    value={specs.brand || ""}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Jenis<span className="text-red-500">*</span>
+                  </label>
+                  {form.productType === "HYDRANT" ? (
+                    <select
+                      name="brandType"
+                      value={specs.brandType || ""}
+                      onChange={handleChange}
+                      className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                      required
+                    >
+                      <option value="">Pilih Jenis Hydrant</option>
+                      <option value="HPE">HPE (Hydrant Pillar Permanent)</option>
+                      <option value="HPO">HPO (Hydrant Pillar Portable)</option>
+                    </select>
+                  ) : (
+                    <input
+                      name="brandType"
+                      placeholder="Jenis"
+                      value={specs.brandType || ""}
+                      onChange={handleChange}
+                      className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                      required
+                    />
+                  )}
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Sumber Produk<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    name="source"
+                    placeholder="Sumber produk (misal: VENDOR ABC, INTERNAL)"
+                    value={form.source}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Interval Maintenance (hari)
+                  </label>
+                  <input
+                    name="maintenanceInterval"
+                    type="number"
+                    min={0}
+                    placeholder="Interval maintenance (hari)"
+                    value={form.maintenanceInterval}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Gambar Produk
+                  </label>
+                  <ImageUploader
+                    value={form.imageUrl}
+                    onChange={handleImageChange}
+                    folder="products"
+                    aspectRatio="square"
+                  />
+                </div>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4">
-            <Link
-              href="/admin/products"
-              className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-100"
-            >
-              Batal
-            </Link>
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-70"
-            >
-              {loading ? "Menyimpan..." : "Simpan Produk"}
-            </button>
+          {/* Section 2: Spesifikasi Teknis */}
+          <div className="rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
+            <h3 className="mb-4 text-lg font-semibold">Spesifikasi Teknis</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+              {renderSpecsFields()}
+            </div>
           </div>
-        </form>
-      </div>
+
+          {/* Section 3: Informasi Tambahan */}
+          <div className="rounded-lg border border-white/80 bg-white shadow-sm p-4 md:p-6">
+            <h3 className="mb-4 text-lg font-semibold">Informasi Tambahan</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+              {BaseSpecsFields({ specs, onChange: handleSpecsChange, productType: form.productType })}
+            </div>
+          </div>
+        </div>
+
+        {/* Buttons pinned at bottom */}
+        <div className="flex justify-end space-x-4 pt-4">
+          <Link
+            href="/admin/products"
+            className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+          >
+            Batal
+          </Link>
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-50"
+          >
+            {loading ? "Menyimpan..." : "Simpan Produk"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

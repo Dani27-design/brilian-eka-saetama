@@ -135,17 +135,12 @@ function InspectionsTable({
                     {/* Checklist summary column */}
                     <td className="px-4 py-3">
                       {inspection.checklistDetails && inspection.checklistDetails.length > 0 ? (
-                        <div className="text-sm">
-                          <div className="text-xs text-gray-500">
-                            {inspection.checklistSummary.okCount}/{inspection.checklistSummary.totalItems} selesai
-                          </div>
-                          <button
-                            onClick={() => setChecklistModal(inspection)}
-                            className="mt-1 text-xs font-medium text-primary hover:underline"
-                          >
-                            Lihat {inspection.checklistDetails.length} checklist
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => setChecklistModal(inspection)}
+                          className="text-xs font-medium text-primary hover:underline"
+                        >
+                          Lihat {inspection.checklistDetails.length} checklist
+                        </button>
                       ) : (
                         <span className="text-xs text-gray-400">Belum diisi</span>
                       )}
@@ -166,7 +161,7 @@ function InspectionsTable({
                                   onClick={() => setItemPhotosModal(inspection)}
                                   className="text-xs font-medium text-primary hover:underline"
                                 >
-                                  {totalItemPhotos} foto
+                                  Lihat {totalItemPhotos} foto
                                 </button>
                               );
                             }
@@ -259,16 +254,18 @@ function InspectionsTable({
                           </svg>
                           Edit
                         </Link>
-                        <button
-                          onClick={() => onGenerateReport(inspection)}
-                          className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-green-300 bg-white px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-50"
-                          title="Ekspor Laporan Inspeksi"
-                        >
-                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                          Laporan
-                        </button>
+                        {inspection.status === "approved" && (
+                          <button
+                            onClick={() => onGenerateReport(inspection)}
+                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-green-300 bg-white px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-50"
+                            title="Ekspor Laporan Inspeksi"
+                          >
+                            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Laporan
+                          </button>
+                        )}
                         {inspection.status === "approved" && (
                           <button
                             onClick={() => onGenerateCertificate(inspection)}

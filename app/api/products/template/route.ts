@@ -16,12 +16,13 @@ export async function GET(request: Request) {
     // Generate template
     const template = generateImportTemplate(productType);
     
-    // Return as CSV file
+    // Return as CSV file with type-specific filename
+    const typeSuffix = productType ? `_${productType.toLowerCase()}` : '';
     return new NextResponse(template, {
       status: 200,
       headers: {
         'Content-Type': 'text/csv',
-        'Content-Disposition': 'attachment; filename="product_import_template.csv"'
+        'Content-Disposition': `attachment; filename="product_import_template${typeSuffix}.csv"`
       }
     });
   } catch (error) {

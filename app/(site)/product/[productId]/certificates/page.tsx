@@ -19,15 +19,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { productId } = params;
 
   return {
-    title: `Product Inspection Certificates`,
-    description: `View all inspection certificates for this product. Fire safety equipment inspection records and compliance certificates.`,
+    title: `Sertifikat Inspeksi Produk`,
+    description: `Lihat semua sertifikat inspeksi untuk produk ini. Rekaman inspeksi dan sertifikat kepatuhan peralatan keselamatan kebakaran.`,
     robots: {
       index: true,
       follow: true,
     },
     openGraph: {
-      title: `Product Inspection Certificates`,
-      description: `Inspection certificates and compliance records for fire safety equipment`,
+      title: `Sertifikat Inspeksi Produk`,
+      description: `Sertifikat inspeksi dan catatan kepatuhan peralatan keselamatan kebakaran`,
       type: "website",
     },
   };
