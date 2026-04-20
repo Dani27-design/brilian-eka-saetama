@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { collection, addDoc, doc, serverTimestamp } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import { collection, addDoc, doc, serverTimestamp, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ImageUploader from "@/components/Admin/ImageUploader";
 import { useAdmin } from "@/app/context/AdminContext";
 import type { Product, ProductSpecs, ProductType } from "@/types/product";
-import { query, where, getDocs } from "firebase/firestore";
 import React from "react";
 import { Timestamp } from "firebase/firestore";
 import { usePageHeader } from "@/app/context/PageHeaderContext";
@@ -43,13 +42,42 @@ export default function CreateProductPage() {
 
   // Add state for productNumber uniqueness
   const [productNumberError, setProductNumberError] = useState<string>("");
+  const [nextAvailableNumber, setNextAvailableNumber] = useState<number | null>(null);
+
+  // Fetch next available product number on mount
+  useEffect(() => {
+    const fetchNextNumber = async () => {
+      try {
+        const q = query(
+          collection(firestore, "products"),
+          orderBy("productNumber", "desc"),
+          limit(1)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const highest = snapshot.docs[0].data().productNumber;
+          setNextAvailableNumber(Number(highest) + 1);
+        } else {
+          setNextAvailableNumber(1);
+        }
+      } catch {
+        // ignore — hint is optional
+      }
+    };
+    fetchNextNumber();
+  }, []);
 
   // Add state for collapsible sections
 
-  // Check uniqueness when productNumber changes
+  // Check uniqueness and minimum number when productNumber changes
   const checkProductNumberUnique = async (value: string) => {
     if (!value) {
       setProductNumberError("");
+      return;
+    }
+    const num = Number(value);
+    if (nextAvailableNumber !== null && !isNaN(num) && num < nextAvailableNumber) {
+      setProductNumberError(`No. Produk harus ${nextAvailableNumber} atau lebih.`);
       return;
     }
     const q = query(
@@ -809,6 +837,11 @@ export default function CreateProductPage() {
                   {productNumberError && (
                     <p className="mt-1 text-xs text-red-600">
                       {productNumberError}
+                    </p>
+                  )}
+                  {!productNumberError && nextAvailableNumber !== null && (
+                    <p className="mt-1 text-xs text-gray-400">
+                      No. produk tersedia: <span className="font-medium text-primary">{nextAvailableNumber}</span>
                     </p>
                   )}
                 </div>

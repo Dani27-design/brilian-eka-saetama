@@ -247,7 +247,7 @@ export async function exportProducts(
  * @param productType - Optional specific product type for template
  * @returns CSV template string with beginner-friendly Indonesian headers
  */
-export function generateImportTemplate(productType?: ProductType): string {
+export function generateImportTemplate(productType?: ProductType, startNumber?: number): string {
   const headers = [
     "Nomor Produk",
     "Nama Produk", 
@@ -287,7 +287,10 @@ export function generateImportTemplate(productType?: ProductType): string {
   }
 
   // Create sample rows with realistic data per product type
+  // Use startNumber from Firestore (next available product number)
   const sampleRows: string[][] = [];
+  const n1 = String(startNumber || 1);
+  const n2 = String((startNumber || 1) + 1);
 
   const baseSample = (num: string, name: string, type: string, brand: string, brandType: string, expDate: string) => [
     num, name, type, brand, brandType, "CV Sumber Jaya", "30", "", "", "", expDate
@@ -295,52 +298,51 @@ export function generateImportTemplate(productType?: ProductType): string {
 
   switch (productType) {
     case "HYDRANT":
-      // Two sample rows: HPE and HPO
       sampleRows.push([
-        ...baseSample("2001", "Hydrant Pillar Permanent", "HYDRANT", "Hooseki", "HPE", ""),
+        ...baseSample(n1, "Hydrant Pillar Permanent", "HYDRANT", "Hooseki", "HPE", ""),
         "150", "60", "500", "10", "Ball Valve", "30", "Stainless Steel"
       ]);
       sampleRows.push([
-        ...baseSample("2002", "Hydrant Pillar Portable", "HYDRANT", "Hooseki", "HPO", ""),
+        ...baseSample(n2, "Hydrant Pillar Portable", "HYDRANT", "Hooseki", "HPO", ""),
         "120", "40", "300", "8", "Gate Valve", "20", "Cast Iron"
       ]);
       break;
     case "FIRE_ALARM":
       sampleRows.push([
-        ...baseSample("3001", "Sistem Fire Alarm Gedung A", "FIRE_ALARM", "Notifier", "Addressable", ""),
+        ...baseSample(n1, "Sistem Fire Alarm Gedung A", "FIRE_ALARM", "Notifier", "Addressable", ""),
         "Addressable Panel", "24V", "500", "85", "Ya", "Wired"
       ]);
       sampleRows.push([
-        ...baseSample("3002", "Sistem Fire Alarm Gedung B", "FIRE_ALARM", "Hochiki", "Conventional", ""),
+        ...baseSample(n2, "Sistem Fire Alarm Gedung B", "FIRE_ALARM", "Hochiki", "Conventional", ""),
         "Conventional Panel", "24V", "300", "90", "Ya", "Wired"
       ]);
       break;
     case "CCTV":
       sampleRows.push([
-        ...baseSample("4001", "IP Camera Indoor", "CCTV", "Hikvision", "DS-2CD1043", ""),
+        ...baseSample(n1, "IP Camera Indoor", "CCTV", "Hikvision", "DS-2CD1043", ""),
         "1080p", "3.6mm", "Ya", "12V", "WiFi", "Ya", "Ya", "256GB"
       ]);
       break;
     case "ACCESS_DOOR":
       sampleRows.push([
-        ...baseSample("5001", "Access Door Utama", "ACCESS_DOOR", "ZKTeco", "F18", ""),
+        ...baseSample(n1, "Access Door Utama", "ACCESS_DOOR", "ZKTeco", "F18", ""),
         "Stainless Steel", "Electronic Lock", "90", "210", "5"
       ]);
       break;
     case "PATROL_GUARD":
       sampleRows.push([
-        ...baseSample("6001", "Guard Tour Reader", "PATROL_GUARD", "JWM", "WM-5000V8", ""),
+        ...baseSample(n1, "Guard Tour Reader", "PATROL_GUARD", "JWM", "WM-5000V8", ""),
         "Handheld Reader", "8 jam", "Bluetooth", "60", "v2.1.0"
       ]);
       break;
     case "APAR":
     default:
       sampleRows.push([
-        ...baseSample("1001", "APAR Portable ABC 3kg", "APAR", "Yamato", "YA-10X", "2025-06-15"),
+        ...baseSample(n1, "APAR Portable ABC 3kg", "APAR", "Yamato", "YA-10X", "2025-06-15"),
         "70", "20", "15", "3", "ABC Powder", "3.5"
       ]);
       sampleRows.push([
-        ...baseSample("1002", "APAR Portable CO2 5kg", "APAR", "Servvo", "C-500", "2025-12-01"),
+        ...baseSample(n2, "APAR Portable CO2 5kg", "APAR", "Servvo", "C-500", "2025-12-01"),
         "80", "25", "20", "5", "CO2", "12"
       ]);
       break;

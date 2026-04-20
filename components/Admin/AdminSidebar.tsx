@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/app/context/LanguageContext";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 
 const translations = {
@@ -173,26 +173,20 @@ export default function AdminSidebar({
   }, []);
 
   useEffect(() => {
-    const fetchWaitingCount = async () => {
-      try {
-        const q = query(
-          collection(firestore, "maintenances"),
-          where("status", "==", "waiting_approval")
-        );
-        const snapshot = await getDocs(q);
-        // Only count docs that have actual inspection data submitted
-        const count = snapshot.docs.filter((d) => {
-          const data = d.data();
-          return data.inspection && data.inspection.createdAt;
-        }).length;
-        setWaitingApprovalCount(count);
-      } catch (error) {
-        console.error("Error fetching waiting approval count:", error);
-      }
-    };
-    fetchWaitingCount();
-    const interval = setInterval(fetchWaitingCount, 60000);
-    return () => clearInterval(interval);
+    const q = query(
+      collection(firestore, "maintenances"),
+      where("status", "==", "waiting_approval")
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const count = snapshot.docs.filter((d) => {
+        const data = d.data();
+        return data.inspection && data.inspection.createdAt;
+      }).length;
+      setWaitingApprovalCount(count);
+    }, (error) => {
+      console.error("Error listening to waiting approval count:", error);
+    });
+    return () => unsubscribe();
   }, []);
 
   const isActive = (href: string, startsWith?: boolean) => {
