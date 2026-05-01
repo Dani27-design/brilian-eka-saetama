@@ -518,7 +518,15 @@ export function convertToCertificateData(
     inspectorName: inspection.inspectorName || "N/A",
     engineerNames: inspection.engineerNames || [],
     checklist: maintenanceData?.inspection?.checklist || [],
-    photos: maintenanceData?.inspection?.photos || [],
+    photos: (() => {
+      const inspectionPhotos = maintenanceData?.inspection?.photos || [];
+      if (inspectionPhotos.length > 0) return inspectionPhotos;
+      const checklist = maintenanceData?.inspection?.checklist || [];
+      return checklist.reduce((all: string[], item: any) => {
+        if (item.photos && Array.isArray(item.photos)) return [...all, ...item.photos];
+        return all;
+      }, []);
+    })(),
     certificateNumber,
     issueDate: formatToWIBExport(now),
   };

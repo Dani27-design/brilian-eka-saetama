@@ -41,8 +41,19 @@ export function MobileInspectionView({
 
   const inspectionData = certificate.rawMaintenanceData?.inspection;
   const checklist = inspectionData?.checklist || [];
-  const photos = inspectionData?.photos || [];
   const productType = certificate.rawMaintenanceData?.productType;
+
+  // APAR/CCTV/ACCESS_DOOR/PATROL_GUARD: inspection-level photos
+  // HYDRANT/FIRE_ALARM: per-checklist-item photos
+  const photos = (() => {
+    const inspectionPhotos = inspectionData?.photos || [];
+    if (inspectionPhotos.length > 0) return inspectionPhotos;
+    const itemPhotos = checklist.reduce((all: string[], item: any) => {
+      if (item.photos && Array.isArray(item.photos)) return [...all, ...item.photos];
+      return all;
+    }, []);
+    return itemPhotos;
+  })();
 
   return (
     <div className="p-4">

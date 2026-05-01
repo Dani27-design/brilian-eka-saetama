@@ -90,7 +90,16 @@ function formatInspectionData(inspection: any): {
     inspectionStatus: "Sudah Diinspeksi",
     inspectionDate: inspection.createdAt ? formatDateForExport(inspection.createdAt.toDate()) : "",
     inspectionResults: `${okCount}/${totalCount} OK - ${results}`,
-    photoCount: inspection.photos ? inspection.photos.length.toString() : "0"
+    photoCount: (() => {
+      const inspectionPhotos = inspection.photos || [];
+      if (inspectionPhotos.length > 0) return inspectionPhotos.length.toString();
+      const checklist = inspection.checklist || [];
+      const itemPhotos = checklist.reduce((all: any[], item: any) => {
+        if (item.photos && Array.isArray(item.photos)) return [...all, ...item.photos];
+        return all;
+      }, []);
+      return itemPhotos.length.toString();
+    })()
   };
 }
 
