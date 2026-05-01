@@ -1,10 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import {
-  createCertificateData,
-  generateCertificatePDFBlob,
-} from "@/utils/pdfCertificate";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { MobileInspectionView } from "./MobileInspectionView";
 import { useLanguage } from "@/app/context/LanguageContext";
 import PromoSection from "@/components/Site/PromoSection";
@@ -97,6 +93,7 @@ export default function PublicCertificatesClient({
     [certificateNumber: string]: boolean;
   }>({});
   const [isMobile, setIsMobile] = useState(false);
+  const pdfBlobUrlsRef = useRef<{ [certificateNumber: string]: string }>({});
 
   useEffect(() => {
     fetchCertificates();
@@ -135,11 +132,6 @@ export default function PublicCertificatesClient({
 
       const certificatesData: CertificatesResponse = await response.json();
       setData(certificatesData);
-
-      // Generate PDF blob URLs for each certificate (skip on mobile for performance)
-      if (certificatesData.certificates.length > 0 && !isMobile) {
-        generatePdfBlobUrls(certificatesData.certificates);
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -147,83 +139,73 @@ export default function PublicCertificatesClient({
     }
   };
 
-  const generatePdfBlobUrls = async (certificates: PublicCertificateData[]) => {
-    // Revoke old blob URLs before creating new ones to prevent memory leak
-    Object.values(pdfBlobUrls).forEach((url) => {
-      URL.revokeObjectURL(url);
-    });
+  // On-demand PDF generation: generates PDF for a single certificate when needed
+  const generatePdfForCertificate = useCallback(async (cert: PublicCertificateData) => {
+    if (!cert.rawMaintenanceData || !cert.rawProductData) return;
+    if (pdfBlobUrlsRef.current[cert.certificateNumber]) return; // Already cached
 
-    const newBlobUrls: { [certificateNumber: string]: string } = {};
-    const newGeneratingState: { [certificateNumber: string]: boolean } = {};
+    try {
+      setGeneratingPdf((prev) => ({ ...prev, [cert.certificateNumber]: true }));
 
-    for (const cert of certificates) {
-      if (!cert.rawMaintenanceData || !cert.rawProductData) continue;
+      // Dynamic import — PDF libs (~400KB) only loaded when actually needed
+      const { createCertificateData, generateCertificatePDFBlob } =
+        await import("@/utils/pdfCertificate");
 
-      try {
-        newGeneratingState[cert.certificateNumber] = true;
-        setGeneratingPdf((prev) => ({
-          ...prev,
-          [cert.certificateNumber]: true,
-        }));
+      const location =
+        cert.resolvedLocation ||
+        cert.rawContractData?.location ||
+        cert.rawContractData?.customerData?.address ||
+        cert.rawProductData?.location ||
+        "N/A";
 
-        // Follow the exact same pattern as the admin page
-        // Use resolved data from API (same pattern as admin page)
-        const location =
-          cert.resolvedLocation ||
-          cert.rawContractData?.location ||
-          cert.rawContractData?.customerData?.address ||
-          cert.rawProductData?.location ||
-          "N/A";
+      const engineerNames = cert.resolvedEngineerNames ||
+        cert.engineerNames || ["Inspector"];
+      const approverName =
+        cert.resolvedApproverName || "Certificate Authority";
 
-        // Use resolved engineer names and approver (same as admin page)
-        const engineerNames = cert.resolvedEngineerNames ||
-          cert.engineerNames || ["Inspector"];
-        const approverName =
-          cert.resolvedApproverName || "Certificate Authority";
+      const certificateData = createCertificateData(
+        cert.rawMaintenanceData,
+        cert.rawContractData || {},
+        cert.rawProductData,
+        engineerNames,
+        approverName,
+        location,
+      );
 
-        // Create certificate data using exact same pattern as admin page
-        const certificateData = createCertificateData(
-          cert.rawMaintenanceData,
-          cert.rawContractData || {},
-          cert.rawProductData,
-          engineerNames,
-          approverName,
-          location,
-        );
+      const pdfBlob = await generateCertificatePDFBlob(
+        certificateData,
+        "public_inspector",
+        "public_approver",
+      );
 
-        // Generate PDF blob
-        const pdfBlob = await generateCertificatePDFBlob(
-          certificateData,
-          "public_inspector", // Generic inspector ID for public certificates
-          "public_approver", // Generic approver ID for public certificates
-        );
-
-        // Create blob URL
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        newBlobUrls[cert.certificateNumber] = blobUrl;
-      } catch (error) {
-        console.error(
-          `Failed to generate PDF for certificate ${cert.certificateNumber}:`,
-          error instanceof Error ? error.message : "Unknown error",
-        );
-        // Continue with other certificates
-      } finally {
-        newGeneratingState[cert.certificateNumber] = false;
-      }
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      pdfBlobUrlsRef.current[cert.certificateNumber] = blobUrl;
+      setPdfBlobUrls((prev) => ({ ...prev, [cert.certificateNumber]: blobUrl }));
+    } catch (error) {
+      console.error(
+        `Failed to generate PDF for certificate ${cert.certificateNumber}:`,
+        error instanceof Error ? error.message : "Unknown error",
+      );
+    } finally {
+      setGeneratingPdf((prev) => ({ ...prev, [cert.certificateNumber]: false }));
     }
+  }, []);
 
-    setPdfBlobUrls(newBlobUrls);
-    setGeneratingPdf(newGeneratingState);
-  };
+  // Trigger PDF generation for the current certificate (desktop only)
+  useEffect(() => {
+    if (data && !isMobile && data.certificates[currentCertificateIndex]) {
+      generatePdfForCertificate(data.certificates[currentCertificateIndex]);
+    }
+  }, [currentCertificateIndex, data, isMobile, generatePdfForCertificate]);
 
   // Cleanup blob URLs when component unmounts
   useEffect(() => {
     return () => {
-      Object.values(pdfBlobUrls).forEach((url) => {
+      Object.values(pdfBlobUrlsRef.current).forEach((url) => {
         URL.revokeObjectURL(url);
       });
     };
-  }, [pdfBlobUrls]);
+  }, []);
 
   const handlePrevious = useCallback(() => {
     setCurrentCertificateIndex((prev) => Math.max(0, prev - 1));

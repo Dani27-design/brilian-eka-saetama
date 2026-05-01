@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useLanguage } from "@/app/context/LanguageContext";
 
 const translations = {
@@ -131,10 +132,12 @@ export function MobilePhotoGallery({
               </div>
             ) : (
               <>
-                <img
+                <Image
                   src={photo}
                   alt={`${t.photoOf} ${index + 1}`}
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                  className="object-cover"
                   onError={() => handleImageError(index)}
                   loading="lazy"
                 />

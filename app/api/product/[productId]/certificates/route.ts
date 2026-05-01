@@ -164,40 +164,7 @@ export async function GET(
         .map(ref => ref.id)
     ));
 
-    // 2. Batch fetch all contracts
-    const contractsMap = new Map<string, any>();
-    if (contractIds.length > 0) {
-      const contractSnaps = await Promise.all(
-        contractIds.map(id => getDoc(doc(firestore, "contracts", id)))
-      );
-      contractSnaps.forEach((snap, i) => {
-        if (snap.exists()) {
-          contractsMap.set(contractIds[i], { id: snap.id, ...snap.data() });
-        }
-      });
-    }
-
-    // 3. Extract unique customer IDs from contracts
-    const customerIds = Array.from(new Set(
-      Array.from(contractsMap.values())
-        .filter(c => c.customer && c.customer.id)
-        .map(c => c.customer.id)
-    ));
-
-    // 4. Batch fetch all customers
-    const customersMap = new Map<string, any>();
-    if (customerIds.length > 0) {
-      const customerSnaps = await Promise.all(
-        customerIds.map(id => getDoc(doc(firestore, "customers", id)))
-      );
-      customerSnaps.forEach((snap, i) => {
-        if (snap.exists()) {
-          customersMap.set(customerIds[i], { id: snap.id, ...snap.data() });
-        }
-      });
-    }
-
-    // 5. Extract unique user IDs (engineers + approvers)
+    // 2. Extract unique user IDs (engineers + approvers)
     const userIds = new Set<string>();
     paginatedMaintenances.forEach(d => {
       const m = d.data() as Maintenance;
@@ -206,17 +173,48 @@ export async function GET(
       }
       if (m.updatedBy && m.updatedBy.id) userIds.add(m.updatedBy.id);
     });
-
-    // 6. Batch fetch all users (engineers + approvers)
-    const usersMap = new Map<string, any>();
     const userIdArray = Array.from(userIds);
-    if (userIdArray.length > 0) {
-      const userSnaps = await Promise.all(
-        userIdArray.map(id => getDoc(doc(firestore, "users", id)))
+
+    // 3. Batch fetch contracts + users in PARALLEL (independent of each other)
+    const contractsMap = new Map<string, any>();
+    const usersMap = new Map<string, any>();
+
+    const [contractSnaps, userSnaps] = await Promise.all([
+      contractIds.length > 0
+        ? Promise.all(contractIds.map(id => getDoc(doc(firestore, "contracts", id))))
+        : Promise.resolve([]),
+      userIdArray.length > 0
+        ? Promise.all(userIdArray.map(id => getDoc(doc(firestore, "users", id))))
+        : Promise.resolve([]),
+    ]);
+
+    contractSnaps.forEach((snap, i) => {
+      if (snap.exists()) {
+        contractsMap.set(contractIds[i], { id: snap.id, ...snap.data() });
+      }
+    });
+    userSnaps.forEach((snap, i) => {
+      if (snap.exists()) {
+        usersMap.set(userIdArray[i], { id: snap.id, ...snap.data() });
+      }
+    });
+
+    // 4. Extract unique customer IDs from contracts (depends on contracts)
+    const customerIds = Array.from(new Set(
+      Array.from(contractsMap.values())
+        .filter(c => c.customer && c.customer.id)
+        .map(c => c.customer.id)
+    ));
+
+    // 5. Batch fetch all customers
+    const customersMap = new Map<string, any>();
+    if (customerIds.length > 0) {
+      const customerSnaps = await Promise.all(
+        customerIds.map(id => getDoc(doc(firestore, "customers", id)))
       );
-      userSnaps.forEach((snap, i) => {
+      customerSnaps.forEach((snap, i) => {
         if (snap.exists()) {
-          usersMap.set(userIdArray[i], { id: snap.id, ...snap.data() });
+          customersMap.set(customerIds[i], { id: snap.id, ...snap.data() });
         }
       });
     }
