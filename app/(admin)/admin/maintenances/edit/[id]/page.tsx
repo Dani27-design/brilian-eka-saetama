@@ -18,6 +18,10 @@ import { ProductType } from "@/types/product";
 import Image from "next/image";
 import Link from "next/link";
 import { usePageHeader } from "@/app/context/PageHeaderContext";
+import {
+  assertNoMaintenanceOverlap,
+  MaintenanceOverlapError,
+} from "@/utils/maintenanceOverlapValidator";
 
 type UserMeta = {
   name?: string;
@@ -35,6 +39,48 @@ type MaintenanceFormData = {
   endDate: string;
   inspection: Maintenance["inspection"];
 };
+
+type ReferenceState = "valid" | "missing" | "not_found";
+
+type RepairProductOption = {
+  id: string;
+  productNumber: string;
+  name: string;
+  productType: ProductType;
+};
+
+const VALID_PRODUCT_TYPES: ProductType[] = [
+  "APAR",
+  "HYDRANT",
+  "CCTV",
+  "FIRE_ALARM",
+  "ACCESS_DOOR",
+  "PATROL_GUARD",
+];
+
+function hasReferenceId(ref: any): boolean {
+  return (
+    ref &&
+    typeof ref === "object" &&
+    typeof ref.id === "string" &&
+    ref.id.trim() !== ""
+  );
+}
+
+function isProductType(value: unknown): value is ProductType {
+  return (
+    typeof value === "string" &&
+    VALID_PRODUCT_TYPES.includes(value as ProductType)
+  );
+}
+
+function formatDateForError(date: Date): string {
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 export default function EditMaintenancePage() {
   const router = useRouter();
@@ -76,6 +122,15 @@ export default function EditMaintenancePage() {
     number: "",
     name: "",
   });
+  const [contractReferenceState, setContractReferenceState] =
+    useState<ReferenceState>("valid");
+  const [productReferenceState, setProductReferenceState] =
+    useState<ReferenceState>("valid");
+  const [repairProductOptions, setRepairProductOptions] = useState<
+    RepairProductOption[]
+  >([]);
+  const [selectedRepairProductId, setSelectedRepairProductId] = useState("");
+  const [repairProductError, setRepairProductError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,31 +142,43 @@ export default function EditMaintenancePage() {
         if (!docSnap.exists()) throw new Error("Maintenance tidak ditemukan");
 
         const data = docSnap.data() as Maintenance;
+        setRepairProductOptions([]);
+        setSelectedRepairProductId("");
+        setRepairProductError("");
 
         // Get contract details
         let contractNum = "";
         let contractName = "";
-        if (data.contract) {
+        let contractState: ReferenceState = "missing";
+        let contractDataForRepair: any = null;
+        if (hasReferenceId(data.contract)) {
           const contractSnap = await getDoc(data.contract);
           if (contractSnap.exists()) {
             const contractData = contractSnap.data();
+            contractState = "valid";
+            contractDataForRepair = contractData;
             contractNum = contractData.contractNumber || "";
             contractName = contractData.contractName || "";
             setContractDetails({
               number: contractNum,
               name: contractName,
             });
+          } else {
+            contractState = "not_found";
           }
         }
+        setContractReferenceState(contractState);
 
         // Get product details
         let productNum = "";
         let productName = "";
-        let productType = "";
-        if (data.product) {
+        let productType = data.productType || "";
+        let productState: ReferenceState = "missing";
+        if (hasReferenceId(data.product)) {
           const productSnap = await getDoc(data.product);
           if (productSnap.exists()) {
             const productData = productSnap.data();
+            productState = "valid";
             productNum = productData.productNumber || "";
             productName = productData.name || "";
             productType = productData.productType || "";
@@ -119,6 +186,50 @@ export default function EditMaintenancePage() {
               number: productNum,
               name: productName,
             });
+          } else {
+            productState = "not_found";
+          }
+        }
+        setProductReferenceState(productState);
+
+        if (productState !== "valid") {
+          setProductDetails({
+            number: "-",
+            name: "Produk tidak valid",
+          });
+
+          if (
+            contractState === "valid" &&
+            Array.isArray(contractDataForRepair?.products)
+          ) {
+            const optionSnaps = await Promise.all(
+              contractDataForRepair.products.map((productRef: any) =>
+                hasReferenceId(productRef) ? getDoc(productRef) : Promise.resolve(null),
+              ),
+            );
+
+            const options: RepairProductOption[] = optionSnaps.flatMap(
+              (productSnap: any) => {
+                if (!productSnap?.exists?.()) return [];
+
+                const productData = productSnap.data();
+                if (!isProductType(productData.productType)) return [];
+
+                return [{
+                  id: productSnap.id,
+                  productNumber: String(productData.productNumber || ""),
+                  name: productData.name || productSnap.id,
+                  productType: productData.productType,
+                }];
+              },
+            );
+
+            setRepairProductOptions(options);
+            if (options.length === 0) {
+              setRepairProductError("Kontrak tidak memiliki produk valid untuk perbaikan.");
+            }
+          } else {
+            setRepairProductError("Kontrak harus valid sebelum referensi produk dapat diperbaiki.");
           }
         }
 
@@ -385,8 +496,83 @@ export default function EditMaintenancePage() {
     setError("");
 
     try {
+      let selectedRepairProduct: RepairProductOption | null = null;
+      let selectedRepairProductRef: any = null;
+
+      if (productReferenceState !== "valid") {
+        if (contractReferenceState !== "valid" || !hasReferenceId(form.contract)) {
+          setError("Kontrak harus valid sebelum referensi produk dapat diperbaiki.");
+          setLoading(false);
+          return;
+        }
+
+        if (!selectedRepairProductId) {
+          setError("Pilih produk pengganti untuk memperbaiki referensi produk.");
+          setLoading(false);
+          return;
+        }
+
+        selectedRepairProduct =
+          repairProductOptions.find((product) => product.id === selectedRepairProductId) || null;
+
+        if (!selectedRepairProduct) {
+          setError("Produk pengganti tidak valid untuk kontrak ini.");
+          setLoading(false);
+          return;
+        }
+
+        if (form.inspection && selectedRepairProduct.productType !== form.productType) {
+          setError(
+            "Produk pengganti harus memiliki tipe yang sama karena maintenance ini sudah memiliki inspeksi.",
+          );
+          setLoading(false);
+          return;
+        }
+
+        const repairStartDate = new Date(form.startDate);
+        const repairEndDate = new Date(form.endDate);
+
+        if (
+          Number.isNaN(repairStartDate.getTime()) ||
+          Number.isNaN(repairEndDate.getTime())
+        ) {
+          setError("Tanggal mulai dan tanggal selesai harus valid sebelum memperbaiki produk.");
+          setLoading(false);
+          return;
+        }
+
+        selectedRepairProductRef = doc(firestore, "products", selectedRepairProduct.id);
+
+        try {
+          await assertNoMaintenanceOverlap({
+            contractRef: form.contract,
+            productRef: selectedRepairProductRef,
+            startDate: repairStartDate,
+            endDate: repairEndDate,
+            excludeMaintenanceId: form.id,
+          });
+        } catch (overlapError) {
+          if (overlapError instanceof MaintenanceOverlapError) {
+            const conflicts = overlapError.conflicts
+              .map((conflict) =>
+                `${formatDateForError(conflict.startDate)} - ${formatDateForError(conflict.endDate)}`,
+              )
+              .join(", ");
+
+            setError(
+              `Produk ini sudah memiliki maintenance pada contract yang sama di periode ${conflicts}.`,
+            );
+            setLoading(false);
+            return;
+          }
+
+          throw overlapError;
+        }
+      }
+
       // Check if status should be updated based on engineer selection
       let newStatus = form.status;
+      const userRef = user?.uid ? doc(firestore, "users", user.uid) : null;
 
       // If engineers are assigned and status is pending, update to scheduled
       if (form.engineer.length > 0 && form.status === "pending") {
@@ -406,8 +592,19 @@ export default function EditMaintenancePage() {
           doc(firestore, "users", uid),
         ),
         updatedAt: serverTimestamp(),
-        updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
+        updatedBy: userRef,
       };
+
+      if (selectedRepairProduct && selectedRepairProductRef) {
+        updateData.product = selectedRepairProductRef;
+        updateData.productType = selectedRepairProduct.productType;
+        updateData.repairMeta = {
+          reason: "missing_product_reference",
+          previousProductReferenceState: productReferenceState,
+          repairedAt: serverTimestamp(),
+          repairedBy: userRef,
+        };
+      }
 
       // Only update inspection data if it exists and has been modified
       if (form.inspection) {
@@ -417,7 +614,7 @@ export default function EditMaintenancePage() {
           createdAt: form.inspection.createdAt || serverTimestamp(),
           createdBy:
             form.inspection.createdBy ||
-            (user?.uid ? doc(firestore, "users", user.uid) : null),
+            userRef,
           // Photos are not editable by admin, so they remain as is
           photos: form.inspection.photos || [],
         };
@@ -434,6 +631,11 @@ export default function EditMaintenancePage() {
   };
 
   if (loading || !form) return <div className="p-8 text-center">Memuat...</div>;
+
+  const selectedRepairProductForDisplay =
+    repairProductOptions.find((product) => product.id === selectedRepairProductId) || null;
+  const displayedProductType =
+    selectedRepairProductForDisplay?.productType || form.productType || "-";
 
   return (
     <div className="flex h-full flex-col">
@@ -496,17 +698,46 @@ export default function EditMaintenancePage() {
               disabled
               className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500"
             />
+            {contractReferenceState !== "valid" && (
+              <p className="mt-1 text-xs text-red-600">
+                Referensi kontrak tidak valid. Perbaikan produk diblok sampai kontrak valid.
+              </p>
+            )}
           </div>
 
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Produk
             </label>
-            <input
-              value={`${productDetails.number} - ${productDetails.name}`}
-              disabled
-              className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500"
-            />
+            {productReferenceState === "valid" ? (
+              <input
+                value={`${productDetails.number} - ${productDetails.name}`}
+                disabled
+                className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500"
+              />
+            ) : (
+              <div className="space-y-2">
+                <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-2 text-sm text-yellow-800">
+                  Referensi produk tidak valid. Pilih produk dari kontrak ini untuk memperbaiki data.
+                </div>
+                <select
+                  value={selectedRepairProductId}
+                  onChange={(event) => setSelectedRepairProductId(event.target.value)}
+                  disabled={contractReferenceState !== "valid" || repairProductOptions.length === 0}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary disabled:cursor-not-allowed disabled:bg-gray-100"
+                >
+                  <option value="">Pilih produk pengganti</option>
+                  {repairProductOptions.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.productNumber} - {product.name} - {product.productType}
+                    </option>
+                  ))}
+                </select>
+                {repairProductError && (
+                  <p className="text-xs text-red-600">{repairProductError}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
@@ -514,7 +745,7 @@ export default function EditMaintenancePage() {
               Tipe Produk
             </label>
             <input
-              value={form.productType}
+              value={displayedProductType}
               disabled
               className="w-full rounded-lg border border-stroke bg-gray-100 px-4 py-2 text-gray-500"
             />

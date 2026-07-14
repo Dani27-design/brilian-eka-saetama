@@ -94,6 +94,12 @@ export function canUseMaintenanceFirestoreSort(filters: MaintenanceFilters): boo
     return false;
   }
 
+  // Month/year filtering must include maintenances whose date range overlaps
+  // the selected period, not only documents whose startDate is inside it.
+  if ((filters.month && filters.month > 0) || (filters.year && filters.year > 0)) {
+    return false;
+  }
+
   // Check if the sort field is supported by Firestore
   const sortField = MAINTENANCE_SORT_FIELD_MAPPING[filters.sortBy];
   return FIRESTORE_SAFE_MAINTENANCE_SORT_FIELDS.includes(sortField);
@@ -229,6 +235,13 @@ export function validateMaintenanceSortConfiguration(
     return {
       isValid: false,
       reason: "Inspection status filter requires client-side sorting"
+    };
+  }
+
+  if ((filters.month && filters.month > 0) || (filters.year && filters.year > 0)) {
+    return {
+      isValid: false,
+      reason: "Month/year filters require client-side range overlap checks"
     };
   }
 

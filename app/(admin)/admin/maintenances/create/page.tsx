@@ -9,7 +9,6 @@ import {
   getDoc,
   query,
   where,
-  Timestamp,
 } from "firebase/firestore";
 import { firestore } from "@/db/firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
@@ -17,6 +16,10 @@ import { useAdmin } from "@/app/context/AdminContext";
 import { ProductType } from "@/types/product";
 import Link from "next/link";
 import { usePageHeader } from "@/app/context/PageHeaderContext";
+import {
+  assertNoMaintenanceOverlap,
+  MaintenanceOverlapError,
+} from "@/utils/maintenanceOverlapValidator";
 
 type Contract = {
   id: string;
@@ -38,6 +41,14 @@ type MaintenanceStatus =
   | "in-progress"
   | "completed"
   | "cancelled";
+
+function formatDateForError(date: Date): string {
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 export default function CreateMaintenancePage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -241,44 +252,38 @@ export default function CreateMaintenancePage() {
       const newStartDate = new Date(form.startDate);
       const newEndDate = new Date(form.endDate);
 
-      // Create Timestamp objects for Firestore query
-      const newStartTimestamp = Timestamp.fromDate(newStartDate);
-      const newEndTimestamp = Timestamp.fromDate(newEndDate);
+      const overlapMessages: string[] = [];
 
-      // Query for existing maintenances for the same contract
-      // We can only use one inequality filter in Firestore.
-      // So, we'll query for maintenances that *could* overlap
-      // (i.e., their startDate is before or on the newEndDate)
-      // and then filter more precisely on the client side.
-      const q = query(
-        collection(firestore, "maintenances"),
-        where("contract", "==", contractRef),
-        where("startDate", "<=", newEndTimestamp),
-      );
+      for (const product of selectedProducts) {
+        const productRef = doc(firestore, "products", product.id);
 
-      const querySnapshot = await getDocs(q);
+        try {
+          await assertNoMaintenanceOverlap({
+            contractRef,
+            productRef,
+            startDate: newStartDate,
+            endDate: newEndDate,
+          });
+        } catch (overlapError) {
+          if (overlapError instanceof MaintenanceOverlapError) {
+            const conflicts = overlapError.conflicts
+              .map((conflict) =>
+                `${formatDateForError(conflict.startDate)} - ${formatDateForError(conflict.endDate)}`,
+              )
+              .join(", ");
 
-      // Client-side check for actual date overlaps
-      const isOverlap = querySnapshot.docs.some((docSnap) => {
-        const existingMaintenance = docSnap.data();
-        const existingStartDate = (
-          existingMaintenance.startDate as Timestamp
-        ).toDate();
-        const existingEndDate = (
-          existingMaintenance.endDate as Timestamp
-        ).toDate();
+            overlapMessages.push(
+              `Maintenance untuk produk ${product.productNumber} pada kontrak ini sudah ada di periode ${conflicts}.`,
+            );
+            continue;
+          }
 
-        // Check for overlap: [newStartDate, newEndDate] overlaps with [existingStartDate, existingEndDate]
-        // if newStartDate <= existingEndDate AND newEndDate >= existingStartDate
-        return (
-          newStartDate <= existingEndDate && newEndDate >= existingStartDate
-        );
-      });
+          throw overlapError;
+        }
+      }
 
-      if (isOverlap) {
-        setError(
-          "Maintenance untuk kontrak ini sudah ada dalam periode yang dipilih atau terjadi tumpang tindih tanggal.",
-        );
+      if (overlapMessages.length > 0) {
+        setError(overlapMessages.join(" "));
         setLoading(false);
         return;
       }

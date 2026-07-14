@@ -494,7 +494,13 @@ export default function MaintenancesPage() {
                     <tr
                       key={maintenance.id}
                       className={`text-sm transition-colors ${
-                        selectedMaintenances.has(maintenance.id) ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50/50"
+                        maintenance.repairReasons?.length
+                          ? selectedMaintenances.has(maintenance.id)
+                            ? "bg-yellow-50 hover:bg-yellow-100"
+                            : "bg-yellow-50/40 hover:bg-yellow-50"
+                          : selectedMaintenances.has(maintenance.id)
+                          ? "bg-blue-50 hover:bg-blue-100"
+                          : "hover:bg-blue-50/50"
                       }`}
                     >
                       <td className="px-4 py-3">
@@ -508,6 +514,11 @@ export default function MaintenancesPage() {
                       <td className="px-4 py-3">
                         <div className="font-medium text-gray-900">{maintenance.contractNumber}</div>
                         <div className="text-xs text-gray-500">{maintenance.contractName}</div>
+                        {maintenance.referenceStatus?.contract !== "valid" && (
+                          <span className="mt-1 inline-flex rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+                            Referensi kontrak tidak valid
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
@@ -517,6 +528,16 @@ export default function MaintenancesPage() {
                           <span className="font-medium text-gray-900">{maintenance.productName}</span>
                           <span className="text-gray-500"> · {maintenance.productNumber}</span>
                         </div>
+                        {maintenance.referenceStatus?.product !== "valid" && (
+                          <span className="mt-1 inline-flex rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+                            Referensi produk tidak valid
+                          </span>
+                        )}
+                        {maintenance.isRepairable && (
+                          <span className="ml-1 mt-1 inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                            Perlu perbaikan data
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-gray-900">

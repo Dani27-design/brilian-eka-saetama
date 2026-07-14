@@ -267,10 +267,20 @@ export function CalendarView({ maintenances, selectedDate, onDateSelect }: Calen
                     <td className="px-3 py-2">
                       <div className="font-medium text-gray-900">{maintenance.contractName}</div>
                       <div className="text-xs text-gray-500">{maintenance.contractNumber}</div>
+                      {maintenance.referenceStatus?.contract !== "valid" && (
+                        <span className="mt-1 inline-flex rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+                          Referensi kontrak tidak valid
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-2">
                       <div className="text-gray-900">{maintenance.productName}</div>
                       <div className="text-xs text-gray-500">{maintenance.productNumber}</div>
+                      {maintenance.referenceStatus?.product !== "valid" && (
+                        <span className="mt-1 inline-flex rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+                          Referensi produk tidak valid
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-2">
                       <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${

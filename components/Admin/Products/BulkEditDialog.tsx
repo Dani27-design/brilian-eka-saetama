@@ -55,6 +55,13 @@ export default function BulkEditDialog({
   // Current dropdown selection
   const [selectedDropdownField, setSelectedDropdownField] = useState<string>('');
 
+  const isMaintenanceIntervalSelected = selectedFields.some(
+    ({ field }) => field.key === 'maintenanceInterval'
+  );
+  const maintenanceContractProductCount = selectedProducts.filter(
+    (product) => product.contractData?.contractType === "maintenance"
+  ).length;
+
   /**
    * Adds a field from dropdown selection
    */
@@ -409,6 +416,37 @@ export default function BulkEditDialog({
             <p className="text-sm text-gray-600">
               The following changes will be applied to all {selectedProducts.length} selected products:
             </p>
+            {isMaintenanceIntervalSelected && (
+              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <div className="flex items-start gap-3">
+                  <svg
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                  <div className="text-sm">
+                    <p className="font-medium text-amber-900">
+                      Jadwal maintenance existing tidak otomatis berubah dari bulk edit.
+                    </p>
+                    <p className="mt-1 text-amber-800">
+                      Bulk edit ini hanya mengubah nilai interval pada data produk.
+                      Gunakan flow edit produk untuk preview dan reschedule maintenance.
+                      {maintenanceContractProductCount > 0
+                        ? ` ${maintenanceContractProductCount} produk terpilih berada pada kontrak maintenance.`
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <ul className="mt-2 space-y-1 text-sm">
               {selectedFields.map(({ field, value }) => {
                 let displayValue = '(empty)';

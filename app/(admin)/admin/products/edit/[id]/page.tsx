@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   collection,
-  addDoc,
   doc,
   serverTimestamp,
   getDoc,
@@ -13,6 +12,7 @@ import { firestore } from "@/db/firebase/firebaseConfig";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ImageUploader from "@/components/Admin/ImageUploader";
+import Modal from "@/components/Admin/Modal";
 import { useAdmin } from "@/app/context/AdminContext";
 import type { Product, ProductSpecs, ProductType } from "@/types/product";
 import { query, where, getDocs } from "firebase/firestore";
@@ -23,11 +23,17 @@ import {
   downloadQRCode,
   generateQRCodeDataURL,
   getQRCodeSize,
-  generateQRLabel,
 } from "@/utils/qrCodeGenerator";
 import { findProductLocation } from "@/utils/findProductLocation";
-import Image from "next/image";
 import { usePageHeader } from "@/app/context/PageHeaderContext";
+import {
+  applyIntervalReschedulePlan,
+  buildIntervalReschedulePlan,
+  type IntervalRescheduleMode,
+  RescheduleApplyError,
+  type ReschedulePlan,
+  StaleReschedulePlanError,
+} from "@/utils/maintenanceIntervalRescheduler";
 
 type UserMeta = {
   name?: string;
@@ -54,6 +60,42 @@ interface ProductForm {
   source: string;
   productType: ProductType;
   maintenanceInterval: number;
+}
+
+type OriginalProductSnapshot = {
+  maintenanceInterval: number;
+  productType: ProductType;
+  contractId: string | null;
+  contractType: string | null;
+};
+
+type ProductUpdatePayload = Record<string, any>;
+
+function formatPreviewDate(date: Date | null): string {
+  if (!date) return "-";
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatPreviewDateRange(startDate: Date | null, endDate: Date | null): string {
+  return `${formatPreviewDate(startDate)} - ${formatPreviewDate(endDate)}`;
+}
+
+const maintenanceStatusDisplay: Record<string, string> = {
+  pending: "Menunggu",
+  scheduled: "Dijadwalkan",
+  in_progress: "Sedang Dikerjakan",
+  waiting_approval: "Menunggu Disetujui",
+  approved: "Disetujui",
+  rejected: "Ditolak",
+};
+
+function getMaintenanceStatusDisplay(status: string | undefined): string {
+  if (!status) return "-";
+  return maintenanceStatusDisplay[status] || status;
 }
 
 export default function EditProductPage() {
@@ -83,6 +125,20 @@ export default function EditProductPage() {
   const [generatingQR, setGeneratingQR] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [contractData, setContractData] = useState<any>(null);
+  const [originalProductSnapshot, setOriginalProductSnapshot] =
+    useState<OriginalProductSnapshot | null>(null);
+  const [pendingProductUpdate, setPendingProductUpdate] =
+    useState<ProductUpdatePayload | null>(null);
+  const [futureOnlyPlan, setFutureOnlyPlan] =
+    useState<ReschedulePlan | null>(null);
+  const [activeCutPlan, setActiveCutPlan] =
+    useState<ReschedulePlan | null>(null);
+  const [selectedRescheduleMode, setSelectedRescheduleMode] =
+    useState<IntervalRescheduleMode>("future_only");
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [buildingReschedulePlan, setBuildingReschedulePlan] = useState(false);
+  const [applyingReschedule, setApplyingReschedule] = useState(false);
 
 
   useEffect(() => {
@@ -92,13 +148,17 @@ export default function EditProductPage() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data() as any;
+          const initialProductType = data.productType || "APAR";
+          const initialMaintenanceInterval = Number(data.maintenanceInterval || 0);
+          let fetchedContractData: any = null;
+
           setForm({
             name: data.name || "",
             productNumber: data.productNumber?.toString() || "",
-            productType: data.productType || "APAR",
+            productType: initialProductType,
             imageUrl: data.imageUrl || "",
             source: data.source || "",
-            maintenanceInterval: data.maintenanceInterval || 0,
+            maintenanceInterval: initialMaintenanceInterval,
           });
           setSpecs({
             ...data.specs,
@@ -122,15 +182,25 @@ export default function EditProductPage() {
               const contractSnap = await getDoc(data.contract);
               if (contractSnap.exists()) {
                 const contractInfo = contractSnap.data() || {};
-                setContractData({
+                fetchedContractData = {
                   id: contractSnap.id,
                   ...(contractInfo as Record<string, any>),
-                });
+                };
+                setContractData(fetchedContractData);
               }
             } catch (contractError) {
               console.warn("Failed to fetch contract data:", contractError);
             }
+          } else {
+            setContractData(null);
           }
+
+          setOriginalProductSnapshot({
+            maintenanceInterval: initialMaintenanceInterval,
+            productType: initialProductType,
+            contractId: data.contract?.id || null,
+            contractType: fetchedContractData?.contractType || null,
+          });
 
           // Meta info
           if (data.updatedAt && data.updatedBy) {
@@ -920,17 +990,12 @@ export default function EditProductPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(false);
-
+  const buildProductUpdatePayload = async (): Promise<ProductUpdatePayload | null> => {
     // Convert productNumber to number and validate
     const productNumber = Number(form.productNumber);
     if (!form.productNumber || !form.name || isNaN(productNumber)) {
       setError("No. Produk harus berupa angka dan Nama Produk wajib diisi.");
-      setLoading(false);
-      return;
+      return null;
     }
 
     // Final check before submit
@@ -945,8 +1010,7 @@ export default function EditProductPage() {
     });
     if (isDuplicate) {
       setProductNumberError("No. Produk sudah digunakan, gunakan nomor lain.");
-      setLoading(false);
-      return;
+      return null;
     }
 
     // Build specs sesuai type
@@ -966,31 +1030,183 @@ export default function EditProductPage() {
       serialNumber: toStringOrNull(specs.serialNumber),
     };
 
+    return {
+      ...form,
+      productNumber: productNumber,
+      maintenanceInterval: form.maintenanceInterval
+        ? Number(form.maintenanceInterval)
+        : 0,
+      source: form.source
+        ? form.source.toLocaleLowerCase() === "internal"
+          ? "INTERNAL"
+          : form.source
+        : "INTERNAL",
+      specs: finalSpecs,
+      updatedAt: serverTimestamp(),
+      updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
+    };
+  };
+
+  const saveProductOnly = async (productUpdatePayload: ProductUpdatePayload) => {
+    await updateDoc(doc(firestore, "products", id), productUpdatePayload);
+    router.push("/admin/products");
+  };
+
+  const handleSaveProductOnlyFromPreview = async () => {
+    if (!pendingProductUpdate) return;
+
+    setSaving(true);
+    setError("");
+
     try {
-      await updateDoc(doc(firestore, "products", id), {
-        ...form,
-        productNumber: productNumber,
-        maintenanceInterval: form.maintenanceInterval
-          ? Number(form.maintenanceInterval)
-          : 0,
-        source: form.source
-          ? form.source.toLocaleLowerCase() === "internal"
-            ? "INTERNAL"
-            : form.source
-          : "INTERNAL",
-        specs: finalSpecs,
-        updatedAt: serverTimestamp(),
-        updatedBy: user?.uid ? doc(firestore, "users", user.uid) : null,
-      });
-      router.push("/admin/products");
+      await saveProductOnly(pendingProductUpdate);
     } catch {
       setError("Gagal mengupdate produk");
     } finally {
-      setLoading(false);
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAndReschedule = async () => {
+    if (!selectedReschedulePlan || !pendingProductUpdate) return;
+
+    if (
+      originalProductSnapshot &&
+      originalProductSnapshot.productType !== form.productType
+    ) {
+      setError(
+        "Terapkan Pilihan Ini diblok karena tipe produk ikut berubah. Simpan produk saja atau ubah interval tanpa mengganti tipe produk.",
+      );
+      return;
+    }
+
+    setApplyingReschedule(true);
+    setError("");
+
+    try {
+      await applyIntervalReschedulePlan({
+        approvedPlan: selectedReschedulePlan,
+        userRef: user?.uid ? doc(firestore, "users", user.uid) : null,
+        productUpdateData: pendingProductUpdate,
+      });
+
+      router.push("/admin/products");
+    } catch (err: any) {
+      if (err instanceof StaleReschedulePlanError) {
+        setShowRescheduleModal(false);
+        setFutureOnlyPlan(null);
+        setActiveCutPlan(null);
+        setPendingProductUpdate(null);
+        setSelectedRescheduleMode("future_only");
+        setError(
+          "Data maintenance berubah setelah preview dibuat. Buat preview ulang sebelum menyimpan.",
+        );
+      } else if (err instanceof RescheduleApplyError) {
+        setError(err.message);
+      } else {
+        setError("Gagal menerapkan reschedule maintenance");
+      }
+    } finally {
+      setApplyingReschedule(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setProductNumberError("");
+    setPendingProductUpdate(null);
+    setFutureOnlyPlan(null);
+    setActiveCutPlan(null);
+    setSelectedRescheduleMode("future_only");
+
+    const productUpdatePayload = await buildProductUpdatePayload();
+    if (!productUpdatePayload) return;
+
+    const oldInterval = originalProductSnapshot?.maintenanceInterval;
+    const newInterval = Number(productUpdatePayload.maintenanceInterval || 0);
+    const intervalChanged =
+      typeof oldInterval === "number" && oldInterval !== newInterval;
+    const shouldBuildReschedulePreview =
+      intervalChanged &&
+      Boolean(originalProductSnapshot?.contractId) &&
+      originalProductSnapshot?.contractType === "maintenance";
+
+    if (!shouldBuildReschedulePreview) {
+      setSaving(true);
+      try {
+        await saveProductOnly(productUpdatePayload);
+      } catch {
+        setError("Gagal mengupdate produk");
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    setBuildingReschedulePlan(true);
+
+    try {
+      const changedAt = new Date();
+      const futurePlan = await buildIntervalReschedulePlan({
+        productId: id,
+        oldInterval: oldInterval as number,
+        newInterval,
+        changedAt,
+        mode: "future_only",
+      });
+      let activePlan: ReschedulePlan | null = null;
+
+      if (newInterval < (oldInterval as number)) {
+        activePlan = await buildIntervalReschedulePlan({
+          productId: id,
+          oldInterval: oldInterval as number,
+          newInterval,
+          changedAt,
+          mode: "cut_active_period_once",
+        });
+      }
+
+      setPendingProductUpdate(productUpdatePayload);
+      setFutureOnlyPlan(futurePlan);
+      setActiveCutPlan(activePlan);
+      setSelectedRescheduleMode(
+        activePlan?.canApply ? "cut_active_period_once" : "future_only",
+      );
+      setShowRescheduleModal(true);
+    } catch {
+      setError("Gagal membuat preview reschedule maintenance");
+    } finally {
+      setBuildingReschedulePlan(false);
     }
   };
 
   if (loading) return <div className="p-8 text-center">Memuat...</div>;
+
+  const selectedReschedulePlan =
+    selectedRescheduleMode === "cut_active_period_once"
+      ? activeCutPlan
+      : futureOnlyPlan;
+  const hasReschedulePreview = Boolean(futureOnlyPlan || activeCutPlan);
+  const engineerAssignmentLossCount =
+    selectedReschedulePlan?.replaceableMaintenances.filter(
+      (maintenance) => maintenance.engineerIds.length > 0,
+    ).length || 0;
+  const productTypeChangedWithInterval =
+    Boolean(selectedReschedulePlan && originalProductSnapshot) &&
+    originalProductSnapshot?.productType !== form.productType;
+  const canApplyReschedule =
+    Boolean(selectedReschedulePlan?.canApply) &&
+    Boolean(pendingProductUpdate) &&
+    !productTypeChangedWithInterval &&
+    !applyingReschedule &&
+    !saving;
+  const selectedActiveCut = selectedReschedulePlan?.activePeriodCut;
+  const firstNewSchedule = selectedReschedulePlan?.newSchedules[0] || null;
+  const remainingNewSchedules = Math.max(
+    (selectedReschedulePlan?.newSchedules.length || 0) - 1,
+    0,
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -1230,13 +1446,321 @@ export default function EditProductPage() {
           </Link>
           <button
             type="submit"
-            disabled={loading}
+            disabled={saving || buildingReschedulePlan || applyingReschedule}
             className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-50"
           >
-            {loading ? "Menyimpan..." : "Simpan Produk"}
+            {buildingReschedulePlan
+              ? "Menyiapkan Preview..."
+              : saving || applyingReschedule
+                ? "Menyimpan..."
+                : "Simpan Produk"}
           </button>
         </div>
       </form>
+
+      <Modal
+        isOpen={showRescheduleModal && hasReschedulePreview}
+        onClose={() => {
+          if (!applyingReschedule) {
+            setShowRescheduleModal(false);
+          }
+        }}
+        title="Preview Reschedule Maintenance"
+        size="xl"
+      >
+        {selectedReschedulePlan && (
+          <div className="space-y-5">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase text-blue-700">
+                    Produk
+                  </p>
+                  <p className="mt-1 font-medium text-gray-900">
+                    {selectedReschedulePlan.productNumber} - {selectedReschedulePlan.productName}
+                  </p>
+                  <p className="text-gray-600">{selectedReschedulePlan.productType || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase text-blue-700">
+                    Kontrak
+                  </p>
+                  <p className="mt-1 font-medium text-gray-900">
+                    {selectedReschedulePlan.contractNumber} - {selectedReschedulePlan.contractName}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase text-blue-700">
+                    Interval
+                  </p>
+                  <p className="mt-1 font-medium text-gray-900">
+                    Interval berubah dari {selectedReschedulePlan.oldInterval} hari ke{" "}
+                    {selectedReschedulePlan.newInterval} hari
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase text-blue-700">
+                    Pilihan tindakan
+                  </p>
+                  <p className="mt-1 font-medium text-gray-900">
+                    {selectedRescheduleMode === "cut_active_period_once"
+                      ? "Koreksi 1 periode aktif"
+                      : "Reschedule jadwal berikutnya"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {futureOnlyPlan && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedRescheduleMode("future_only")}
+                  className={`rounded-lg border p-4 text-left transition-colors ${
+                    selectedRescheduleMode === "future_only"
+                      ? "border-primary bg-blue-50"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-gray-900">
+                    Reschedule jadwal berikutnya
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Sistem hanya mengganti jadwal yang masih aman diganti.
+                    Jadwal yang sudah memiliki inspeksi atau status final tetap dipertahankan.
+                  </p>
+                </button>
+              )}
+              {activeCutPlan && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedRescheduleMode("cut_active_period_once")}
+                  className={`rounded-lg border p-4 text-left transition-colors ${
+                    selectedRescheduleMode === "cut_active_period_once"
+                      ? "border-primary bg-blue-50"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-gray-900">
+                    Koreksi 1 periode aktif
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Sistem akan memperpendek satu jadwal yang sedang berjalan,
+                    lalu membuat jadwal berikutnya dari tanggal setelah periode baru selesai.
+                  </p>
+                  {!activeCutPlan.canApply && (
+                    <p className="mt-2 text-xs font-medium text-red-700">
+                      {activeCutPlan.applyBlockedReason ||
+                        "Koreksi 1 periode aktif belum bisa diterapkan."}
+                    </p>
+                  )}
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="rounded-lg border border-gray-200 p-3">
+                <p className="text-xs text-gray-500">Jadwal terdata</p>
+                <p className="mt-1 text-xl font-semibold text-gray-900">
+                  {selectedReschedulePlan.existingMaintenances.length}
+                </p>
+              </div>
+              <div className="rounded-lg border border-gray-200 p-3">
+                <p className="text-xs text-gray-500">Dipertahankan</p>
+                <p className="mt-1 text-xl font-semibold text-gray-900">
+                  {selectedReschedulePlan.preservedMaintenances.length}
+                </p>
+              </div>
+              <div className="rounded-lg border border-gray-200 p-3">
+                <p className="text-xs text-gray-500">Jadwal lama diganti</p>
+                <p className="mt-1 text-xl font-semibold text-gray-900">
+                  {selectedReschedulePlan.replaceableMaintenances.length}
+                </p>
+              </div>
+              <div className="rounded-lg border border-gray-200 p-3">
+                <p className="text-xs text-gray-500">Jadwal Baru</p>
+                <p className="mt-1 text-xl font-semibold text-gray-900">
+                  {selectedReschedulePlan.newSchedules.length}
+                </p>
+              </div>
+            </div>
+
+            {selectedRescheduleMode === "cut_active_period_once" && selectedActiveCut && (
+              <div className="rounded-lg border border-gray-200 bg-white p-4">
+                <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      Jadwal yang sedang berjalan
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600">
+                      Status: {getMaintenanceStatusDisplay(selectedActiveCut.anchorStatus)}.
+                      {selectedActiveCut.anchorHasInspection
+                        ? " Sudah memiliki inspeksi."
+                        : " Belum memiliki inspeksi."}
+                    </p>
+                  </div>
+                  <p className="text-xs font-medium text-gray-500">
+                    ID: {selectedActiveCut.anchorMaintenanceId}
+                  </p>
+                </div>
+                <div className="overflow-hidden rounded-lg border border-gray-200">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+                      <tr>
+                        <th className="px-3 py-2">Item</th>
+                        <th className="px-3 py-2">Sebelum</th>
+                        <th className="px-3 py-2">Sesudah</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-gray-700">
+                      <tr>
+                        <td className="px-3 py-2 font-medium text-gray-900">
+                          Jadwal aktif
+                        </td>
+                        <td className="px-3 py-2">
+                          {formatPreviewDateRange(
+                            selectedActiveCut.previousStartDate,
+                            selectedActiveCut.previousEndDate,
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          {formatPreviewDateRange(
+                            selectedActiveCut.correctedStartDate,
+                            selectedActiveCut.correctedEndDate,
+                          )}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-3 py-2 font-medium text-gray-900">
+                          Jadwal berikutnya
+                        </td>
+                        <td className="px-3 py-2">
+                          Belum tersedia / jadwal lama terlalu panjang
+                        </td>
+                        <td className="px-3 py-2">
+                          {firstNewSchedule
+                            ? formatPreviewDateRange(
+                                firstNewSchedule.startDate,
+                                firstNewSchedule.endDate,
+                              )
+                            : "Tidak ada jadwal baru setelah koreksi"}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                {remainingNewSchedules > 0 && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Dan {remainingNewSchedules} jadwal berikutnya sampai akhir kontrak.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {productTypeChangedWithInterval && (
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+                Tipe produk ikut berubah. Terapkan Pilihan Ini diblok agar maintenance baru tidak memakai tipe yang ambigu.
+              </div>
+            )}
+
+            {engineerAssignmentLossCount > 0 && (
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+                {engineerAssignmentLossCount} maintenance yang akan diganti memiliki assignment engineer. Maintenance baru akan dibuat tanpa engineer dan status kembali pending.
+              </div>
+            )}
+
+            {selectedActiveCut?.warningLevel === "high" && (
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+                Jadwal yang dipotong sudah memiliki inspeksi atau status penting.
+                Data inspeksi, status, dan engineer tidak akan diubah. Sistem hanya
+                mengoreksi tanggal selesai dan mencatat audit otomatis.
+              </div>
+            )}
+
+            {selectedActiveCut && selectedActiveCut.warnings.length > 0 && (
+              <div className="rounded-lg border border-yellow-200 bg-white p-3">
+                <p className="text-sm font-semibold text-yellow-800">
+                  Catatan koreksi
+                </p>
+                <ul className="mt-2 space-y-1 text-sm text-yellow-800">
+                  {selectedActiveCut.warnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {!selectedReschedulePlan.canApply && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {selectedReschedulePlan.applyBlockedReason ||
+                  "Pilihan ini belum bisa diterapkan."}
+              </div>
+            )}
+
+            {selectedReschedulePlan.conflicts.length > 0 && (
+              <div className="rounded-lg border border-red-200 bg-white p-3">
+                <p className="text-sm font-semibold text-red-800">Jadwal bentrok</p>
+                <ul className="mt-2 max-h-32 space-y-1 overflow-auto text-sm text-red-700">
+                  {selectedReschedulePlan.conflicts.map((conflict, index) => (
+                    <li key={`${conflict.existingMaintenance.id}-${index}`}>
+                      {conflict.message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {selectedReschedulePlan.blockedMaintenances.length > 0 && (
+              <div className="rounded-lg border border-orange-200 bg-white p-3">
+                <p className="text-sm font-semibold text-orange-800">
+                  Jadwal yang perlu diperiksa
+                </p>
+                <ul className="mt-2 max-h-32 space-y-1 overflow-auto text-sm text-orange-700">
+                  {selectedReschedulePlan.blockedMaintenances.map((blocked) => (
+                    <li key={blocked.maintenance.id}>
+                      {blocked.maintenance.id}: {blocked.reason}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+              Ringkasan perubahan: hapus {selectedReschedulePlan.writeSummary.deleteCount}
+              {" "}jadwal lama, buat {selectedReschedulePlan.writeSummary.createCount}
+              {" "}jadwal baru, estimasi {selectedReschedulePlan.writeSummary.estimatedWrites}
+              {" "}operasi data.
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setShowRescheduleModal(false)}
+                disabled={applyingReschedule || saving}
+                className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveProductOnlyFromPreview}
+                disabled={applyingReschedule || saving}
+                className="rounded-lg border border-stroke bg-white px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {saving ? "Menyimpan..." : "Simpan Produk Saja"}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAndReschedule}
+                disabled={!canApplyReschedule}
+                className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                {applyingReschedule ? "Menerapkan..." : "Terapkan Pilihan Ini"}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

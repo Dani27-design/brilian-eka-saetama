@@ -41,4 +41,10 @@ describe("BUG-005: Bulk import success count accuracy", () => {
       }
     }
   });
+
+  it("should not auto-reschedule maintenance from bulk product updates", () => {
+    expect(sourceCode).not.toContain("maintenanceIntervalRescheduler");
+    expect(sourceCode).not.toContain("buildIntervalReschedulePlan");
+    expect(sourceCode).not.toContain("applyIntervalReschedulePlan");
+  });
 });

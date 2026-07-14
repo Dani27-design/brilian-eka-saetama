@@ -47,7 +47,27 @@ export type MaintenanceTableRow = {
     productType: ProductType;
     specs?: any;
   };
+  referenceStatus?: {
+    contract: "valid" | "missing" | "not_found";
+    product: "valid" | "missing" | "not_found";
+  };
+  isRepairable?: boolean;
+  repairReasons?: string[];
 };
+
+function getReferenceId(ref: any): string | null {
+  return ref && typeof ref === "object" && typeof ref.id === "string" && ref.id.trim() !== ""
+    ? ref.id
+    : null;
+}
+
+function toDateOrNull(value: any): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (typeof value.toDate === "function") return value.toDate();
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 /**
  * Batch loads contracts by their IDs
@@ -178,11 +198,21 @@ export async function loadMaintenancesWithRelatedData(
 
   try {
     // Extract all unique IDs for batch loading
-    const contractIds = Array.from(new Set(maintenances.map(m => m.contract.id)));
-    const productIds = Array.from(new Set(maintenances.map(m => m.product.id)));
+    const contractIds = Array.from(new Set(
+      maintenances
+        .map(m => getReferenceId(m.contract))
+        .filter((id): id is string => Boolean(id))
+    ));
+    const productIds = Array.from(new Set(
+      maintenances
+        .map(m => getReferenceId(m.product))
+        .filter((id): id is string => Boolean(id))
+    ));
     const engineerIds = Array.from(new Set(
       maintenances.flatMap(m => 
-        Array.isArray(m.engineer) ? m.engineer.map(e => e.id) : []
+        Array.isArray(m.engineer)
+          ? m.engineer.map(e => getReferenceId(e)).filter((id): id is string => Boolean(id))
+          : []
       )
     ));
 
@@ -207,11 +237,14 @@ export async function loadMaintenancesWithRelatedData(
     const tableRows: MaintenanceTableRow[] = await Promise.all(
       maintenances.map(async (maintenance, index) => {
         const maintenanceId = maintenance.id || `temp-${index}`;
+        const contractId = getReferenceId(maintenance.contract);
+        const productId = getReferenceId(maintenance.product);
         
         // Get contract data
-        const contractData = contractsMap.get(maintenance.contract.id);
+        const contractData = contractId ? contractsMap.get(contractId) : null;
+        const contractStatus = !contractId ? "missing" : contractData ? "valid" : "not_found";
         const contractNumber = contractData?.contractNumber || "-";
-        const contractName = contractData?.contractName || "-";
+        const contractName = contractData?.contractName || "Kontrak tidak valid";
         
         // Get customer data
         let customerData: any = null;
@@ -220,20 +253,36 @@ export async function loadMaintenancesWithRelatedData(
         }
 
         // Get product data
-        const productData = productsMap.get(maintenance.product.id);
+        const productData = productId ? productsMap.get(productId) : null;
+        const productStatus = !productId ? "missing" : productData ? "valid" : "not_found";
         const productNumber = productData?.productNumber || "-";
-        const productName = productData?.name || "-";
+        const productName = productData?.name || "Produk tidak valid";
         const productType = maintenance.productType || productData?.productType || "APAR";
+        const repairReasons: string[] = [];
+
+        if (contractStatus === "missing") {
+          repairReasons.push("missing_contract_reference");
+        } else if (contractStatus === "not_found") {
+          repairReasons.push("contract_reference_not_found");
+        }
+
+        if (productStatus === "missing") {
+          repairReasons.push("missing_product_reference");
+        } else if (productStatus === "not_found") {
+          repairReasons.push("product_reference_not_found");
+        }
 
         // Get engineers data
         const engineers: Array<{ id: string; name: string }> = [];
         if (Array.isArray(maintenance.engineer)) {
           for (const engRef of maintenance.engineer) {
-            const engineerData = engineersMap.get(engRef.id);
+            const engineerId = getReferenceId(engRef);
+            if (!engineerId) continue;
+            const engineerData = engineersMap.get(engineerId);
             if (engineerData) {
               engineers.push({
-                id: engRef.id,
-                name: engineerData.name || engRef.id
+                id: engineerId,
+                name: engineerData.name || engineerId
               });
             }
           }
@@ -246,8 +295,8 @@ export async function loadMaintenancesWithRelatedData(
           productNumber,
           productName,
           productType,
-          startDate: maintenance.startDate?.toDate?.() || null,
-          endDate: maintenance.endDate?.toDate?.() || null,
+          startDate: toDateOrNull(maintenance.startDate),
+          endDate: toDateOrNull(maintenance.endDate),
           status: maintenance.status,
           engineers,
           hasInspection: !!maintenance.inspection,
@@ -267,7 +316,13 @@ export async function loadMaintenancesWithRelatedData(
             productNumber: productData.productNumber,
             productType: productData.productType,
             specs: productData.specs
-          } : undefined
+          } : undefined,
+          referenceStatus: {
+            contract: contractStatus,
+            product: productStatus
+          },
+          isRepairable: productStatus !== "valid" && contractStatus === "valid",
+          repairReasons
         };
       })
     );

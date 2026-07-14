@@ -1,6 +1,72 @@
 import { MaintenanceTableRow } from "./maintenanceDataLoader";
 import { MaintenanceFilters } from "@/components/Admin/Maintenances/MaintenanceFilters";
 
+function rangesOverlap(
+  leftStart: Date,
+  leftEnd: Date,
+  rightStart: Date,
+  rightEnd: Date,
+): boolean {
+  return leftStart <= rightEnd && leftEnd >= rightStart;
+}
+
+function periodIncludesMonth(
+  startDate: Date,
+  endDate: Date,
+  month: number,
+): boolean {
+  const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  const cursor = new Date(startMonth);
+
+  while (cursor <= endMonth) {
+    if (cursor.getMonth() + 1 === month) return true;
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  return false;
+}
+
+function maintenanceOverlapsMonthYear(
+  maintenance: MaintenanceTableRow,
+  month: number,
+  year: number,
+): boolean {
+  if (!maintenance.startDate || !maintenance.endDate) return false;
+
+  if (month > 0 && year > 0) {
+    const monthStart = new Date(year, month - 1, 1);
+    const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
+    return rangesOverlap(
+      maintenance.startDate,
+      maintenance.endDate,
+      monthStart,
+      monthEnd,
+    );
+  }
+
+  if (month > 0) {
+    return periodIncludesMonth(
+      maintenance.startDate,
+      maintenance.endDate,
+      month,
+    );
+  }
+
+  if (year > 0) {
+    const yearStart = new Date(year, 0, 1);
+    const yearEnd = new Date(year, 11, 31, 23, 59, 59, 999);
+    return rangesOverlap(
+      maintenance.startDate,
+      maintenance.endDate,
+      yearStart,
+      yearEnd,
+    );
+  }
+
+  return true;
+}
+
 /**
  * Client-side filtering for maintenance data when Firestore queries are not optimal
  */
@@ -55,20 +121,11 @@ export function applyMaintenanceFilters(
     );
   }
 
-  // Month filter
-  if (filters.month > 0 && filters.month <= 12) {
-    filtered = filtered.filter(maintenance => {
-      if (!maintenance.startDate) return false;
-      return maintenance.startDate.getMonth() + 1 === filters.month;
-    });
-  }
-
-  // Year filter
-  if (filters.year > 0) {
-    filtered = filtered.filter(maintenance => {
-      if (!maintenance.startDate) return false;
-      return maintenance.startDate.getFullYear() === filters.year;
-    });
+  // Month/year filter checks the full maintenance period, not only startDate.
+  if ((filters.month > 0 && filters.month <= 12) || filters.year > 0) {
+    filtered = filtered.filter(maintenance =>
+      maintenanceOverlapsMonthYear(maintenance, filters.month, filters.year)
+    );
   }
 
   // Date range filter
@@ -199,9 +256,8 @@ export function extractFilterOptions(maintenances: MaintenanceTableRow[]): {
     statuses.add(maintenance.status);
     productTypes.add(maintenance.productType);
     
-    if (maintenance.startDate) {
-      years.add(maintenance.startDate.getFullYear());
-    }
+    if (maintenance.startDate) years.add(maintenance.startDate.getFullYear());
+    if (maintenance.endDate) years.add(maintenance.endDate.getFullYear());
     
     maintenance.engineers.forEach(engineer => {
       engineersMap.set(engineer.id, engineer.name);
